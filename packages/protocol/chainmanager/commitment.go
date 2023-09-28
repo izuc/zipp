@@ -3,9 +3,9 @@ package chainmanager
 import (
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/objectstorage/generic/model"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/objectstorage/generic/model"
+	"github.com/izuc/zipp/packages/core/commitment"
 )
 
 type Commitment struct {

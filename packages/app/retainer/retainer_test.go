@@ -10,18 +10,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/goshimmer/packages/core/database"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization/slotnotarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/markers"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp/packages/core/commitment"
+	"github.com/izuc/zipp/packages/core/database"
+	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
+	"github.com/izuc/zipp/packages/protocol/markers"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 func TestRetainer_BlockMetadata_Serialization(t *testing.T) {

@@ -3,13 +3,13 @@ package mempool
 import (
 	"fmt"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/mockedvm"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/objectstorage/generic/model"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/objectstorage/generic/model"
+	"github.com/izuc/zipp.foundation/stringify"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/mockedvm"
 )
 
 // OutputWithMetadata represents an Output with its associated metadata fields that are needed for slot management.
@@ -110,15 +110,15 @@ func (o *OutputWithMetadata) Output() (output utxo.Output) {
 	return o.M.Output
 }
 
-// IOTABalance returns the IOTA balance of the Output.
+// ZIPPBalance returns the ZIPP balance of the Output.
 // TODO: don't make the ledger depend on devnetvm
-func (o *OutputWithMetadata) IOTABalance() (balance uint64, exists bool) {
+func (o *OutputWithMetadata) ZIPPBalance() (balance uint64, exists bool) {
 	o.RLock()
 	defer o.RUnlock()
 
 	switch output := o.M.Output.(type) {
 	case devnetvm.Output:
-		return output.Balances().Get(devnetvm.ColorIOTA)
+		return output.Balances().Get(devnetvm.ColorZIPP)
 	case *mockedvm.MockedOutput:
 		return output.M.Balance, true
 	default:

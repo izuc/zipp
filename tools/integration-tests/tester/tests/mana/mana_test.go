@@ -6,16 +6,16 @@ import (
 	"math"
 	"testing"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/congestioncontrol/icca/scheduler"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 var (
@@ -112,7 +112,7 @@ var (
 //
 //	var faucetStartAddress uint64 = faucetplugin.MaxFaucetOutputsCount + 1
 //	// pledge mana to allowed peers
-//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorIOTA, tokensPerRequest, tests.TransactionConfig{
+//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorZIPP, tokensPerRequest, tests.TransactionConfig{
 //		FromAddressIndex:      faucetStartAddress,
 //		ToAddressIndex:        0,
 //		AccessManaPledgeID:    accessPeer.Identity.ID(),
@@ -121,7 +121,7 @@ var (
 //	require.NoError(t, err)
 //
 //	// pledge consensus mana to forbidden peer
-//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorIOTA, tokensPerRequest, tests.TransactionConfig{
+//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorZIPP, tokensPerRequest, tests.TransactionConfig{
 //		FromAddressIndex:      faucetStartAddress,
 //		ToAddressIndex:        0,
 //		AccessManaPledgeID:    accessPeer.Identity.ID(),
@@ -130,7 +130,7 @@ var (
 //	require.Contains(t, err.Error(), webapiledgerstate.ErrNotAllowedToPledgeManaToNode.Error())
 //
 //	// pledge access mana to forbidden peer
-//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorIOTA, tokensPerRequest, tests.TransactionConfig{
+//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorZIPP, tokensPerRequest, tests.TransactionConfig{
 //		FromAddressIndex:      faucetStartAddress,
 //		ToAddressIndex:        0,
 //		AccessManaPledgeID:    consensusPeer.Identity.ID(),

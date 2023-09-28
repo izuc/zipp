@@ -3,8 +3,8 @@ package sybilprotection
 import (
 	"context"
 
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/serializer/serix"
 )
 
 // Weight is a weight annotated with the slot it was last updated in.

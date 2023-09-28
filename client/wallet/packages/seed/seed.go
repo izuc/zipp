@@ -1,18 +1,18 @@
 package seed
 
 import (
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
-// Seed represents a seed for IOTA wallets. A seed allows us to generate a deterministic sequence of Addresses and their
+// Seed represents a seed for ZIPP wallets. A seed allows us to generate a deterministic sequence of Addresses and their
 // corresponding KeyPairs.
 type Seed struct {
 	*ed25519.Seed
 }
 
-// NewSeed is the factory method for an IOTA seed. It either generates a new one or imports an existing  marshaled seed.
+// NewSeed is the factory method for an ZIPP seed. It either generates a new one or imports an existing  marshaled seed.
 // before.
 func NewSeed(optionalSeedBytes ...[]byte) *Seed {
 	return &Seed{

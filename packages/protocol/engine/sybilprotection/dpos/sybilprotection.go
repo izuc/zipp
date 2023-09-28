@@ -7,20 +7,20 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/traits"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/sybilprotection"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/blockdag"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/shrinkingmap"
-	"github.com/iotaledger/hive.go/runtime/module"
-	"github.com/iotaledger/hive.go/runtime/options"
-	"github.com/iotaledger/hive.go/runtime/timed"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/shrinkingmap"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/timed"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
+	"github.com/izuc/zipp/packages/core/traits"
+	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization"
+	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
 )
 
 const (
@@ -127,11 +127,11 @@ func (s *SybilProtection) Weights() *sybilprotection.Weights {
 }
 
 func (s *SybilProtection) ApplyCreatedOutput(output *mempool.OutputWithMetadata) (err error) {
-	if iotaBalance, exists := output.IOTABalance(); exists {
+	if ZIPPBalance, exists := output.ZIPPBalance(); exists {
 		if s.BatchedStateTransitionStarted() {
-			s.weightsBatch.Update(output.ConsensusManaPledgeID(), int64(iotaBalance))
+			s.weightsBatch.Update(output.ConsensusManaPledgeID(), int64(ZIPPBalance))
 		} else {
-			s.weights.Update(output.ConsensusManaPledgeID(), sybilprotection.NewWeight(int64(iotaBalance), output.Index()))
+			s.weights.Update(output.ConsensusManaPledgeID(), sybilprotection.NewWeight(int64(ZIPPBalance), output.Index()))
 		}
 	}
 
@@ -139,11 +139,11 @@ func (s *SybilProtection) ApplyCreatedOutput(output *mempool.OutputWithMetadata)
 }
 
 func (s *SybilProtection) ApplySpentOutput(output *mempool.OutputWithMetadata) (err error) {
-	if iotaBalance, exists := output.IOTABalance(); exists {
+	if ZIPPBalance, exists := output.ZIPPBalance(); exists {
 		if s.BatchedStateTransitionStarted() {
-			s.weightsBatch.Update(output.ConsensusManaPledgeID(), -int64(iotaBalance))
+			s.weightsBatch.Update(output.ConsensusManaPledgeID(), -int64(ZIPPBalance))
 		} else {
-			s.weights.Update(output.ConsensusManaPledgeID(), sybilprotection.NewWeight(-int64(iotaBalance), output.Index()))
+			s.weights.Update(output.ConsensusManaPledgeID(), sybilprotection.NewWeight(-int64(ZIPPBalance), output.Index()))
 		}
 	}
 

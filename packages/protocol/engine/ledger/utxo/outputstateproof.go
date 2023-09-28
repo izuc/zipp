@@ -4,8 +4,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/hive.go/serializer/v2/byteutils"
+	"github.com/izuc/zipp.foundation/serializer/byteutils"
+	"github.com/izuc/zipp/packages/core/cerrors"
 )
 
 // region OutputStateProof /////////////////////////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,7 @@ docker run -it --rm \
     --volume="/etc/group:/etc/group:ro" \
     --volume="/etc/passwd:/etc/passwd:ro" \
     --volume="/etc/shadow:/etc/shadow:ro" \
-    --network="docker-network_goshimmer" \
+    --network="docker-network_zipp" \
     -v $(pwd):/tmp/mnt \
     -e YARN_CACHE_FOLDER=/tmp/ \
     -e HOME=/tmp/ \

@@ -1,16 +1,16 @@
 package engine
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/clock"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/eviction"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/filter"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/core/eventticker"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/core/eventticker"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/protocol/engine/clock"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus"
+	"github.com/izuc/zipp/packages/protocol/engine/eviction"
+	"github.com/izuc/zipp/packages/protocol/engine/filter"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 type Events struct {

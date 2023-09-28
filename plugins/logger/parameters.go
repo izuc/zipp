@@ -1,6 +1,6 @@
 package logger
 
-import "github.com/iotaledger/goshimmer/plugins/config"
+import "github.com/izuc/zipp/plugins/config"
 
 // ParametersDefinition contains the definition of configuration parameters used by the logger plugin.
 type ParametersDefinition struct {
@@ -13,7 +13,7 @@ type ParametersDefinition struct {
 	// Encoding defines the logger's encoding.
 	Encoding string `default:"console" usage:"log encoding"`
 	// OutputPaths defines the logger's output paths.
-	OutputPaths []string `default:"stdout,goshimmer.log" usage:"log output paths"`
+	OutputPaths []string `default:"stdout,zipp.log" usage:"log output paths"`
 	// DisableEvents defines whether to disable logger events.
 	DisableEvents bool `default:"true" usage:"disable logger events"`
 }

@@ -1,10 +1,10 @@
 package prunable
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/database"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/kvstore"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/kvstore"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/database"
 )
 
 const (

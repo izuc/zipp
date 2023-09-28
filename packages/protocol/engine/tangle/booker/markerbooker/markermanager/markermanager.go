@@ -4,13 +4,13 @@ import (
 	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/emirpasic/gods/utils"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/markers"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/ds/set"
-	"github.com/iotaledger/hive.go/ds/shrinkingmap"
-	"github.com/iotaledger/hive.go/runtime/options"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/ds/set"
+	"github.com/izuc/zipp.foundation/ds/shrinkingmap"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/markers"
 )
 
 type MarkerManager[IndexedID slot.IndexedID, MappedEntity slot.IndexedEntity[IndexedID]] struct {

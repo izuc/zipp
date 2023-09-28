@@ -8,12 +8,12 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/hive.go/crypto/bls"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/crypto/bls"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp.foundation/stringify"
+	"github.com/izuc/zipp/packages/core/cerrors"
 )
 
 func init() {

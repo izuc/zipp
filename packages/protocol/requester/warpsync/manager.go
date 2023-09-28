@@ -5,14 +5,14 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/packages/network/p2p"
-	"github.com/iotaledger/goshimmer/packages/network/warpsync"
-	"github.com/iotaledger/goshimmer/packages/protocol/chainmanager"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/logger"
-	"github.com/iotaledger/hive.go/runtime/options"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp/packages/network/p2p"
+	"github.com/izuc/zipp/packages/network/warpsync"
+	"github.com/izuc/zipp/packages/protocol/chainmanager"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 const minimumWindowSize = 10

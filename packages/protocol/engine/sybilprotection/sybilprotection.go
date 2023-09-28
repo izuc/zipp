@@ -1,11 +1,11 @@
 package sybilprotection
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/traits"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp/packages/core/traits"
 )
 
-// SybilProtection is the minimal interface for the SybilProtection component of the IOTA protocol.
+// SybilProtection is the minimal interface for the SybilProtection component of the ZIPP protocol.
 type SybilProtection interface {
 	// Weights returns the weights of identities in the SybilProtection.
 	Weights() (weights *Weights)

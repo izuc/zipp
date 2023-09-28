@@ -5,9 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp/packages/core/cerrors"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 // OutputFromBytes is the factory function for Outputs.

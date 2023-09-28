@@ -1,13 +1,13 @@
 package blocktime
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/clock"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/blockgadget"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/runtime/module"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/clock"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 )
 
 // Clock implements the clock.Clock interface that sources its notion of time from accepted and confirmed blocks.

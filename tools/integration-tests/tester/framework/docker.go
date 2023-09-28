@@ -16,7 +16,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework/config"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
 )
 
 // newDockerClient creates a Docker client that communicates via the Docker socket.
@@ -89,7 +89,7 @@ func (d *DockerContainer) CreateNode(ctx context.Context, conf config.GoShimmer)
 	log.Printf("Start %s %v", containerConfig.Image, containerConfig.Cmd)
 
 	return d.CreateContainer(ctx, conf.Name, containerConfig, &container.HostConfig{
-		Binds: []string{"goshimmer-testing-assets:/assets:rw"},
+		Binds: []string{"zipp-testing-assets:/assets:rw"},
 	})
 }
 

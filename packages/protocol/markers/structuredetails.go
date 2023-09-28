@@ -3,7 +3,7 @@ package markers
 import (
 	"fmt"
 
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
 )
 
 // region StructureDetails /////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,10 +1,10 @@
 package wallet
 
 import (
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 // Connector represents an interface that defines how the wallet interacts with the network. A wallet can either be used

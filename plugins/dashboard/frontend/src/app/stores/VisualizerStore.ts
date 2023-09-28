@@ -388,7 +388,7 @@ export class VisualizerStore {
 
 export default VisualizerStore;
 
-// copied over and refactored from https://github.com/glumb/IOTAtangle
+// copied over and refactored from https://github.com/glumb/ZIPPtangle
 function dfsIterator(graph, node, cb, up, cbLinks: any = false, seenNodes = []) {
     seenNodes.push(node);
     let pointer = 0;

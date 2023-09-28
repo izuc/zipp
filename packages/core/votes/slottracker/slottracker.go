@@ -1,12 +1,12 @@
 package slottracker
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/votes/latestvotes"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/ds/shrinkingmap"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/ds/shrinkingmap"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/votes/latestvotes"
 )
 
 type SlotTracker struct {

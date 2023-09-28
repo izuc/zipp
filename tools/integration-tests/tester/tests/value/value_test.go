@@ -5,22 +5,22 @@ import (
 	"log"
 	"testing"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/client/wallet"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/createnftoptions"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/destroynftoptions"
-	walletseed "github.com/iotaledger/goshimmer/client/wallet/packages/seed"
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/ds/bitmask"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/ds/bitmask"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/client/wallet"
+	"github.com/izuc/zipp/client/wallet/packages/createnftoptions"
+	"github.com/izuc/zipp/client/wallet/packages/destroynftoptions"
+	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 // TestValueTransactionPersistence issues transactions on random peers, restarts them and checks for persistence after restart.
@@ -70,20 +70,20 @@ func TestValueTransactionPersistence(t *testing.T) {
 	for _, peer := range nonFaucetPeers {
 		addr := peer.Address(0)
 		tests.SendFaucetRequest(t, peer, addr)
-		addrBalance[addr.Base58()] = map[devnetvm.Color]uint64{devnetvm.ColorIOTA: tokensPerRequest}
+		addrBalance[addr.Base58()] = map[devnetvm.Color]uint64{devnetvm.ColorZIPP: tokensPerRequest}
 	}
 
 	// wait for blocks to be gossiped
 	for _, peer := range nonFaucetPeers {
 		require.Eventually(t, func() bool {
-			return tests.Balance(t, peer, peer.Address(0), devnetvm.ColorIOTA) == tokensPerRequest
+			return tests.Balance(t, peer, peer.Address(0), devnetvm.ColorZIPP) == tokensPerRequest
 		}, tests.Timeout, tests.Tick)
 	}
 
-	// send IOTA tokens from every peer
+	// send ZIPP tokens from every peer
 	expectedStates := make(map[string]tests.ExpectedState)
 	for _, peer := range nonFaucetPeers {
-		txID, err := tests.SendTransaction(t, peer, peer, devnetvm.ColorIOTA, 100, tests.TransactionConfig{ToAddressIndex: 1}, addrBalance)
+		txID, err := tests.SendTransaction(t, peer, peer, devnetvm.ColorZIPP, 100, tests.TransactionConfig{ToAddressIndex: 1}, addrBalance)
 		require.NoError(t, err)
 		expectedStates[txID] = tests.ExpectedState{ConfirmationState: confirmation.Accepted}
 	}

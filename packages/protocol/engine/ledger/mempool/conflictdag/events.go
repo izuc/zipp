@@ -1,8 +1,8 @@
 package conflictdag
 
 import (
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
 // region Events ///////////////////////////////////////////////////////////////////////////////////////////////////////

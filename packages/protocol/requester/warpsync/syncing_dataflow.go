@@ -6,12 +6,12 @@ import (
 	"github.com/celestiaorg/smt"
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/goshimmer/packages/network/p2p"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/core/dataflow"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/core/dataflow"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/commitment"
+	"github.com/izuc/zipp/packages/network/p2p"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 // syncingFlowParams is a container for parameters to be used in the warpsyncing of a slot.

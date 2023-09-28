@@ -1,9 +1,9 @@
 package conflictdag
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp/packages/core/confirmation"
 )
 
 // region Conflict /////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
-	"github.com/iotaledger/hive.go/core/slot"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
 )
 
 const (

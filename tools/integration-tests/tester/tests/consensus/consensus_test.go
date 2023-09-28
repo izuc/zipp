@@ -6,22 +6,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
-	"github.com/iotaledger/hive.go/ds/bitmask"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/ds/bitmask"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/client/wallet"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	walletseed "github.com/iotaledger/goshimmer/client/wallet/packages/seed"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/sendoptions"
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework/config"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
+	"github.com/izuc/zipp/client/wallet"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
+	"github.com/izuc/zipp/client/wallet/packages/sendoptions"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 // TestSimpleDoubleSpend tests whether consensus is able to resolve a simple double spend in a partition.
@@ -156,7 +156,7 @@ func sendConflictingTx(t *testing.T, wallet *wallet.Wallet, targetAddr address.A
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
-		balance := tests.Balance(t, node, targetAddr.Address(), devnetvm.ColorIOTA)
+		balance := tests.Balance(t, node, targetAddr.Address(), devnetvm.ColorZIPP)
 		return balance == actualGenesisTokenAmount
 	}, tests.Timeout, tests.Tick)
 

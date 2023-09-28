@@ -1,7 +1,7 @@
 package blockdag
 
 import (
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
 // Events is a collection of Tangle related Events.

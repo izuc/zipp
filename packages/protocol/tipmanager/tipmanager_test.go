@@ -8,18 +8,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization/slotnotarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/booker"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/booker/markerbooker"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
-	"github.com/iotaledger/goshimmer/packages/protocol/markers"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/runtime/debug"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/runtime/debug"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
+	"github.com/izuc/zipp/packages/core/commitment"
+	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
+	"github.com/izuc/zipp/packages/protocol/markers"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 func TestTipManager_DataBlockTips(t *testing.T) {

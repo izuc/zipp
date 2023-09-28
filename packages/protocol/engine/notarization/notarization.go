@@ -3,12 +3,12 @@ package notarization
 import (
 	"io"
 
-	"github.com/iotaledger/goshimmer/packages/core/traits"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/ads"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/ads"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp/packages/core/traits"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 type Notarization interface {

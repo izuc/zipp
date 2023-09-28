@@ -6,17 +6,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 // constant var, shouldn't be changed
@@ -69,7 +69,7 @@ func TestConflictSpamAndMergeToMaster(t *testing.T) {
 	tests.SendDataBlocksWithDelay(t, n.Peers(), dataBlocksAmount, delayBetweenDataBlocks)
 
 	require.Eventually(t, func() bool {
-		return tests.Balance(t, peer1, fundingAddress, devnetvm.ColorIOTA) >= uint64(tokensPerRequest)
+		return tests.Balance(t, peer1, fundingAddress, devnetvm.ColorZIPP) >= uint64(tokensPerRequest)
 	}, tests.Timeout, tests.Tick)
 
 	addresses := make([]devnetvm.Address, splits)

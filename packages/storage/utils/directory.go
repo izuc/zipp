@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/iotaledger/hive.go/runtime/ioutils"
+	"github.com/izuc/zipp.foundation/runtime/ioutils"
 )
 
 // Directory represents a directory on the disk.

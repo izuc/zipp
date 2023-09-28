@@ -11,18 +11,18 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/ds/bitmask"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/objectstorage"
-	"github.com/iotaledger/hive.go/objectstorage/generic"
-	storableModel "github.com/iotaledger/hive.go/objectstorage/generic/model"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
-	"github.com/iotaledger/hive.go/serializer/v2/marshalutil"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/ds/bitmask"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/objectstorage"
+	"github.com/izuc/zipp.foundation/objectstorage/generic"
+	storableModel "github.com/izuc/zipp.foundation/objectstorage/generic/model"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/serializer/marshalutil"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp.foundation/stringify"
+	"github.com/izuc/zipp/packages/core/cerrors"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 func init() {
@@ -356,7 +356,7 @@ func (s *SigLockedSingleOutput) Type() OutputType {
 // Balances returns the funds that are associated with the Output.
 func (s *SigLockedSingleOutput) Balances() *ColoredBalances {
 	balances := NewColoredBalances(map[Color]uint64{
-		ColorIOTA: s.M.Balance,
+		ColorZIPP: s.M.Balance,
 	})
 
 	return balances
@@ -574,9 +574,9 @@ func (s *SigLockedColoredOutput) Bytes() (bytes []byte, err error) {
 
 // region AliasOutput ///////////////////////////////////////////////////////////////////////////////////////
 
-// DustThresholdAliasOutputIOTA is minimum number of iotas enforced for the output to be correct
+// DustThresholdAliasOutputZIPP is minimum number of iotas enforced for the output to be correct
 // TODO protocol-wide dust threshold configuration.
-const DustThresholdAliasOutputIOTA = uint64(100)
+const DustThresholdAliasOutputZIPP = uint64(100)
 
 // MaxOutputPayloadSize size limit on the data payload in the output.
 const MaxOutputPayloadSize = 4 * 1024
@@ -1400,7 +1400,7 @@ func equalColoredBalances(b1, b2 *ColoredBalances) bool {
 
 // IsAboveDustThreshold internal utility to check if balances pass dust constraint.
 func IsAboveDustThreshold(m map[Color]uint64) bool {
-	if iotas, ok := m[ColorIOTA]; ok && iotas >= DustThresholdAliasOutputIOTA {
+	if iotas, ok := m[ColorZIPP]; ok && iotas >= DustThresholdAliasOutputZIPP {
 		return true
 	}
 	return false
@@ -1412,8 +1412,8 @@ func IsExactDustMinimum(b *ColoredBalances) bool {
 	if len(bals) != 1 {
 		return false
 	}
-	bal, ok := bals[ColorIOTA]
-	if !ok || bal != DustThresholdAliasOutputIOTA {
+	bal, ok := bals[ColorZIPP]
+	if !ok || bal != DustThresholdAliasOutputZIPP {
 		return false
 	}
 	return true

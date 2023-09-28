@@ -8,15 +8,15 @@ import (
 	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/ds/orderedmap"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
-	"github.com/iotaledger/hive.go/serializer/v2"
-	"github.com/iotaledger/hive.go/serializer/v2/byteutils"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/ds/orderedmap"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/serializer"
+	"github.com/izuc/zipp.foundation/serializer/byteutils"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp.foundation/stringify"
 )
 
 // region TransactionID ////////////////////////////////////////////////////////////////////////////////////////////////

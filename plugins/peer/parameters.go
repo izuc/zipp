@@ -1,6 +1,6 @@
 package peer
 
-import "github.com/iotaledger/goshimmer/plugins/config"
+import "github.com/izuc/zipp/plugins/config"
 
 // ParametersDefinition contains the definition of configuration parameters used by the local peer's network.
 type ParametersDefinition struct {

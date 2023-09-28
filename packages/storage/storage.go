@@ -3,14 +3,14 @@ package storage
 import (
 	"sync"
 
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/goshimmer/packages/core/database"
-	"github.com/iotaledger/goshimmer/packages/storage/permanent"
-	"github.com/iotaledger/goshimmer/packages/storage/prunable"
-	"github.com/iotaledger/goshimmer/packages/storage/utils"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/core/commitment"
+	"github.com/izuc/zipp/packages/core/database"
+	"github.com/izuc/zipp/packages/storage/permanent"
+	"github.com/izuc/zipp/packages/storage/prunable"
+	"github.com/izuc/zipp/packages/storage/utils"
 )
 
 // Storage is an abstraction around the storage layer of the node.

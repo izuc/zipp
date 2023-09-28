@@ -1,9 +1,9 @@
 package consensus
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/blockgadget"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/slotgadget"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/slotgadget"
 )
 
 type Events struct {

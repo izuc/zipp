@@ -6,12 +6,12 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/client/evilwallet"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/app/configuration"
-	appLogger "github.com/iotaledger/hive.go/app/logger"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/logger"
+	"github.com/izuc/zipp.foundation/app/configuration"
+	appLogger "github.com/izuc/zipp.foundation/app/logger"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp/client/evilwallet"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 // region Spammer //////////////////////////////////////////////////////////////////////////////////////////////////////

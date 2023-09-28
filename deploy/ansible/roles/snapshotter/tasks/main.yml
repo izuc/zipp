@@ -23,48 +23,48 @@
     dest: /root/.aws/credentials
     mode: '0600'
 
-- name: Install goshimmer-db-dump.service systemd unit file
+- name: Install zipp-db-dump.service systemd unit file
   copy:
-    src: goshimmer-db-dump.service
-    dest: /etc/systemd/system/goshimmer-db-dump.service
+    src: zipp-db-dump.service
+    dest: /etc/systemd/system/zipp-db-dump.service
 
-- name: Install goshimmer-db-dump.timer systemd unit file
+- name: Install zipp-db-dump.timer systemd unit file
   copy:
-    src: goshimmer-db-dump.timer
-    dest: /etc/systemd/system/goshimmer-db-dump.timer
+    src: zipp-db-dump.timer
+    dest: /etc/systemd/system/zipp-db-dump.timer
 
-- name: Template goshimmer_db_dump.sh
+- name: Template zipp_db_dump.sh
   template:
-    src: goshimmer_db_dump.sh.j2
-    dest: /opt/goshimmer_db_dump.sh
+    src: zipp_db_dump.sh.j2
+    dest: /opt/zipp_db_dump.sh
     mode: '0755'
 
-- name: Enable and start goshimmer-db-dump.timer
+- name: Enable and start zipp-db-dump.timer
   systemd:
     state: started
     enabled: true
-    name: goshimmer-db-dump.timer
+    name: zipp-db-dump.timer
     daemon_reload: yes
 
-- name: Install goshimmer-snapshot.bin-dump.service systemd unit file
+- name: Install zipp-snapshot.bin-dump.service systemd unit file
   copy:
-    src: goshimmer-snapshot.bin-dump.service
-    dest: /etc/systemd/system/goshimmer-snapshot.bin-dump.service
+    src: zipp-snapshot.bin-dump.service
+    dest: /etc/systemd/system/zipp-snapshot.bin-dump.service
 
-- name: Install goshimmer-snapshot.bin-dump.timer systemd unit file
+- name: Install zipp-snapshot.bin-dump.timer systemd unit file
   copy:
-    src: goshimmer-snapshot.bin-dump.timer
-    dest: /etc/systemd/system/goshimmer-snapshot.bin-dump.timer
+    src: zipp-snapshot.bin-dump.timer
+    dest: /etc/systemd/system/zipp-snapshot.bin-dump.timer
 
-- name: Template goshimmer_snapshot.bin_dump.sh
+- name: Template zipp_snapshot.bin_dump.sh
   template:
-    src: goshimmer_snapshot.bin_dump.sh.j2
-    dest: /opt/goshimmer_snapshot.bin_dump.sh
+    src: zipp_snapshot.bin_dump.sh.j2
+    dest: /opt/zipp_snapshot.bin_dump.sh
     mode: '0755'
 
-- name: Enable and start goshimmer-snapshot.bin-dump.timer
+- name: Enable and start zipp-snapshot.bin-dump.timer
   systemd:
     state: started
     enabled: true
-    name: goshimmer-snapshot.bin-dump.timer
+    name: zipp-snapshot.bin-dump.timer
     daemon_reload: yes

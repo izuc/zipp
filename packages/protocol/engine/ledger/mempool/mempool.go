@@ -3,14 +3,14 @@ package mempool
 import (
 	"context"
 
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/ds/walker"
-	"github.com/iotaledger/hive.go/objectstorage/generic"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/ds/walker"
+	"github.com/izuc/zipp.foundation/objectstorage/generic"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm"
 )
 
 type MemPool interface {

@@ -1,9 +1,9 @@
 package indexer
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/objectstorage/generic/model"
+	"github.com/izuc/zipp.foundation/objectstorage/generic/model"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 // region AddressOutputMapping /////////////////////////////////////////////////////////////////////////////////////////

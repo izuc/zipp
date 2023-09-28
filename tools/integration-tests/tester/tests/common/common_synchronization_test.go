@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework/config"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 // TestCommonSynchronization checks whether blocks are relayed through the network,

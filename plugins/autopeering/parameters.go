@@ -1,6 +1,6 @@
 package autopeering
 
-import "github.com/iotaledger/goshimmer/plugins/config"
+import "github.com/izuc/zipp/plugins/config"
 
 // ParametersDefinition contains the definition of configuration parameters used by the autopeering plugin.
 type ParametersDefinition struct {

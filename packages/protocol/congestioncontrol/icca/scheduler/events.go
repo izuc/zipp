@@ -1,7 +1,7 @@
 package scheduler
 
 import (
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
 // region SchedulerEvents /////////////////////////////////////////////////////////////////////////////////////////////

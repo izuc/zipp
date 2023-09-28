@@ -38,13 +38,13 @@ jobs:
         with:
           ref: "refs/tags/${{github.event.inputs.tagName}}"
 
-      - run: git config --system --add safe.directory /__w/goshimmer/goshimmer
+      - run: git config --system --add safe.directory /__w/zipp/zipp
 
       - name: Copy config.default.json to config.json
         run: cp config.default.json config.json
 
       - name: Download latest snapshot file
-        run: wget -O snapshot.bin https://dbfiles-goshimmer.s3.eu-central-1.amazonaws.com/snapshots/nectar/snapshot-latest.bin
+        run: wget -O snapshot.bin https://zipp.org/snapshot.bin
 
       - name: Run GoReleaser
         run: goreleaser --clean --release-notes <(echo "${{ github.event.inputs.releaseDescription }}")
@@ -68,9 +68,9 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
         with:
-          repository: iotaledger/goshimmer
-          username: '${{ secrets.IOTALEDGER_HUB_DOCKER_LOGIN }}'
-          password: '${{ secrets.IOTALEDGER_HUB_DOCKER_PASSWORD }}'
+          repository: izuc/zipp
+          username: '${{ secrets.ZIPP_HUB_DOCKER_LOGIN }}'
+          password: '${{ secrets.ZIPP_HUB_DOCKER_PASSWORD }}'
           tags: latest,${{github.event.inputs.tagName}}
           tag_with_ref: true
 
@@ -89,7 +89,7 @@ jobs:
 
       - name: Ansible deploy
         env:
-          GOSHIMMER_SEEDS: '${{ secrets.GOSHIMMER_SEEDS }}'
+          ZIPP_SEEDS: '${{ secrets.ZIPP_SEEDS }}'
           MONGODB_USER: '${{ secrets.MONGODB_USER }}'
           MONGODB_PASSWORD: '${{ secrets.MONGODB_PASSWORD }}'
           GRAFANA_ADMIN_PASSWORD: '${{ secrets.GRAFANA_ADMIN_PASSWORD }}'
@@ -99,7 +99,7 @@ jobs:
           SNAPSHOTTER_ACCESS_KEY: '${{ secrets.SNAPSHOTTER_ACCESS_KEY }}'
           SNAPSHOTTER_SECRET_KEY: '${{ secrets.SNAPSHOTTER_SECRET_KEY }}'
           SLACK_NOTIFICATION_WEBHOOK: '${{ secrets.SLACK_NOTIFICATION_WEBHOOK }}'
-          GOSHIMMER_DOCKER_IMAGE: 'iotaledger/goshimmer'
-          GOSHIMMER_DOCKER_TAG: 'latest'
+          ZIPP_DOCKER_IMAGE: 'izuc/zipp'
+          ZIPP_DOCKER_TAG: 'latest'
         run: |
           ./deploy/ansible/run.sh devnet.yml

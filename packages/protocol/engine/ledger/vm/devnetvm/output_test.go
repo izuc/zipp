@@ -11,26 +11,26 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/core/model"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/lo"
-	storableModel "github.com/iotaledger/hive.go/objectstorage/generic/model"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
-	"github.com/iotaledger/hive.go/serializer/v2/byteutils"
-	"github.com/iotaledger/hive.go/serializer/v2/marshalutil"
+	"github.com/izuc/zipp.foundation/core/model"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/lo"
+	storableModel "github.com/izuc/zipp.foundation/objectstorage/generic/model"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/serializer/byteutils"
+	"github.com/izuc/zipp.foundation/serializer/marshalutil"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 // region AliasOutput Tests.
 func TestAliasOutput_NewAliasOutputMint(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
 		stateAddy := randEd25119Address()
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, stateAddy)
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, stateAddy)
 		require.NoError(t, err)
-		iotaBal, ok := alias.Balances().Get(ColorIOTA)
+		iotaBal, ok := alias.Balances().Get(ColorZIPP)
 		require.True(t, ok)
-		require.Equal(t, DustThresholdAliasOutputIOTA, iotaBal)
+		require.Equal(t, DustThresholdAliasOutputZIPP, iotaBal)
 		require.True(t, alias.GetStateAddress().Equals(stateAddy))
 		require.Nil(t, alias.GetImmutableData())
 	})
@@ -38,11 +38,11 @@ func TestAliasOutput_NewAliasOutputMint(t *testing.T) {
 	t.Run("CASE: Happy path with immutable data", func(t *testing.T) {
 		stateAddy := randEd25119Address()
 		data := []byte("dummy")
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, stateAddy, data)
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, stateAddy, data)
 		require.NoError(t, err)
-		iotaBal, ok := alias.Balances().Get(ColorIOTA)
+		iotaBal, ok := alias.Balances().Get(ColorZIPP)
 		require.True(t, ok)
-		require.Equal(t, DustThresholdAliasOutputIOTA, iotaBal)
+		require.Equal(t, DustThresholdAliasOutputZIPP, iotaBal)
 		require.True(t, alias.GetStateAddress().Equals(stateAddy))
 		require.True(t, bytes.Equal(alias.GetImmutableData(), data))
 	})
@@ -50,7 +50,7 @@ func TestAliasOutput_NewAliasOutputMint(t *testing.T) {
 	t.Run("CASE: Below dust threshold", func(t *testing.T) {
 		stateAddy := randEd25119Address()
 		data := []byte("dummy")
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA - 1}, stateAddy, data)
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP - 1}, stateAddy, data)
 		require.Error(t, err)
 		require.Nil(t, alias)
 	})
@@ -58,14 +58,14 @@ func TestAliasOutput_NewAliasOutputMint(t *testing.T) {
 	t.Run("CASE: State address is an alias", func(t *testing.T) {
 		stateAddy := randAliasAddress()
 		data := []byte("dummy")
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, stateAddy, data)
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, stateAddy, data)
 		require.NoError(t, err)
 		require.NotNil(t, alias)
 	})
 
 	t.Run("CASE: Non existent state address", func(t *testing.T) {
 		data := []byte("dummy")
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, nil, data)
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, nil, data)
 		require.Error(t, err)
 		require.Nil(t, alias)
 	})
@@ -73,7 +73,7 @@ func TestAliasOutput_NewAliasOutputMint(t *testing.T) {
 	t.Run("CASE: Too big state data", func(t *testing.T) {
 		stateAddy := randAliasAddress()
 		data := make([]byte, MaxOutputPayloadSize+1)
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, stateAddy, data)
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, stateAddy, data)
 		require.Error(t, err)
 		require.Nil(t, alias)
 	})
@@ -274,7 +274,7 @@ func TestAliasOutputFromMarshalUtil(t *testing.T) {
 	t.Run("CASE: Invalid balances", func(t *testing.T) {
 		originAlias := dummyAliasOutput()
 		// remove the data
-		invalidBalancesBytes := NewColoredBalances(map[Color]uint64{ColorIOTA: 99}).Bytes()
+		invalidBalancesBytes := NewColoredBalances(map[Color]uint64{ColorZIPP: 99}).Bytes()
 		originBytes := lo.PanicOnErr(originAlias.Bytes())
 		// serialized balances start at : output type (1 byte) + flags (1 byte) + AliasAddressLength bytes
 		copy(originBytes[1+1+AddressLength:], invalidBalancesBytes)
@@ -284,7 +284,7 @@ func TestAliasOutputFromMarshalUtil(t *testing.T) {
 	})
 
 	t.Run("CASE: Invalid state index for chain starting output", func(t *testing.T) {
-		originAlias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address())
+		originAlias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address())
 		assert.NoError(t, err)
 		originBytes := lo.PanicOnErr(originAlias.Bytes())
 		stateIndexStartIndex := 1 + 1 + AddressLength + len(originAlias.balances.Bytes()) + AddressLength
@@ -349,15 +349,15 @@ func TestAliasOutputFromMarshalUtil(t *testing.T) {
 func TestAliasOutput_SetBalances(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
 		alias := dummyAliasOutput()
-		err := alias.SetBalances(map[Color]uint64{ColorIOTA: 1337})
+		err := alias.SetBalances(map[Color]uint64{ColorZIPP: 1337})
 		assert.NoError(t, err)
 		cBalBytes := alias.Balances().Bytes()
-		assert.Equal(t, NewColoredBalances(map[Color]uint64{ColorIOTA: 1337}).Bytes(), cBalBytes)
+		assert.Equal(t, NewColoredBalances(map[Color]uint64{ColorZIPP: 1337}).Bytes(), cBalBytes)
 	})
 
 	t.Run("CASE: Below threshold", func(t *testing.T) {
 		alias := dummyAliasOutput()
-		err := alias.SetBalances(map[Color]uint64{ColorIOTA: 99})
+		err := alias.SetBalances(map[Color]uint64{ColorZIPP: 99})
 		assert.Error(t, err)
 	})
 }
@@ -374,7 +374,7 @@ func TestAliasOutput_SetAliasAddress(t *testing.T) {
 func TestAliasOutput_Balances(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
 		alias := dummyAliasOutput()
-		assert.Equal(t, NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}).Bytes(), alias.Balances().Bytes())
+		assert.Equal(t, NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}).Bytes(), alias.Balances().Bytes())
 	})
 }
 
@@ -531,7 +531,7 @@ func TestAliasOutput_Input(t *testing.T) {
 	})
 
 	t.Run("CASE: No output id yet", func(t *testing.T) {
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address())
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address())
 		assert.NoError(t, err)
 		assert.Panics(t, func() {
 			_ = alias.Input()
@@ -546,13 +546,13 @@ func TestAliasOutput_IsOrigin(t *testing.T) {
 	})
 
 	t.Run("CASE: Is origin", func(t *testing.T) {
-		alias, err := NewAliasOutputMint(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address())
+		alias, err := NewAliasOutputMint(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address())
 		assert.NoError(t, err)
 		assert.True(t, alias.IsOrigin())
 	})
 
 	t.Run("CASE: Check IsOrigin after booking", func(t *testing.T) {
-		tokens := map[Color]uint64{ColorIOTA: 200}
+		tokens := map[Color]uint64{ColorZIPP: 200}
 		pub, _, err := ed25519.GenerateKey()
 		require.NoError(t, err)
 		addr := NewED25519Address(pub)
@@ -772,7 +772,7 @@ func TestAliasOutput_UpdateMintingColor(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
 		alias := dummyAliasOutput()
 		alias.balances = NewColoredBalances(map[Color]uint64{
-			ColorIOTA: DustThresholdAliasOutputIOTA,
+			ColorZIPP: DustThresholdAliasOutputZIPP,
 			ColorMint: 500,
 		})
 		updated := alias.UpdateMintingColor()
@@ -785,15 +785,15 @@ func TestAliasOutput_UpdateMintingColor(t *testing.T) {
 	t.Run("CASE: No mint", func(t *testing.T) {
 		alias := dummyAliasOutput()
 		alias.balances = NewColoredBalances(map[Color]uint64{
-			ColorIOTA: DustThresholdAliasOutputIOTA,
+			ColorZIPP: DustThresholdAliasOutputZIPP,
 		})
 		updated := alias.UpdateMintingColor()
 		balance, ok := updated.Balances().Get(blake2b.Sum256(lo.PanicOnErr(alias.ID().Bytes())))
 		assert.False(t, ok)
 		assert.Equal(t, uint64(0), balance)
-		balance, ok = updated.Balances().Get(ColorIOTA)
+		balance, ok = updated.Balances().Get(ColorZIPP)
 		assert.True(t, ok)
-		assert.Equal(t, DustThresholdAliasOutputIOTA, balance)
+		assert.Equal(t, DustThresholdAliasOutputZIPP, balance)
 		assert.True(t, updated.Address().Equals(alias.GetAliasAddress()))
 	})
 
@@ -801,7 +801,7 @@ func TestAliasOutput_UpdateMintingColor(t *testing.T) {
 		alias := dummyAliasOutput(true)
 		alias.aliasAddress = AliasAddress{}
 		alias.balances = NewColoredBalances(map[Color]uint64{
-			ColorIOTA: DustThresholdAliasOutputIOTA,
+			ColorZIPP: DustThresholdAliasOutputZIPP,
 			ColorMint: 500,
 		})
 		updated := alias.UpdateMintingColor()
@@ -912,7 +912,7 @@ func TestAliasOutput_validateTransition(t *testing.T) {
 		prev := dummyAliasOutput()
 		next := prev.NewAliasOutputNext(true)
 		newBalance := prev.Balances().Map()
-		newBalance[ColorIOTA]++
+		newBalance[ColorZIPP]++
 		next.balances = NewColoredBalances(newBalance)
 		err := prev.validateTransition(next, new(Transaction))
 		t.Log(err)
@@ -1021,7 +1021,7 @@ func TestAliasOutput_validateTransition(t *testing.T) {
 		prev.isDelegated = true
 		next := prev.NewAliasOutputNext(false)
 		bal := next.balances.Map()
-		bal[ColorIOTA]++
+		bal[ColorZIPP]++
 		next.balances = NewColoredBalances(bal)
 		err := prev.validateTransition(next, new(Transaction))
 		t.Log(err)
@@ -1095,7 +1095,7 @@ func TestAliasOutput_validateTransition(t *testing.T) {
 		prev := dummyAliasOutput()
 		next := prev.NewAliasOutputNext(false)
 		newBalance := prev.Balances().Map()
-		newBalance[ColorIOTA]++
+		newBalance[ColorZIPP]++
 		next.balances = NewColoredBalances(newBalance)
 		err := prev.validateTransition(next, new(Transaction))
 		assert.NoError(t, err)
@@ -1112,7 +1112,7 @@ func TestAliasOutput_validateDestroyTransition(t *testing.T) {
 	t.Run("CASE: More balance than minimum", func(t *testing.T) {
 		prev := dummyAliasOutput()
 		newBalance := prev.Balances().Map()
-		newBalance[ColorIOTA]++
+		newBalance[ColorZIPP]++
 		prev.balances = NewColoredBalances(newBalance)
 		err := prev.validateDestroyTransitionNow(time.Time{})
 		t.Log(err)
@@ -1122,7 +1122,7 @@ func TestAliasOutput_validateDestroyTransition(t *testing.T) {
 	t.Run("CASE: Delegated output, more balance than minimum", func(t *testing.T) {
 		prev := dummyAliasOutput()
 		newBalance := prev.Balances().Map()
-		newBalance[ColorIOTA]++
+		newBalance[ColorZIPP]++
 		prev.balances = NewColoredBalances(newBalance)
 		prev.isDelegated = true
 		err := prev.validateDestroyTransitionNow(time.Time{})
@@ -1141,7 +1141,7 @@ func TestAliasOutput_validateDestroyTransition(t *testing.T) {
 
 	t.Run("CASE: Only color balance", func(t *testing.T) {
 		prev := dummyAliasOutput()
-		prev.balances = NewColoredBalances(map[Color]uint64{{8}: DustThresholdAliasOutputIOTA})
+		prev.balances = NewColoredBalances(map[Color]uint64{{8}: DustThresholdAliasOutputZIPP})
 		err := prev.validateDestroyTransitionNow(time.Time{})
 		t.Log(err)
 		assert.Error(t, err)
@@ -1195,7 +1195,7 @@ func TestAliasOutput_findChainedOutputAndCheckFork(t *testing.T) {
 
 	t.Run("CASE: No alias output", func(t *testing.T) {
 		prev := dummyAliasOutput()
-		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputIOTA, randEd25119Address())}
+		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputZIPP, randEd25119Address())}
 		essence := NewTransactionEssence(0, time.Time{}, identity.ID{}, identity.ID{}, NewInputs(NewUTXOInput(prev.ID())), NewOutputs(outputs...))
 		// unlock blocks are irrelevant now
 		tx := NewTransaction(essence, UnlockBlocks{NewReferenceUnlockBlock(0)})
@@ -1277,7 +1277,7 @@ func TestAliasOutput_hasToBeUnlockedForGovernanceUpdate(t *testing.T) {
 
 	t.Run("CASE: No alias output found", func(t *testing.T) {
 		prev := dummyAliasOutput()
-		next := NewSigLockedSingleOutput(DustThresholdAliasOutputIOTA, randEd25119Address())
+		next := NewSigLockedSingleOutput(DustThresholdAliasOutputZIPP, randEd25119Address())
 		outputs := Outputs{next}
 		essence := NewTransactionEssence(0, time.Time{}, identity.ID{}, identity.ID{}, NewInputs(NewUTXOInput(prev.ID())), NewOutputs(outputs...))
 		// unlock blocks are irrelevant now
@@ -1295,7 +1295,7 @@ func TestAliasOutput_unlockedGovernanceByAliasIndex(t *testing.T) {
 	governingAlias := &AliasOutput{
 		outputID:           randOutputID(),
 		outputIDMutex:      syncutils.RWMutexFake{},
-		balances:           NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+		balances:           NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 		aliasAddress:       *randAliasAddress(),
 		stateAddress:       governingAliasStateAddress,
 		stateIndex:         10,
@@ -1310,7 +1310,7 @@ func TestAliasOutput_unlockedGovernanceByAliasIndex(t *testing.T) {
 	alias := &AliasOutput{
 		outputID:           randOutputID(),
 		outputIDMutex:      syncutils.RWMutexFake{},
-		balances:           NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+		balances:           NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 		aliasAddress:       *randAliasAddress(),
 		stateAddress:       aliasStateAddress,
 		stateIndex:         10,
@@ -1387,7 +1387,7 @@ func TestAliasOutput_unlockedGovernanceByAliasIndex(t *testing.T) {
 	t.Run("CASE: Referenced output is not an alias", func(t *testing.T) {
 		dummyAlias := dummyAliasOutput()
 
-		ok, err := dummyAlias.unlockedGovernanceTransitionByAliasIndex(new(Transaction), 0, Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputIOTA, randEd25119Address())})
+		ok, err := dummyAlias.unlockedGovernanceTransitionByAliasIndex(new(Transaction), 0, Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputZIPP, randEd25119Address())})
 		t.Log(err)
 		assert.Error(t, err)
 		assert.False(t, ok)
@@ -1410,7 +1410,7 @@ func TestAliasOutput_UnlockValid(t *testing.T) {
 	alias := &AliasOutput{
 		outputID:           randOutputID(),
 		outputIDMutex:      syncutils.RWMutexFake{},
-		balances:           NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+		balances:           NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 		aliasAddress:       *randAliasAddress(),
 		stateAddress:       w.address,
 		stateIndex:         10,
@@ -1452,7 +1452,7 @@ func TestAliasOutput_UnlockValid(t *testing.T) {
 	})
 
 	t.Run("CASE: Alias output destroyed, no gov update", func(t *testing.T) {
-		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputIOTA, randEd25119Address())}
+		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputZIPP, randEd25119Address())}
 		inputs := Outputs{alias}
 		essence := NewTransactionEssence(0, time.Time{}, identity.ID{}, identity.ID{}, NewInputs(NewUTXOInput(alias.ID())), NewOutputs(outputs...))
 		unlockBlocks := w.unlockBlocks(essence)
@@ -1466,7 +1466,7 @@ func TestAliasOutput_UnlockValid(t *testing.T) {
 	})
 
 	t.Run("CASE: Alias output destroyed, gov update", func(t *testing.T) {
-		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputIOTA, randEd25119Address())}
+		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputZIPP, randEd25119Address())}
 		inputs := Outputs{alias}
 		essence := NewTransactionEssence(0, time.Time{}, identity.ID{}, identity.ID{}, NewInputs(NewUTXOInput(alias.ID())), NewOutputs(outputs...))
 		unlockBlocks := governingWallet.unlockBlocks(essence)
@@ -1480,8 +1480,8 @@ func TestAliasOutput_UnlockValid(t *testing.T) {
 
 	t.Run("CASE: Alias output can't be destroyed, gov update", func(t *testing.T) {
 		clonedAlias := alias.clone()
-		clonedAlias.balances = NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA + 1})
-		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputIOTA, randEd25119Address())}
+		clonedAlias.balances = NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP + 1})
+		outputs := Outputs{NewSigLockedSingleOutput(DustThresholdAliasOutputZIPP, randEd25119Address())}
 		inputs := Outputs{clonedAlias}
 		essence := NewTransactionEssence(0, time.Time{}, identity.ID{}, identity.ID{}, NewInputs(NewUTXOInput(clonedAlias.ID())), NewOutputs(outputs...))
 		unlockBlocks := governingWallet.unlockBlocks(essence)
@@ -1562,7 +1562,7 @@ func TestAliasOutput_UnlockValid(t *testing.T) {
 		governingAlias := &AliasOutput{
 			outputID:           randOutputID(),
 			outputIDMutex:      syncutils.RWMutexFake{},
-			balances:           NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+			balances:           NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 			aliasAddress:       *randAliasAddress(),
 			stateAddress:       governingAliasStateWallet.address,
 			stateIndex:         10,
@@ -1575,7 +1575,7 @@ func TestAliasOutput_UnlockValid(t *testing.T) {
 		governedAlias := &AliasOutput{
 			outputID:           randOutputID(),
 			outputIDMutex:      syncutils.RWMutexFake{},
-			balances:           NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+			balances:           NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 			aliasAddress:       *randAliasAddress(),
 			stateAddress:       aliasStateWallet.address,
 			stateIndex:         10,
@@ -1674,7 +1674,7 @@ func TestExtendedLockedOutput_Address(t *testing.T) {
 
 func TestExtendedLockedOutput_Balances(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
-		bal := NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA})
+		bal := NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP})
 		o := &ExtendedLockedOutput{balances: bal}
 		assert.Equal(t, bal.Bytes(), o.Balances().Bytes())
 	})
@@ -1682,7 +1682,7 @@ func TestExtendedLockedOutput_Balances(t *testing.T) {
 
 func TestExtendedLockedOutput_Bytes(t *testing.T) {
 	t.Run("CASE: Happy path, all optional fields", func(t *testing.T) {
-		o := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address()).
+		o := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address()).
 			WithFallbackOptions(randEd25119Address(), time.Now().Add(2*time.Hour)).
 			WithTimeLock(time.Now().Add(1 * time.Hour))
 		err := o.SetPayload([]byte("some metadata"))
@@ -1703,7 +1703,7 @@ func TestExtendedLockedOutput_Bytes(t *testing.T) {
 	})
 
 	t.Run("CASE: Happy path, no optional fields", func(t *testing.T) {
-		o := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address())
+		o := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address())
 		oBytes := lo.PanicOnErr(o.Bytes())
 		restored, err := OutputFromBytes(oBytes)
 		assert.NoError(t, err)
@@ -1720,7 +1720,7 @@ func TestExtendedLockedOutput_Bytes(t *testing.T) {
 	})
 
 	t.Run("CASE: Happy path, optional time-lock", func(t *testing.T) {
-		o := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address()).
+		o := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address()).
 			WithTimeLock(time.Now().Add(1 * time.Hour))
 		oBytes := lo.PanicOnErr(o.Bytes())
 		restored, err := OutputFromBytes(oBytes)
@@ -1738,7 +1738,7 @@ func TestExtendedLockedOutput_Bytes(t *testing.T) {
 	})
 
 	t.Run("CASE: Happy path, optional fallback", func(t *testing.T) {
-		o := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address()).
+		o := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address()).
 			WithFallbackOptions(randEd25119Address(), time.Now().Add(2*time.Hour))
 		oBytes := lo.PanicOnErr(o.Bytes())
 		restored, err := OutputFromBytes(oBytes)
@@ -1755,7 +1755,7 @@ func TestExtendedLockedOutput_Bytes(t *testing.T) {
 	})
 
 	t.Run("CASE: Happy path, optional payload", func(t *testing.T) {
-		o := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}, randEd25119Address())
+		o := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}, randEd25119Address())
 		err := o.SetPayload([]byte("some metadata"))
 		assert.NoError(t, err)
 		oBytes := lo.PanicOnErr(o.Bytes())
@@ -1943,7 +1943,7 @@ func TestExtendedLockedOutput_UnlockAddressNow(t *testing.T) {
 func TestExtendedLockedOutput_UpdateMintingColor(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
 		output := dummyExtendedLockedOutput()
-		output.balances = NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA, ColorMint: 100})
+		output.balances = NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP, ColorMint: 100})
 		updated, ok := output.UpdateMintingColor().(*ExtendedLockedOutput)
 		assert.True(t, ok)
 		assert.Equal(t, lo.PanicOnErr(output.id.Bytes()), lo.PanicOnErr(updated.id.Bytes()))
@@ -1961,7 +1961,7 @@ func TestExtendedLockedOutput_UpdateMintingColor(t *testing.T) {
 
 	t.Run("CASE: No color mint", func(t *testing.T) {
 		output := dummyExtendedLockedOutput()
-		output.balances = NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA, {8}: 100})
+		output.balances = NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP, {8}: 100})
 		updated, ok := output.UpdateMintingColor().(*ExtendedLockedOutput)
 		assert.True(t, ok)
 		assert.Equal(t, lo.PanicOnErr(output.id.Bytes()), lo.PanicOnErr(updated.id.Bytes()))
@@ -1975,7 +1975,7 @@ func TestExtendedLockedOutput_UpdateMintingColor(t *testing.T) {
 
 	t.Run("CASE: Output had too big payload", func(t *testing.T) {
 		output := dummyExtendedLockedOutput()
-		output.balances = NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA, {8}: 100})
+		output.balances = NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP, {8}: 100})
 		output.payload = make([]byte, MaxOutputPayloadSize+1)
 		assert.Panics(t, func() {
 			output.UpdateMintingColor()
@@ -2012,7 +2012,7 @@ func TestExtendedLockedOutput_WithTimeLock(t *testing.T) {
 func TestNewExtendedLockedOutput(t *testing.T) {
 	t.Run("CASE: Happy path", func(t *testing.T) {
 		addy := randAliasAddress()
-		balances := NewColoredBalances(map[Color]uint64{ColorIOTA: 1})
+		balances := NewColoredBalances(map[Color]uint64{ColorZIPP: 1})
 		output := NewExtendedLockedOutput(balances.Map(), addy)
 		assert.Equal(t, balances.Bytes(), output.Balances().Bytes())
 		assert.True(t, addy.Equals(output.Address()))
@@ -2114,9 +2114,9 @@ func TestExtendedOutputFromMarshalUtil(t *testing.T) {
 func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 	t.Run("CASE: Happy path, unlocked by sig", func(t *testing.T) {
 		w := genRandomWallet()
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, w.address)
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, w.address)
 		input.SetID(randOutputID())
-		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorIOTA: 1}), randEd25119Address())
+		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorZIPP: 1}), randEd25119Address())
 		essence := NewTransactionEssence(0, time.Now(), identity.ID{}, identity.ID{}, NewInputs(input.Input()), NewOutputs(output))
 		unlockBlock := NewSignatureUnlockBlock(w.sign(essence))
 		tx := NewTransaction(essence, UnlockBlocks{unlockBlock})
@@ -2131,17 +2131,17 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 		alias := &AliasOutput{
 			outputID:      randOutputID(),
 			outputIDMutex: syncutils.RWMutexFake{},
-			balances:      NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+			balances:      NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 			aliasAddress:  *randAliasAddress(),
 			stateAddress:  w.address, // alias state controller is our wallet
 			stateIndex:    10,
 		}
 		nextAlias := alias.NewAliasOutputNext(false)
-		toBeConsumedExtended := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, alias.GetAliasAddress())
+		toBeConsumedExtended := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, alias.GetAliasAddress())
 		toBeConsumedExtended.SetID(randOutputID())
 		nextAliasBalance := alias.Balances().Map()
 		// add 1 more iota from consumed extended output
-		nextAliasBalance[ColorIOTA]++
+		nextAliasBalance[ColorZIPP]++
 		err := nextAlias.SetBalances(nextAliasBalance)
 		assert.NoError(t, err)
 
@@ -2183,9 +2183,9 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 	t.Run("CASE: Referenced input not alias", func(t *testing.T) {
 		w := genRandomWallet()
 		nowIs := time.Now()
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, w.address)
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, w.address)
 		input.SetID(randOutputID())
-		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorIOTA: 1}), randEd25119Address())
+		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorZIPP: 1}), randEd25119Address())
 		essence := NewTransactionEssence(0, nowIs, identity.ID{}, identity.ID{}, NewInputs(input.Input()), NewOutputs(output))
 		unlockBlock := NewAliasUnlockBlock(0)
 		tx := NewTransaction(essence, UnlockBlocks{unlockBlock})
@@ -2200,13 +2200,13 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 		alias := &AliasOutput{
 			outputID:      randOutputID(),
 			outputIDMutex: syncutils.RWMutexFake{},
-			balances:      NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+			balances:      NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 			aliasAddress:  *randAliasAddress(),
 			stateAddress:  randEd25119Address(), // alias state controller is our wallet
 			stateIndex:    10,
 		}
 		nowIs := time.Now()
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, randAliasAddress())
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, randAliasAddress())
 		input.SetID(randOutputID())
 		// for the sake of this test, tx doesn't have to be valid
 		essence := NewTransactionEssence(0, nowIs, identity.ID{}, identity.ID{}, NewInputs(alias.Input()), NewOutputs(input))
@@ -2223,9 +2223,9 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 	t.Run("CASE: Output is time-locked, can't spend", func(t *testing.T) {
 		w := genRandomWallet()
 		nowIs := time.Now()
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, w.address).WithTimeLock(nowIs.Add(time.Hour))
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, w.address).WithTimeLock(nowIs.Add(time.Hour))
 		input.SetID(randOutputID())
-		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorIOTA: 1}), randEd25119Address())
+		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorZIPP: 1}), randEd25119Address())
 		// tx timestamp before time-lock
 		essence := NewTransactionEssence(0, nowIs, identity.ID{}, identity.ID{}, NewInputs(input.Input()), NewOutputs(output))
 		unlockBlock := NewSignatureUnlockBlock(w.sign(essence))
@@ -2239,9 +2239,9 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 	t.Run("CASE: Output is time-locked, spend after", func(t *testing.T) {
 		w := genRandomWallet()
 		nowIs := time.Now()
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, w.address).WithTimeLock(nowIs.Add(time.Hour))
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, w.address).WithTimeLock(nowIs.Add(time.Hour))
 		input.SetID(randOutputID())
-		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorIOTA: 1}), randEd25119Address())
+		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorZIPP: 1}), randEd25119Address())
 		// tx timestamp is exactly time-lock, output is allowed to be spent from that moment on
 		essence := NewTransactionEssence(0, nowIs.Add(time.Hour), identity.ID{}, identity.ID{}, NewInputs(input.Input()), NewOutputs(output))
 		unlockBlock := NewSignatureUnlockBlock(w.sign(essence))
@@ -2253,7 +2253,7 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 	})
 
 	t.Run("CASE: Unsupported unlock block", func(t *testing.T) {
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, randAliasAddress())
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, randAliasAddress())
 		unlockBlock := NewReferenceUnlockBlock(0)
 
 		valid, err := input.UnlockValid(storableModel.NewStorable[utxo.TransactionID, Transaction](&transactionModel{Essence: new(TransactionEssence)}), unlockBlock, Outputs{input})
@@ -2267,9 +2267,9 @@ func TestExtendedLockedOutput_UnlockValid(t *testing.T) {
 		myWallet := genRandomWallet()
 		nowIs := time.Now()
 		// until now is +30 minutes, only w wallet can spend it, after that, only myWallet
-		input := NewExtendedLockedOutput(map[Color]uint64{ColorIOTA: 1}, destWallet.address).WithFallbackOptions(myWallet.address, nowIs.Add(30*time.Minute))
+		input := NewExtendedLockedOutput(map[Color]uint64{ColorZIPP: 1}, destWallet.address).WithFallbackOptions(myWallet.address, nowIs.Add(30*time.Minute))
 		input.SetID(randOutputID())
-		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorIOTA: 1}), randEd25119Address())
+		output := NewSigLockedColoredOutput(NewColoredBalances(map[Color]uint64{ColorZIPP: 1}), randEd25119Address())
 
 		// t =< now is + 30 minutes, destWallet can spend it
 		essence := NewTransactionEssence(0, nowIs, identity.ID{}, identity.ID{}, NewInputs(input.Input()), NewOutputs(output))
@@ -2340,7 +2340,7 @@ func dummyAliasOutput(origin ...bool) *AliasOutput {
 	return &AliasOutput{
 		outputID:           randOutputID(),
 		outputIDMutex:      syncutils.RWMutexFake{},
-		balances:           NewColoredBalances(map[Color]uint64{ColorIOTA: DustThresholdAliasOutputIOTA}),
+		balances:           NewColoredBalances(map[Color]uint64{ColorZIPP: DustThresholdAliasOutputZIPP}),
 		aliasAddress:       *randAliasAddress(),
 		stateAddress:       randEd25119Address(),
 		stateIndex:         0,
@@ -2359,7 +2359,7 @@ func dummyExtendedLockedOutput() *ExtendedLockedOutput {
 	return &ExtendedLockedOutput{
 		id:               randOutputID(),
 		idMutex:          syncutils.RWMutexFake{},
-		balances:         NewColoredBalances(map[Color]uint64{ColorIOTA: 1}),
+		balances:         NewColoredBalances(map[Color]uint64{ColorZIPP: 1}),
 		address:          randEd25119Address(),
 		fallbackAddress:  randEd25119Address(),
 		fallbackDeadline: time.Unix(1001, 0),

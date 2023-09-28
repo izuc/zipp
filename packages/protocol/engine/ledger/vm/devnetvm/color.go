@@ -8,17 +8,17 @@ import (
 	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/hive.go/ds/orderedmap"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/ds/orderedmap"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp.foundation/stringify"
+	"github.com/izuc/zipp/packages/core/cerrors"
 )
 
 // region Color ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ColorIOTA is the zero value of the Color and represents uncolored tokens.
-var ColorIOTA = Color{}
+// ColorZIPP is the zero value of the Color and represents uncolored tokens.
+var ColorZIPP = Color{}
 
 // ColorMint represents a placeholder Color that indicates that tokens should be "colored" in their Output.
 var ColorMint = Color{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255}
@@ -68,8 +68,8 @@ func (c Color) Base58() string {
 // String creates a human-readable string of the Color.
 func (c Color) String() string {
 	switch c {
-	case ColorIOTA:
-		return "IOTA"
+	case ColorZIPP:
+		return "ZIPP"
 	case ColorMint:
 		return "MINT"
 	default:

@@ -9,13 +9,13 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
-	"github.com/iotaledger/goshimmer/packages/app/collector"
-	"github.com/iotaledger/goshimmer/packages/core/shutdown"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/plugins/dashboardmetrics"
-	"github.com/iotaledger/hive.go/app/daemon"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/app/daemon"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/app/collector"
+	"github.com/izuc/zipp/packages/core/shutdown"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/plugins/dashboardmetrics"
 )
 
 var (

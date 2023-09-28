@@ -7,13 +7,13 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/goshimmer/packages/protocol/congestioncontrol/icca/scheduler"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/runtime/event"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 const (

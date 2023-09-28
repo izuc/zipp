@@ -13,15 +13,15 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/core/database"
-	"github.com/iotaledger/goshimmer/packages/core/shutdown"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/plugins/protocol"
-	"github.com/iotaledger/hive.go/app/daemon"
-	"github.com/iotaledger/hive.go/autopeering/peer"
-	"github.com/iotaledger/hive.go/autopeering/peer/service"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/kvstore"
+	"github.com/izuc/zipp.foundation/app/daemon"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp.foundation/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/kvstore"
+	"github.com/izuc/zipp/packages/core/database"
+	"github.com/izuc/zipp/packages/core/shutdown"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/plugins/protocol"
 )
 
 // PluginName is the name of the Peer plugin.

@@ -2,24 +2,24 @@
 http:
   routers:
     nodes-router:
-      rule: "Host(`nodes.tokenizedassetsdemo.iota.cafe`) || Host(`nodes.nectar.iota.cafe`)"
+      rule: "Host(`nodes.zipp.org`) || Host(`nodes.zipp.org`)"
       service: "nodes"
       entryPoints:
         - "web"
     nodes-router-secure:
-      rule: "Host(`nodes.tokenizedassetsdemo.iota.cafe`) || Host(`nodes.nectar.iota.cafe`)"
+      rule: "Host(`nodes.zipp.org`) || Host(`nodes.zipp.org`)"
       service: "nodes"
       entryPoints:
         - "websecure"
       tls:
         certResolver: devops
     dashboards-router:
-      rule: "Host(`dashboards.tokenizedassetsdemo.iota.cafe`) || Host(`dashboards.nectar.iota.cafe`)"
+      rule: "Host(`dashboards.zipp.org`) || Host(`dashboards.zipp.org`)"
       service: "dashboards"
       entryPoints:
         - "web"
     dashboards-router-secure:
-      rule: "Host(`dashboards.tokenizedassetsdemo.iota.cafe`) || Host(`dashboards.nectar.iota.cafe`)"
+      rule: "Host(`dashboards.zipp.org`) || Host(`dashboards.zipp.org`)"
       service: "dashboards"
       entryPoints:
         - "websecure"

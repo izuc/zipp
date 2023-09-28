@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/iotaledger/goshimmer/client"
+	"github.com/izuc/zipp/client"
 )
 
 // config type that defines the config structure
@@ -23,8 +23,8 @@ var configJSON = `{
 	"WebAPI": "http://127.0.0.1:8080",
 	"basicAuth": {
 	  "enabled": false,
-	  "username": "goshimmer",
-	  "password": "goshimmer"
+	  "username": "zipp",
+	  "password": "zipp"
 	},
 	"reuse_addresses": false,
 	"faucetPowDifficulty": 25,

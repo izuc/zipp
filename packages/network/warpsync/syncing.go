@@ -1,12 +1,12 @@
 package warpsync
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	wp "github.com/iotaledger/goshimmer/packages/network/warpsync/proto"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/commitment"
+	wp "github.com/izuc/zipp/packages/network/warpsync/proto"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 func (p *Protocol) RequestSlotBlocks(index slot.Index, sc commitment.ID, to ...identity.ID) {

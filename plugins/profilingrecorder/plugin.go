@@ -11,11 +11,11 @@ import (
 	profile "github.com/bygui86/multi-profile/v2"
 	"github.com/zyedidia/generic/cache"
 
-	"github.com/iotaledger/goshimmer/packages/core/shutdown"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/hive.go/app/daemon"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/runtime/timeutil"
+	"github.com/izuc/zipp.foundation/app/daemon"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/runtime/timeutil"
+	"github.com/izuc/zipp/packages/core/shutdown"
+	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the profiling plugin.

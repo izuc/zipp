@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - run: git config --system --add safe.directory /__w/goshimmer/goshimmer
+      - run: git config --system --add safe.directory /__w/zipp/zipp
 
       - name: Create fake config.json and snapshot.bin
         run: touch config.json snapshot.bin

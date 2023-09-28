@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilwallet"
-	"github.com/iotaledger/goshimmer/tools/evil-spammer/evillogger"
+	"github.com/izuc/zipp/client/evilwallet"
+	"github.com/izuc/zipp/tools/evil-spammer/evillogger"
 )
 
 var (

@@ -1,15 +1,15 @@
 package tangleconsensus
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/blockgadget"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/blockgadget/tresholdblockgadget"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/conflictresolver"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/slotgadget"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/slotgadget/totalweightslotgadget"
-	"github.com/iotaledger/hive.go/runtime/module"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget/tresholdblockgadget"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/conflictresolver"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/slotgadget"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/slotgadget/totalweightslotgadget"
 )
 
 // region Consensus ////////////////////////////////////////////////////////////////////////////////////////////////////

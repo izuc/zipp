@@ -4,10 +4,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/hive.go/autopeering/discover"
-	"github.com/iotaledger/hive.go/autopeering/peer"
+	"github.com/izuc/zipp.foundation/autopeering/discover"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/protocol"
 )
 
 // PluginName is the name of the web API mana endpoint plugin.

@@ -1,10 +1,10 @@
 package sybilprotection
 
 import (
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/runtime/event"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
 )
 
 type WeightedSet struct {

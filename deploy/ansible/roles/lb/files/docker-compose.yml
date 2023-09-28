@@ -19,7 +19,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.devops.acme.tlschallenge=true"
-      - "--certificatesresolvers.devops.acme.email=devops@iota.org"
+      - "--certificatesresolvers.devops.acme.email=devops@zipp.org"
       - "--certificatesresolvers.devops.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"

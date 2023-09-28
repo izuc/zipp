@@ -5,15 +5,15 @@ import (
 
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/plugins/autopeering"
-	"github.com/iotaledger/goshimmer/plugins/autopeering/discovery"
-	"github.com/iotaledger/goshimmer/plugins/banner"
-	"github.com/iotaledger/hive.go/autopeering/discover"
-	"github.com/iotaledger/hive.go/autopeering/peer"
-	"github.com/iotaledger/hive.go/autopeering/peer/service"
-	"github.com/iotaledger/hive.go/autopeering/server"
-	"github.com/iotaledger/hive.go/logger"
+	"github.com/izuc/zipp.foundation/autopeering/discover"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp.foundation/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/autopeering/server"
+	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/plugins/autopeering"
+	"github.com/izuc/zipp/plugins/autopeering/discovery"
+	"github.com/izuc/zipp/plugins/banner"
 )
 
 // PluginName is the name of the port check plugin.

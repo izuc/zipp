@@ -1,8 +1,8 @@
 package sybilprotection
 
 import (
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
 )
 
 // WeightsBatch is a batch of weight diffs that can be applied to a Weights instance.

@@ -1,9 +1,9 @@
 package sequencetracker
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/markers"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/protocol/markers"
 )
 
 type Events struct {

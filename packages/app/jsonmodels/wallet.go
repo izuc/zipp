@@ -3,7 +3,7 @@ package jsonmodels
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/core/confirmation"
 )
 
 // WalletOutputsOnAddress represents wallet outputs on an address.

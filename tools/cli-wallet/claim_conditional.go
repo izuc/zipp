@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/iotaledger/goshimmer/client/wallet"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/claimconditionaloptions"
+	"github.com/izuc/zipp/client/wallet"
+	"github.com/izuc/zipp/client/wallet/packages/claimconditionaloptions"
 )
 
 func execClaimConditionalCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {

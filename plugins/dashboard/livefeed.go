@@ -3,11 +3,11 @@ package dashboard
 import (
 	"context"
 
-	"github.com/iotaledger/goshimmer/packages/core/shutdown"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/blockdag"
-	"github.com/iotaledger/hive.go/app/daemon"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/app/daemon"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/core/shutdown"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
 )
 
 func runLiveFeed(plugin *node.Plugin) {

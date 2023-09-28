@@ -13,10 +13,10 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/client"
-	"github.com/iotaledger/goshimmer/client/evilspammer"
-	"github.com/iotaledger/goshimmer/client/evilwallet"
-	"github.com/iotaledger/hive.go/ds/types"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp/client"
+	"github.com/izuc/zipp/client/evilspammer"
+	"github.com/izuc/zipp/client/evilwallet"
 )
 
 const (

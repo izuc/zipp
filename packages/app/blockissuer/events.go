@@ -1,8 +1,8 @@
 package blockissuer
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 // Events represents events happening on a block factory.

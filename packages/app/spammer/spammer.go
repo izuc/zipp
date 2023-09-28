@@ -8,11 +8,11 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/goshimmer/packages/protocol/models/payload"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/logger"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp/packages/app/blockissuer"
+	"github.com/izuc/zipp/packages/protocol/models"
+	"github.com/izuc/zipp/packages/protocol/models/payload"
 )
 
 const (

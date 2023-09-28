@@ -3,10 +3,10 @@ package mockedvm
 import (
 	"sync/atomic"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/models/payload"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/objectstorage/generic/model"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/objectstorage/generic/model"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/models/payload"
 )
 
 // MockedTransactionType represents the payload Type of mocked Transactions.

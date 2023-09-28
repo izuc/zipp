@@ -5,12 +5,12 @@ import (
 
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/core/shutdown"
-	"github.com/iotaledger/goshimmer/packages/network/p2p"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/goshimmer/packages/protocol/requester/warpsync"
-	"github.com/iotaledger/hive.go/app/daemon"
+	"github.com/izuc/zipp.foundation/app/daemon"
+	"github.com/izuc/zipp/packages/core/shutdown"
+	"github.com/izuc/zipp/packages/network/p2p"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/protocol/requester/warpsync"
 )
 
 // PluginName is the name of the warpsync plugin.

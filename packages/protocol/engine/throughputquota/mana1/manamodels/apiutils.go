@@ -6,9 +6,9 @@ import (
 
 	"github.com/mr-tron/base58"
 
-	"github.com/iotaledger/goshimmer/packages/network/p2p"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/network/p2p"
 )
 
 // Issuer represents a issuer and its mana value.

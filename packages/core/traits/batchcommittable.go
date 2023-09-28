@@ -3,9 +3,9 @@ package traits
 import (
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/kvstore"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/kvstore"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
 )
 
 // BatchCommittable is a trait that stores the latest commitment and metadata about batched state transitions.

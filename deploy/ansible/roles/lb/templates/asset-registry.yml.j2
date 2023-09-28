@@ -2,12 +2,12 @@
 http:
   routers:
     asset-registry-router:
-      rule: "Host(`asset-registry.tokenizedassetsdemo.iota.cafe`) || Host(`asset-registry.nectar.iota.cafe`)"
+      rule: "Host(`asset-registry.zipp.org`) || Host(`asset-registry.zipp.org`)"
       service: "asset-registry"
       entryPoints:
         - "web"
     asset-registry-router-secure:
-      rule: "Host(`asset-registry.tokenizedassetsdemo.iota.cafe`) || Host(`asset-registry.nectar.iota.cafe`)"
+      rule: "Host(`asset-registry.zipp.org`) || Host(`asset-registry.zipp.org`)"
       service: "asset-registry"
       entryPoints:
         - "websecure"

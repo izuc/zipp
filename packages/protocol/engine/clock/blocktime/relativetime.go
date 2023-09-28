@@ -3,8 +3,8 @@ package blocktime
 import (
 	"time"
 
-	"github.com/iotaledger/hive.go/runtime/event"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
 )
 
 // RelativeTime is a time value that monotonically advances with the system clock.

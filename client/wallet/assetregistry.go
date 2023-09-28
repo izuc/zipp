@@ -8,14 +8,14 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/serializer/v2/marshalutil"
-	"github.com/iotaledger/hive.go/serializer/v2/serix"
+	"github.com/izuc/zipp.foundation/serializer/marshalutil"
+	"github.com/izuc/zipp.foundation/serializer/serix"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 const (
 	// RegistryHostURL is the host url of the central registry.
-	RegistryHostURL = "http://asset-registry.tokenizedassetsdemo.iota.cafe"
+	RegistryHostURL = "http://asset-registry.zipp.org"
 )
 
 // AssetRegistry represents a registry for colored coins, that stores the relevant metadata in a dictionary.
@@ -97,8 +97,8 @@ func (a *AssetRegistry) Name(color devnetvm.Color) string {
 		return asset.Name
 	}
 
-	if color == devnetvm.ColorIOTA {
-		return "IOTA"
+	if color == devnetvm.ColorZIPP {
+		return "ZIPP"
 	}
 	// not in local
 	// fetch from central, update local
@@ -115,7 +115,7 @@ func (a *AssetRegistry) Symbol(color devnetvm.Color) string {
 		return asset.Symbol
 	}
 
-	if color == devnetvm.ColorIOTA {
+	if color == devnetvm.ColorZIPP {
 		return "I"
 	}
 
@@ -134,7 +134,7 @@ func (a *AssetRegistry) Supply(color devnetvm.Color) string {
 		return strconv.FormatUint(asset.Supply, 10)
 	}
 
-	if color == devnetvm.ColorIOTA {
+	if color == devnetvm.ColorZIPP {
 		return ""
 	}
 
@@ -153,7 +153,7 @@ func (a *AssetRegistry) TransactionID(color devnetvm.Color) string {
 		return asset.TransactionID.Base58()
 	}
 
-	if color == devnetvm.ColorIOTA {
+	if color == devnetvm.ColorZIPP {
 		return ""
 	}
 

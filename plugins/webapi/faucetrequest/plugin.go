@@ -7,13 +7,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer"
-	faucetpkg "github.com/iotaledger/goshimmer/packages/app/faucet"
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/crypto/identity"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp/packages/app/blockissuer"
+	faucetpkg "github.com/izuc/zipp/packages/app/faucet"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 var (

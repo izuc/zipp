@@ -1,7 +1,7 @@
 package clock
 
 import (
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/module"
 )
 
 // Clock is an engine module that provides different notions of time according to the different levels of finality.

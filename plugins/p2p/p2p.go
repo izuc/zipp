@@ -7,10 +7,10 @@ import (
 
 	"github.com/libp2p/go-libp2p"
 
-	"github.com/iotaledger/goshimmer/packages/core/libp2putil"
-	"github.com/iotaledger/goshimmer/packages/network/p2p"
-	"github.com/iotaledger/hive.go/autopeering/peer"
-	"github.com/iotaledger/hive.go/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp.foundation/autopeering/peer/service"
+	"github.com/izuc/zipp/packages/core/libp2putil"
+	"github.com/izuc/zipp/packages/network/p2p"
 )
 
 var localAddr *net.TCPAddr

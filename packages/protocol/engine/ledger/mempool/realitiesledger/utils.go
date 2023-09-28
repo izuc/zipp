@@ -3,15 +3,15 @@ package realitiesledger
 import (
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/ds/set"
-	"github.com/iotaledger/hive.go/ds/walker"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/ds/set"
+	"github.com/izuc/zipp.foundation/ds/walker"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/cerrors"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 // Utils is a RealitiesLedger component that bundles utility related API to simplify common interactions with the RealitiesLedger.

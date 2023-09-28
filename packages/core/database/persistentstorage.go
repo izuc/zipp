@@ -1,9 +1,9 @@
 package database
 
 import (
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/kvstore"
-	"github.com/iotaledger/hive.go/serializer/v2"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/kvstore"
+	"github.com/izuc/zipp.foundation/serializer"
 )
 
 type PersistentSlotStorage[K, V any, KPtr IndexedKey[K], VPtr serializer.MarshalablePtr[V]] struct {

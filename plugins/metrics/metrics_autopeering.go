@@ -3,10 +3,10 @@ package metrics
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/app/collector"
-	"github.com/iotaledger/goshimmer/packages/network/p2p"
-	"github.com/iotaledger/hive.go/autopeering/selection"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/autopeering/selection"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/app/collector"
+	"github.com/izuc/zipp/packages/network/p2p"
 )
 
 const (

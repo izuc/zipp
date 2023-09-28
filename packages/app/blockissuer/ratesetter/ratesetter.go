@@ -4,12 +4,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer/ratesetter/aimd"
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer/ratesetter/deficit"
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer/ratesetter/disabled"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/app/blockissuer/ratesetter/aimd"
+	"github.com/izuc/zipp/packages/app/blockissuer/ratesetter/deficit"
+	"github.com/izuc/zipp/packages/app/blockissuer/ratesetter/disabled"
+	"github.com/izuc/zipp/packages/protocol"
 )
 
 // The rate setter can be in one of three modes: aimd, deficit or disabled.

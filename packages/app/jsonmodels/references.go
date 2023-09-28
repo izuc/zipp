@@ -1,7 +1,7 @@
 package jsonmodels
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 // region GetReferences Req/Resp /////////////////////////////////////////////////////////////////////////////////////////

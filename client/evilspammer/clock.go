@@ -3,8 +3,8 @@ package evilspammer
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilwallet"
-	"github.com/iotaledger/hive.go/core/slot"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp/client/evilwallet"
 )
 
 // region ClockSync ///////////////////////////////////////////////////////////////////////////////////////////////

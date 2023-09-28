@@ -491,7 +491,7 @@ function updateParentRefUI(
     }
 }
 
-// copied over and refactored from https://github.com/glumb/IOTAtangle
+// copied over and refactored from https://github.com/glumb/ZIPPtangle
 function dfsIterator(
     graph,
     node,

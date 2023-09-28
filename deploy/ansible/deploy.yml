@@ -8,22 +8,22 @@
 - hosts: supports
   gather_facts: no
   roles:
-    - role: goshimmer-node
+    - role: zipp-node
       nodeType: entrynode
 
-- hosts: goshimmers:&internal_nodes
+- hosts: zipps:&internal_nodes
   gather_facts: no
   vars:
-    nodeType: goshimmer
+    nodeType: zipp
   roles:
-    - goshimmer-node
+    - zipp-node
 
-- hosts: goshimmers:&public_nodes
+- hosts: zipps:&public_nodes
   gather_facts: no
   vars:
     nodeType: public-node
   roles:
-    - goshimmer-node
+    - zipp-node
 
 - hosts: vanilla-01*
   gather_facts: no

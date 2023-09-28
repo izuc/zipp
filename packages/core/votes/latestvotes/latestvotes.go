@@ -1,10 +1,10 @@
 package latestvotes
 
 import (
-	"github.com/iotaledger/hive.go/constraints"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/thresholdmap"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/constraints"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/thresholdmap"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
 )
 
 // LatestVotes keeps track of the most up-to-date for a certain Voter casted on a specific Index.

@@ -3,8 +3,8 @@ package client
 import (
 	"net/http"
 
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
-	"github.com/iotaledger/goshimmer/packages/app/retainer"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/app/retainer"
 )
 
 const (

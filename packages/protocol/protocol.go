@@ -5,46 +5,46 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/goshimmer/packages/core/database"
-	"github.com/iotaledger/goshimmer/packages/network"
-	"github.com/iotaledger/goshimmer/packages/protocol/chainmanager"
-	"github.com/iotaledger/goshimmer/packages/protocol/congestioncontrol"
-	"github.com/iotaledger/goshimmer/packages/protocol/congestioncontrol/icca/scheduler"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/clock"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/clock/blocktime"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/blockgadget"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/consensus/tangleconsensus"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/filter"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/filter/blockfilter"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxoledger"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization/slotnotarization"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/sybilprotection"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/sybilprotection/dpos"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/blockdag"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/inmemorytangle"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/throughputquota"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/throughputquota/mana1"
-	"github.com/iotaledger/goshimmer/packages/protocol/enginemanager"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/goshimmer/packages/protocol/tipmanager"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/advancedset"
-	"github.com/iotaledger/hive.go/ds/orderedmap"
-	"github.com/iotaledger/hive.go/ds/types"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/runtime/event"
-	"github.com/iotaledger/hive.go/runtime/module"
-	"github.com/iotaledger/hive.go/runtime/options"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp.foundation/ds/orderedmap"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
+	"github.com/izuc/zipp/packages/core/commitment"
+	"github.com/izuc/zipp/packages/core/database"
+	"github.com/izuc/zipp/packages/network"
+	"github.com/izuc/zipp/packages/protocol/chainmanager"
+	"github.com/izuc/zipp/packages/protocol/congestioncontrol"
+	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
+	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/clock"
+	"github.com/izuc/zipp/packages/protocol/engine/clock/blocktime"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/tangleconsensus"
+	"github.com/izuc/zipp/packages/protocol/engine/filter"
+	"github.com/izuc/zipp/packages/protocol/engine/filter/blockfilter"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxoledger"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
+	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
+	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection/dpos"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
+	"github.com/izuc/zipp/packages/protocol/engine/throughputquota"
+	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1"
+	"github.com/izuc/zipp/packages/protocol/enginemanager"
+	"github.com/izuc/zipp/packages/protocol/models"
+	"github.com/izuc/zipp/packages/protocol/tipmanager"
 )
 
 // region Protocol /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,8 +480,8 @@ func (p *Protocol) ProcessAttestations(forkingPoint *commitment.Commitment, bloc
 		latestCommitment := mainEngine.Storage.Settings.LatestCommitment()
 		for i := latestCommitment.Index(); i >= snapshotTargetIndex; i-- {
 			if err := mainEngine.Ledger.StateDiffs().StreamSpentOutputs(i, func(output *mempool.OutputWithMetadata) error {
-				if iotaBalance, balanceExists := output.IOTABalance(); balanceExists {
-					wb.Update(output.ConsensusManaPledgeID(), int64(iotaBalance))
+				if ZIPPBalance, balanceExists := output.ZIPPBalance(); balanceExists {
+					wb.Update(output.ConsensusManaPledgeID(), int64(ZIPPBalance))
 				}
 				return nil
 			}); err != nil {
@@ -490,8 +490,8 @@ func (p *Protocol) ProcessAttestations(forkingPoint *commitment.Commitment, bloc
 			}
 
 			if err := mainEngine.Ledger.StateDiffs().StreamCreatedOutputs(i, func(output *mempool.OutputWithMetadata) error {
-				if iotaBalance, balanceExists := output.IOTABalance(); balanceExists {
-					wb.Update(output.ConsensusManaPledgeID(), -int64(iotaBalance))
+				if ZIPPBalance, balanceExists := output.ZIPPBalance(); balanceExists {
+					wb.Update(output.ConsensusManaPledgeID(), -int64(ZIPPBalance))
 				}
 				return nil
 			}); err != nil {

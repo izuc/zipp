@@ -3,8 +3,8 @@ package ledger
 import (
 	"context"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/hive.go/core/slot"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 )
 
 // UnspentOutputsSubscriber is an interface that allows to subscribe to changes in the unspent outputs.

@@ -7,7 +7,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/iotaledger/goshimmer/client"
+	"github.com/izuc/zipp/client"
 )
 
 const (

@@ -1,9 +1,9 @@
 package filter
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 type Filter interface {

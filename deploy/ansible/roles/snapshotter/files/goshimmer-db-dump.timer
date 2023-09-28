@@ -3,7 +3,7 @@ Description=Run Goshimmer DB dump every day at midnight
 
 [Timer]
 OnCalendar=*-*-* 00:00:00 UTC
-Unit=goshimmer-db-dump.service
+Unit=zipp-db-dump.service
 Persistent=true
 
 [Install]

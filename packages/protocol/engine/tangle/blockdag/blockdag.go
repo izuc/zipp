@@ -1,8 +1,8 @@
 package blockdag
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 type BlockDAG interface {

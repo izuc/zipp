@@ -3,7 +3,7 @@ package network
 import (
 	"google.golang.org/protobuf/proto"
 
-	"github.com/iotaledger/hive.go/crypto/identity"
+	"github.com/izuc/zipp.foundation/crypto/identity"
 )
 
 type Endpoint interface {

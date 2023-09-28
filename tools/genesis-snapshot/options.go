@@ -3,10 +3,10 @@ package main
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxoledger"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxoledger"
 )
 
 var BaseOptions = []options.Option[snapshotcreator.Options]{

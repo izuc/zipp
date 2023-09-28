@@ -5,9 +5,9 @@ import (
 	"math"
 	"sync"
 
-	"github.com/iotaledger/hive.go/ds/shrinkingmap"
-	"github.com/iotaledger/hive.go/ds/walker"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/ds/shrinkingmap"
+	"github.com/izuc/zipp.foundation/ds/walker"
+	"github.com/izuc/zipp.foundation/runtime/options"
 )
 
 // region SequenceManager //////////////////////////////////////////////////////////////////////////////////////////////////////

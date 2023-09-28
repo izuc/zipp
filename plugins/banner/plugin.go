@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/iotaledger/goshimmer/packages/node"
+	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the banner plugin.

@@ -3,7 +3,7 @@ package clock
 import (
 	"time"
 
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
 // Events contains a dictionary of events that are triggered by the Clock.

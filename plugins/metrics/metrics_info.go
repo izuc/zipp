@@ -7,8 +7,8 @@ import (
 
 	"github.com/shirou/gopsutil/cpu"
 
-	"github.com/iotaledger/goshimmer/packages/app/collector"
-	"github.com/iotaledger/goshimmer/plugins/banner"
+	"github.com/izuc/zipp/packages/app/collector"
+	"github.com/izuc/zipp/plugins/banner"
 )
 
 const (

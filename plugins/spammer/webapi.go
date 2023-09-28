@@ -7,7 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
 )
 
 func handleRequest(c echo.Context) error {

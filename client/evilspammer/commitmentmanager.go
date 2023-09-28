@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilwallet"
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/hive.go/core/slot"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp/client/evilwallet"
+	"github.com/izuc/zipp/packages/core/commitment"
 
 	"github.com/pkg/errors"
 )

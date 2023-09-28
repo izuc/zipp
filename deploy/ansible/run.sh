@@ -1,4 +1,4 @@
-eval "$GOSHIMMER_SEEDS"
+eval "$ZIPP_SEEDS"
 
 export ANSIBLE_STRATEGY=free
 export ANSIBLE_PIPELINING=true
@@ -28,8 +28,8 @@ elkElasticUser=$ELK_ELASTIC_USER
 elkElasticPassword=$ELK_ELASTIC_PASSWORD
 slackNotificationWebhook=$SLACK_NOTIFICATION_WEBHOOK
 powDifficulty=$POW_DIFFICULTY
-goshimmerDockerImage=$GOSHIMMER_DOCKER_IMAGE
-goshimmerDockerTag=$GOSHIMMER_DOCKER_TAG
+zippDockerImage=$ZIPP_DOCKER_IMAGE
+zippDockerTag=$ZIPP_DOCKER_TAG
 snapshotterBucket=$SNAPSHOTTER_BUCKET
 snapshotterAccessKey=$SNAPSHOTTER_ACCESS_KEY
 GENESIS_TIME=$(date +%s)

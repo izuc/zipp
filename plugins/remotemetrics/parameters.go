@@ -1,6 +1,6 @@
 package remotemetrics
 
-import "github.com/iotaledger/goshimmer/plugins/config"
+import "github.com/izuc/zipp/plugins/config"
 
 // ParametersDefinition contains the definition of the parameters used by the remotelog plugin.
 type ParametersDefinition struct {

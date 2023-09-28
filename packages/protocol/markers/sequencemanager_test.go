@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/stringify"
 )
 
 func TestManager(t *testing.T) {

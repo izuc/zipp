@@ -6,7 +6,7 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/iotaledger/goshimmer/client/wallet"
+	"github.com/izuc/zipp/client/wallet"
 )
 
 func execAddressCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {

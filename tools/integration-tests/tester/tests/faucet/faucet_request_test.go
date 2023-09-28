@@ -5,13 +5,13 @@ import (
 	"log"
 	"testing"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 // TestFaucetRequest sends funds by faucet request.
@@ -65,7 +65,7 @@ func TestFaucetRequest(t *testing.T) {
 	for _, peer := range nonFaucetPeers {
 		for idx := 0; idx < numRequests; idx++ {
 			require.Eventuallyf(t, func() bool {
-				balance := tests.Balance(t, peer, peer.Address(idx), devnetvm.ColorIOTA)
+				balance := tests.Balance(t, peer, peer.Address(idx), devnetvm.ColorZIPP)
 				return balance == uint64(faucet.Config().TokensPerRequest)
 			}, tests.Timeout, tests.Tick,
 				"peer %s did not register its requested funds on address %s", peer, peer.Address(idx).Base58())

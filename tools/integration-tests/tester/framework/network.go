@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -15,12 +15,12 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	walletseed "github.com/iotaledger/goshimmer/client/wallet/packages/seed"
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
-	"github.com/iotaledger/goshimmer/packages/network/manualpeering"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework/config"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/lo"
+	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/network/manualpeering"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
 )
 
 // Network represents a complete GoShimmer network within Docker.

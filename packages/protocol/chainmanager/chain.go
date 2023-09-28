@@ -1,8 +1,8 @@
 package chainmanager
 
 import (
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
 )
 
 type Chain struct {

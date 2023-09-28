@@ -6,8 +6,8 @@ import (
 
 	flag "github.com/spf13/pflag"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/plugins/banner"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/plugins/banner"
 )
 
 // PluginName is the name of the CLI plugin.

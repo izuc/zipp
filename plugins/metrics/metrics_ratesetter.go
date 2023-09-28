@@ -1,6 +1,6 @@
 package metrics
 
-import "github.com/iotaledger/goshimmer/packages/app/collector"
+import "github.com/izuc/zipp/packages/app/collector"
 
 const (
 	rateSetterNamespace = "ratesetter"

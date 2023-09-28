@@ -3,10 +3,10 @@ package logger
 import (
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/hive.go/app/configuration"
-	"github.com/iotaledger/hive.go/app/daemon"
-	"github.com/iotaledger/hive.go/app/logger"
+	"github.com/izuc/zipp.foundation/app/configuration"
+	"github.com/izuc/zipp.foundation/app/daemon"
+	"github.com/izuc/zipp.foundation/app/logger"
+	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the logger plugin.

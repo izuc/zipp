@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilwallet"
+	"github.com/izuc/zipp/client/evilwallet"
 )
 
 // region Printer /////////////////////////////////////////////////////////////////////////////////////////////////////////

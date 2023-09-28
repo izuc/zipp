@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/client"
-	"github.com/iotaledger/goshimmer/plugins/config"
-	"github.com/iotaledger/goshimmer/plugins/logger"
+	"github.com/izuc/zipp/client"
+	"github.com/izuc/zipp/plugins/config"
+	"github.com/izuc/zipp/plugins/logger"
 )
 
 func testBroadcastData(api *client.GoShimmerAPI) (string, error) {

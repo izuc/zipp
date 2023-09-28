@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/notarization"
+	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
 )
 
 var f *framework.Framework

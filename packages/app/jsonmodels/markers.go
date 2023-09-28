@@ -1,7 +1,7 @@
 package jsonmodels
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/markers"
+	"github.com/izuc/zipp/packages/protocol/markers"
 )
 
 // region StructureDetails /////////////////////////////////////////////////////////////////////////////////////////////

@@ -3,14 +3,14 @@ package retainer
 import (
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/app/retainer"
-	"github.com/iotaledger/goshimmer/packages/core/database"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	protocolplugin "github.com/iotaledger/goshimmer/plugins/protocol"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/runtime/event"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
+	"github.com/izuc/zipp/packages/app/retainer"
+	"github.com/izuc/zipp/packages/core/database"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/protocol"
+	protocolplugin "github.com/izuc/zipp/plugins/protocol"
 )
 
 // PluginName is the name of the spammer plugin.

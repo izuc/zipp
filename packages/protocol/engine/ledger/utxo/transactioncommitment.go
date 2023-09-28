@@ -1,7 +1,7 @@
 package utxo
 
 import (
-	"github.com/iotaledger/hive.go/ds/types"
+	"github.com/izuc/zipp.foundation/ds/types"
 )
 
 // region TransactionCommitment ////////////////////////////////////////////////////////////////////////////////////////

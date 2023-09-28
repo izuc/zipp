@@ -3,8 +3,8 @@ package delegateoptions
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 // DelegateFundsOptions is a struct that is used to aggregate the optional parameters provided in the DelegateFunds call.
@@ -23,9 +23,9 @@ func (s *DelegateFundsOptions) RequiredFunds() map[devnetvm.Color]uint64 {
 	requiredFunds := make(map[devnetvm.Color]uint64)
 	for _, coloredBalances := range s.Destinations {
 		for color, amount := range coloredBalances {
-			// if we want to color sth then we need fresh IOTA
+			// if we want to color sth then we need fresh ZIPP
 			if color == devnetvm.ColorMint {
-				color = devnetvm.ColorIOTA
+				color = devnetvm.ColorZIPP
 			}
 
 			requiredFunds[color] += amount

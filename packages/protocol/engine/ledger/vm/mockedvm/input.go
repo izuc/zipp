@@ -1,8 +1,8 @@
 package mockedvm
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/stringify"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 // MockedInput is a mocked entity that allows to "address" which Outputs are supposed to be used by a Transaction.

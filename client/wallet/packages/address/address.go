@@ -3,8 +3,8 @@ package address
 import (
 	"github.com/mr-tron/base58"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/stringify"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 // Address represents an address in a wallet. It extends the normal address type with an index number that was used to

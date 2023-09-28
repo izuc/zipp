@@ -1,8 +1,8 @@
 package slotgadget
 
 import (
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/runtime/module"
 )
 
 type Gadget interface {

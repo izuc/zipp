@@ -1,6 +1,6 @@
 package dashboard
 
-import "github.com/iotaledger/goshimmer/plugins/config"
+import "github.com/izuc/zipp/plugins/config"
 
 // ParametersDefinition contains the definition of configuration parameters used by the dashboard plugin.
 type ParametersDefinition struct {
@@ -14,9 +14,9 @@ type ParametersDefinition struct {
 		// Enabled defines the config flag of the dashboard basic auth enabler.
 		Enabled bool `default:"false" usage:"whether to enable HTTP basic auth"`
 		// Username defines the config flag of the dashboard basic auth username.
-		Username string `default:"goshimmer" usage:"HTTP basic auth username"`
+		Username string `default:"zipp" usage:"HTTP basic auth username"`
 		// Password defines the config flag of the dashboard basic auth password.
-		Password string `default:"goshimmer" usage:"HTTP basic auth password"`
+		Password string `default:"zipp" usage:"HTTP basic auth password"`
 	}
 	// Conflicts defines the config flag for the configs tab of the dashboard.
 	Conflicts struct {

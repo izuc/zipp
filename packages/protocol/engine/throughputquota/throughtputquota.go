@@ -1,8 +1,8 @@
 package throughputquota
 
 import (
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/runtime/module"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/runtime/module"
 )
 
 type ThroughputQuota interface {

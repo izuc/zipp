@@ -3,11 +3,11 @@ package realitiesledger
 import (
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/cerrors"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/core/dataflow"
-	"github.com/iotaledger/hive.go/ds/walker"
+	"github.com/izuc/zipp.foundation/core/dataflow"
+	"github.com/izuc/zipp.foundation/ds/walker"
+	"github.com/izuc/zipp/packages/core/cerrors"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 // validator is a RealitiesLedger component that bundles the API that is used to check the validity of a Transaction.

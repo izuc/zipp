@@ -22,8 +22,8 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
         with:
-          repository: iotaledger/goshimmer
-          username: '${{ secrets.IOTALEDGER_HUB_DOCKER_LOGIN }}'
-          password: '${{ secrets.IOTALEDGER_HUB_DOCKER_PASSWORD }}'
+          repository: izuc/zipp
+          username: '${{ secrets.ZIPP_HUB_DOCKER_LOGIN }}'
+          password: '${{ secrets.ZIPP_HUB_DOCKER_PASSWORD }}'
           tags: ${{github.event.inputs.tagName}}
           build-args: DOWNLOAD_SNAPSHOT=0

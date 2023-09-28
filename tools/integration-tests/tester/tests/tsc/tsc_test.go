@@ -2,16 +2,16 @@ package tsc
 
 import (
 	"context"
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
 	"log"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework/config"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/tests"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
+	"github.com/izuc/zipp/tools/integration-tests/tester/tests"
 )
 
 // TestOrphanageTSC tests whether orphanage due to Time-Since-Acceptance works properly.

@@ -10,19 +10,19 @@ import (
 	"github.com/capossele/asset-registry/pkg/registryservice"
 	"github.com/mr-tron/base58"
 
-	"github.com/iotaledger/goshimmer/client"
-	"github.com/iotaledger/goshimmer/client/wallet"
-	walletseed "github.com/iotaledger/goshimmer/client/wallet/packages/seed"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/ds/bitmask"
-	"github.com/iotaledger/hive.go/serializer/v2/marshalutil"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/ds/bitmask"
+	"github.com/izuc/zipp.foundation/serializer/marshalutil"
+	"github.com/izuc/zipp/client"
+	"github.com/izuc/zipp/client/wallet"
+	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
 )
 
 // Exit should be used inside panic intead of os.Exit(). This will allow to call deferred statements.
 type Exit struct{ Code int }
 
 func printBanner() {
-	fmt.Println("IOTA 2.0 DevNet CLI-Wallet 0.2")
+	fmt.Println("ZIPP 2.0 DevNet CLI-Wallet 0.2")
 }
 
 func loadWallet() *wallet.Wallet {

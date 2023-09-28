@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
 )
 
 const (

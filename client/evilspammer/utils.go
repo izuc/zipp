@@ -3,7 +3,7 @@ package evilspammer
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilwallet"
+	"github.com/izuc/zipp/client/evilwallet"
 )
 
 // BigWalletsNeeded calculates how many big wallets needs to be prepared for a spam based on provided spam details.

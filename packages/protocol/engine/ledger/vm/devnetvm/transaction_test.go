@@ -6,10 +6,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/hive.go/crypto/ed25519"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 var sampleColor = Color{2}
@@ -57,7 +57,7 @@ func TestTransaction_Complex(t *testing.T) {
 		},
 		party2SrcAddress: {
 			party2ControlledOutputID: {
-				ColorIOTA: 2337,
+				ColorZIPP: 2337,
 			},
 		},
 	})
@@ -68,7 +68,7 @@ func TestTransaction_Complex(t *testing.T) {
 		NewInputs(unspentOutputsDB[party1ControlledOutputID].Input()),
 
 		NewOutputs(
-			// he wants to receive 1337 IOTA on his destination address
+			// he wants to receive 1337 ZIPP on his destination address
 			NewSigLockedSingleOutput(1337, party1DestAddress),
 
 			// he sends only 100 of the consumed tokens to the remainder leaving 100 unspent
@@ -95,7 +95,7 @@ func TestTransaction_Complex(t *testing.T) {
 				sampleColor: 100,
 			}), party2DestAddress),
 
-			// he sends only 1000 of the 2337 consumed IOTA to the remainder (leaving 1337 unspent)
+			// he sends only 1000 of the 2337 consumed ZIPP to the remainder (leaving 1337 unspent)
 			NewSigLockedSingleOutput(1000, party2RemainderAddress),
 		)...),
 	)

@@ -4,8 +4,8 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/iotaledger/hive.go/autopeering/peer"
-	"github.com/iotaledger/hive.go/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp.foundation/autopeering/peer/service"
 )
 
 // GetAddress returns the address of the p2p service.

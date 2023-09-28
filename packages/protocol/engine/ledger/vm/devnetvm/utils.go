@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/hive.go/ds/types"
+	"github.com/izuc/zipp.foundation/ds/types"
 )
 
 // TransactionBalancesValid is an internal utility function that checks if the sum of the balance changes equals to 0.
@@ -27,7 +27,7 @@ func TransactionBalancesValid(inputs Outputs, outputs Outputs) (valid bool) {
 	for _, output := range outputs {
 		output.Balances().ForEach(func(color Color, balance uint64) bool {
 			switch color {
-			case ColorIOTA, ColorMint:
+			case ColorZIPP, ColorMint:
 				recoloredCoins, valid = SafeAddUint64(recoloredCoins, balance)
 			default:
 				consumedCoins[color], valid = SafeSubUint64(consumedCoins[color], balance)

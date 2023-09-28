@@ -3,8 +3,8 @@ package dashboardmetrics
 import (
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/packages/app/collector"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp/packages/app/collector"
 )
 
 // the same metrics as above, but since the start of a node.

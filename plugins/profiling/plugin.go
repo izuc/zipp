@@ -8,8 +8,8 @@ import (
 
 	"github.com/felixge/fgprof"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/hive.go/logger"
+	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the profiling plugin.

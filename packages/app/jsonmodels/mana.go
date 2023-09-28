@@ -1,7 +1,7 @@
 package jsonmodels
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/throughputquota/mana1/manamodels"
+	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1/manamodels"
 )
 
 // GetManaRequest is the request for get mana.

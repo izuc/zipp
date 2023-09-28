@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/iotaledger/hive.go/logger"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
 )
 
 const (

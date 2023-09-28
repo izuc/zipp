@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/core/snapshotcreator"
-	"github.com/iotaledger/goshimmer/tools/integration-tests/tester/framework/config"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp/packages/core/snapshotcreator"
+	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
 
 	"github.com/mr-tron/base58"
 )
@@ -59,7 +59,7 @@ type CreateNetworkConfig struct {
 func PeerConfig() config.GoShimmer {
 	c := config.NewGoShimmer()
 
-	c.Image = "iotaledger/goshimmer"
+	c.Image = "izuc/zipp"
 
 	c.DisabledPlugins = []string{"portcheck", "remotelogmetrics", "remotelog", "WebAPISlotEndpoint", "WebAPIMetricsEndpoint", "ManaInitializer", "Warpsync"}
 

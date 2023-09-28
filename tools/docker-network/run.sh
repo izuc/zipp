@@ -44,8 +44,8 @@ fi
 
 
 echo "Run GoShimmer network with ${DOCKER_COMPOSE_FILE}"
-# GOSHIMMER_PEER_REPLICAS is used in docker-compose.yml to determine how many replicas to create
-export GOSHIMMER_PEER_REPLICAS=$REPLICAS
+# ZIPP_PEER_REPLICAS is used in docker-compose.yml to determine how many replicas to create
+export ZIPP_PEER_REPLICAS=$REPLICAS
 # Profiles is created to set which docker profiles to run
 # https://docs.docker.com/compose/profiles/
 PROFILES=()

@@ -1,5 +1,5 @@
 - name: Pull docker image async
-  shell: docker pull "{{ goshimmerDockerImage }}:{{ goshimmerDockerTag }}"
+  shell: docker pull "{{ zippDockerImage }}:{{ zippDockerTag }}"
   async: 300
   poll: 5
 

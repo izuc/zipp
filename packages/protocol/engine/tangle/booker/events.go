@@ -1,12 +1,12 @@
 package booker
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/votes/conflicttracker"
-	"github.com/iotaledger/goshimmer/packages/core/votes/sequencetracker"
-	"github.com/iotaledger/goshimmer/packages/core/votes/slottracker"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/markers"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/core/votes/conflicttracker"
+	"github.com/izuc/zipp/packages/core/votes/sequencetracker"
+	"github.com/izuc/zipp/packages/core/votes/slottracker"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/markers"
 )
 
 type Events struct {

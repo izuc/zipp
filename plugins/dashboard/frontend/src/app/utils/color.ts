@@ -1,7 +1,7 @@
 export function resolveColor(color: string) {
     switch (color) {
-        case Base58EncodedColorIOTA:
-            return "IOTA";
+        case Base58EncodedColorZIPP:
+            return "ZIPP";
         case Base58EncodedColorMint:
             return "MINT";
         default:
@@ -9,5 +9,5 @@ export function resolveColor(color: string) {
     }
 }
 
-export const Base58EncodedColorIOTA = "11111111111111111111111111111111"
+export const Base58EncodedColorZIPP = "11111111111111111111111111111111"
 export const Base58EncodedColorMint = "JEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFG"

@@ -6,11 +6,11 @@ import (
 
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/client"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/seed"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/hive.go/autopeering/peer"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/client"
+	"github.com/izuc/zipp/client/wallet/packages/seed"
+	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the profiling plugin.

@@ -1,7 +1,7 @@
 scrape_configs:
-  - job_name: goshimmer_local
+  - job_name: zipp_local
     scrape_interval: 5s
     static_configs:
       - targets:
-          # goshimmer prometheus plugin export
-          - goshimmer:9311
+          # zipp prometheus plugin export
+          - zipp:9311

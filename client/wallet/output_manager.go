@@ -1,8 +1,8 @@
 package wallet
 
 import (
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
 // OutputManager keeps track of the outputs.

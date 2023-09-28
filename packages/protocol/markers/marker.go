@@ -5,10 +5,10 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/iotaledger/hive.go/ds/thresholdmap"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
-	"github.com/iotaledger/hive.go/serializer/v2/marshalutil"
-	"github.com/iotaledger/hive.go/stringify"
+	"github.com/izuc/zipp.foundation/ds/thresholdmap"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/serializer/marshalutil"
+	"github.com/izuc/zipp.foundation/stringify"
 )
 
 // region Index ////////////////////////////////////////////////////////////////////////////////////////////////////////

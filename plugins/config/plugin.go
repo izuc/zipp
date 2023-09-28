@@ -7,8 +7,8 @@ import (
 	flag "github.com/spf13/pflag"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/hive.go/app/configuration"
+	"github.com/izuc/zipp.foundation/app/configuration"
+	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the config plugin.

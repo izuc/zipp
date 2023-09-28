@@ -2,9 +2,9 @@
 version: '3.3'
 
 services:
-  goshimmer:
-    image: {{goshimmerDockerImage}}:{{goshimmerDockerTag}}
-    container_name: goshimmer
+  zipp:
+    image: {{zippDockerImage}}:{{zippDockerTag}}
+    container_name: zipp
     volumes:
       - "./db:/db"
       - "./retainer:/retainer"

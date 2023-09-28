@@ -8,11 +8,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/types"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 const (
@@ -34,7 +34,7 @@ const (
 var (
 	defaultClientsURLs = []string{}
 	faucetBalance      = devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-		devnetvm.ColorIOTA: uint64(faucetTokensPerRequest),
+		devnetvm.ColorZIPP: uint64(faucetTokensPerRequest),
 	})
 )
 
@@ -601,7 +601,7 @@ func (e *EvilWallet) prepareRemainderOutput(buildOptions *Options, outputs []dev
 	// remainder balances is sent to one of the address in inputs
 	if outputBalance < inputBalance {
 		remainderOutput = devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-			devnetvm.ColorIOTA: inputBalance - outputBalance,
+			devnetvm.ColorZIPP: inputBalance - outputBalance,
 		}), remainderAddress)
 		added = true
 	}
@@ -648,7 +648,7 @@ func (e *EvilWallet) updateOutputBalances(buildOptions *Options) (err error) {
 		i := 0
 		for out := range buildOptions.aliasOutputs {
 			buildOptions.aliasOutputs[out] = devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-				devnetvm.ColorIOTA: balances[i],
+				devnetvm.ColorZIPP: balances[i],
 			})
 			i++
 		}

@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
 // NeighborGroupEvents is a collection of events specific for a particular neighbors group, e.g "manual" or "auto".

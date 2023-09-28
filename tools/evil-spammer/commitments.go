@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilspammer"
-	"github.com/iotaledger/goshimmer/tools/evil-spammer/identity"
+	"github.com/izuc/zipp/client/evilspammer"
+	"github.com/izuc/zipp/tools/evil-spammer/identity"
 )
 
 type CommitmentsSpamParams struct {

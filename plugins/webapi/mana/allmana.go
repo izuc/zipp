@@ -7,9 +7,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/iotaledger/goshimmer/packages/app/jsonmodels"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/throughputquota/mana1/manamodels"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1/manamodels"
 )
 
 // getAllManaHandler handles the request.

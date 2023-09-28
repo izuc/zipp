@@ -2,10 +2,10 @@
 
 COMMIT=$1
 
-MODULES="ads app autopeering constraints core crypto ds kvstore lo logger objectstorage runtime serializer/v2 stringify"
+MODULES="ads app autopeering constraints core crypto ds kvstore lo logger objectstorage runtime serializer stringify"
 for i in $MODULES
 do
-	go get -u github.com/iotaledger/hive.go/$i@$COMMIT
+	go get -u github.com/izuc/zipp.foundation/$i@$COMMIT
 
 done
 

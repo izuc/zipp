@@ -3,7 +3,7 @@ package gracefulshutdown
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/plugins/config"
+	"github.com/izuc/zipp/plugins/config"
 )
 
 // ParametersDefinition contains the definition of configuration parameters used by the graceful shutdown plugin.

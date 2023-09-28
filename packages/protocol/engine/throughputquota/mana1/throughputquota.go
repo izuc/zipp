@@ -5,19 +5,19 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/storable"
-	"github.com/iotaledger/goshimmer/packages/core/traits"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/throughputquota"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/crypto/identity"
-	"github.com/iotaledger/hive.go/ds/shrinkingmap"
-	"github.com/iotaledger/hive.go/kvstore"
-	"github.com/iotaledger/hive.go/lo"
-	"github.com/iotaledger/hive.go/runtime/module"
-	"github.com/iotaledger/hive.go/runtime/options"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/ds/shrinkingmap"
+	"github.com/izuc/zipp.foundation/kvstore"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/runtime/module"
+	"github.com/izuc/zipp.foundation/runtime/options"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp/packages/core/storable"
+	"github.com/izuc/zipp/packages/core/traits"
+	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/throughputquota"
 )
 
 const (
@@ -119,11 +119,11 @@ func (m *ThroughputQuota) ApplyCreatedOutput(output *mempool.OutputWithMetadata)
 }
 
 func (m *ThroughputQuota) applyCreatedOutput(output *mempool.OutputWithMetadata) (err error) {
-	if iotaBalance, exists := output.IOTABalance(); exists {
-		m.updateMana(output.AccessManaPledgeID(), int64(iotaBalance))
+	if ZIPPBalance, exists := output.ZIPPBalance(); exists {
+		m.updateMana(output.AccessManaPledgeID(), int64(ZIPPBalance))
 
 		if !m.engine.Ledger.UnspentOutputs().WasInitialized() {
-			totalBalanceBytes, serializationErr := storable.SerializableInt64(m.updateTotalBalance(int64(iotaBalance))).Bytes()
+			totalBalanceBytes, serializationErr := storable.SerializableInt64(m.updateTotalBalance(int64(ZIPPBalance))).Bytes()
 			if serializationErr != nil {
 				return errors.Wrapf(serializationErr, "failed to serialize total balance")
 			}
@@ -145,8 +145,8 @@ func (m *ThroughputQuota) ApplySpentOutput(output *mempool.OutputWithMetadata) (
 }
 
 func (m *ThroughputQuota) applySpentOutput(output *mempool.OutputWithMetadata) (err error) {
-	if iotaBalance, exists := output.IOTABalance(); exists {
-		m.updateMana(output.AccessManaPledgeID(), -int64(iotaBalance))
+	if ZIPPBalance, exists := output.ZIPPBalance(); exists {
+		m.updateMana(output.AccessManaPledgeID(), -int64(ZIPPBalance))
 	}
 
 	return

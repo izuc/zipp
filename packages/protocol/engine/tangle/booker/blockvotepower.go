@@ -3,7 +3,7 @@ package booker
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 type BlockVotePower struct {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/capossele/asset-registry/pkg/registryservice"
 
-	"github.com/iotaledger/goshimmer/client"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/seed"
-	"github.com/iotaledger/hive.go/ds/bitmask"
+	"github.com/izuc/zipp.foundation/ds/bitmask"
+	"github.com/izuc/zipp/client"
+	"github.com/izuc/zipp/client/wallet/packages/seed"
 )
 
 // Option represents an optional parameter .

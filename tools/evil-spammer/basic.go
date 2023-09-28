@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iotaledger/goshimmer/client/evilspammer"
-	"github.com/iotaledger/goshimmer/client/evilwallet"
+	"github.com/izuc/zipp/client/evilspammer"
+	"github.com/izuc/zipp/client/evilwallet"
 )
 
 type CustomSpamParams struct {

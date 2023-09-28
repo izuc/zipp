@@ -3,8 +3,8 @@ package latestblocktracker
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/runtime/syncutils"
+	"github.com/izuc/zipp.foundation/runtime/syncutils"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 // LatestBlockTracker is a component that tracks the ID of the latest Block.

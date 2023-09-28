@@ -3,8 +3,8 @@ package conflictdag
 import (
 	"testing"
 
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/confirmation"
 )
 
 func TestConflictDAG_CreateConflict(t *testing.T) {

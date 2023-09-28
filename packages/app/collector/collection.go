@@ -1,8 +1,8 @@
 package collector
 
 import (
-	"github.com/iotaledger/hive.go/constraints"
-	"github.com/iotaledger/hive.go/runtime/options"
+	"github.com/izuc/zipp.foundation/constraints"
+	"github.com/izuc/zipp.foundation/runtime/options"
 )
 
 const singleValLabel = "value"

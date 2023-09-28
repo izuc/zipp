@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/iotaledger/goshimmer/client/wallet"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/sweepnftownednftsoptions"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/sweepnftownedoptions"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/client/wallet"
+	"github.com/izuc/zipp/client/wallet/packages/sweepnftownednftsoptions"
+	"github.com/izuc/zipp/client/wallet/packages/sweepnftownedoptions"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 func execSweepNFTOwnedFundsCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {

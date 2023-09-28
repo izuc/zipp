@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/iotaledger/goshimmer/packages/app/collector"
+	"github.com/izuc/zipp/packages/app/collector"
 )
 
 const (

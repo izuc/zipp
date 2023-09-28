@@ -1,6 +1,6 @@
 package manualpeering
 
-import "github.com/iotaledger/goshimmer/plugins/config"
+import "github.com/izuc/zipp/plugins/config"
 
 // ParametersDefinition contains the definition of the parameters used by the manualPeering plugin.
 type ParametersDefinition struct {

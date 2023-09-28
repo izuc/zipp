@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	walletseed "github.com/iotaledger/goshimmer/client/wallet/packages/seed"
+	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
 )
 
 func main() {

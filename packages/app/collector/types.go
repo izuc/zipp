@@ -3,8 +3,8 @@ package collector
 import (
 	"fmt"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/packages/protocol/models/payload"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/protocol/models/payload"
 )
 
 // BlockType defines the component for the different BPS metrics.

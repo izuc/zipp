@@ -3,8 +3,8 @@ package remotemetrics
 import (
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/app/remotemetrics"
-	"github.com/iotaledger/goshimmer/packages/protocol/congestioncontrol/icca/scheduler"
+	"github.com/izuc/zipp/packages/app/remotemetrics"
+	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 )
 
 func obtainSchedulerStats(timestamp time.Time) {

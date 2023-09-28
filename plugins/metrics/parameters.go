@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/iotaledger/goshimmer/plugins/config"
+	"github.com/izuc/zipp/plugins/config"
 )
 
 // ParametersDefinition contains the definition of the parameters used by the metrics plugin.

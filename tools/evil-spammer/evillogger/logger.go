@@ -3,9 +3,9 @@ package evillogger
 import (
 	"fmt"
 
-	"github.com/iotaledger/hive.go/app/configuration"
-	appLogger "github.com/iotaledger/hive.go/app/logger"
-	"github.com/iotaledger/hive.go/logger"
+	"github.com/izuc/zipp.foundation/app/configuration"
+	appLogger "github.com/izuc/zipp.foundation/app/logger"
+	"github.com/izuc/zipp.foundation/logger"
 )
 
 var New = logger.NewLogger

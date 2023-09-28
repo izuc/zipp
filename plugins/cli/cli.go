@@ -9,8 +9,8 @@ import (
 
 	flag "github.com/spf13/pflag"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/plugins/config"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/plugins/config"
 )
 
 var (
@@ -38,7 +38,7 @@ func printUsage() {
 		os.Stderr,
 		"\n"+
 			"GoShimmer\n\n"+
-			"  A lightweight modular IOTA node.\n\n"+
+			"  A lightweight modular ZIPP node.\n\n"+
 			"Usage:\n\n"+
 			"  %s [OPTIONS]\n\n"+
 			"Options:\n",

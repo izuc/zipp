@@ -21,8 +21,8 @@ ARG DOWNLOAD_SNAPSHOT=1
 RUN update-ca-certificates
 
 # Set the current Working Directory inside the container
-RUN mkdir /goshimmer
-WORKDIR /goshimmer
+RUN mkdir /zipp
+WORKDIR /zipp
 
 # If debugging is enabled install Delve binary.
 RUN if [ $REMOTE_DEBUGGING -gt 0 ]; then \
@@ -57,16 +57,16 @@ RUN --mount=target=. \
     go build \
     -tags="$BUILD_TAGS" \
     -gcflags="all=-N -l" \
-    -o /go/bin/goshimmer; \
+    -o /go/bin/zipp; \
     else  \
     go build \
     -tags="$BUILD_TAGS" \
     -ldflags='-w -s' \
-    -o /go/bin/goshimmer; \
+    -o /go/bin/zipp; \
     fi
 
 # Docker cache will be invalidated for RUNs after ARG definition (https://docs.docker.com/engine/reference/builder/#impact-on-build-caching)
-ARG DEFAULT_SNAPSHOT_URL=https://dbfiles-goshimmer.s3.eu-central-1.amazonaws.com/snapshots/nectar/snapshot-latest.bin
+ARG DEFAULT_SNAPSHOT_URL=https://zipp.org/snapshot.bin
 ARG CUSTOM_SNAPSHOT_URL
 
 # Enable building the image without downloading the snapshot.
@@ -112,7 +112,7 @@ WORKDIR /app
 USER nonroot
 
 # Copy the Pre-built binary file from the previous stage
-COPY --chown=nonroot:nonroot --from=build /go/bin/goshimmer /app/goshimmer
+COPY --chown=nonroot:nonroot --from=build /go/bin/zipp /app/zipp
 
 # Copy configuration and snapshot from the previous stage
 COPY config.default.json /app/config.json
@@ -123,7 +123,7 @@ COPY --chown=nonroot:nonroot --from=build /tmp/snapshot.bin /app/snapshot.bin
 # We execute this stage only if debugging is disabled, i.e REMOTE_DEBUGGIN==0
 FROM prepare-runtime as debugger-enabled-0
 
-ENTRYPOINT ["/app/goshimmer", "--config=/app/config.json"]
+ENTRYPOINT ["/app/zipp", "--config=/app/config.json"]
 
 # We execute this stage only if debugging is enabled, i.e REMOTE_DEBUGGING==1
 FROM prepare-runtime as debugger-enabled-1
@@ -131,7 +131,7 @@ EXPOSE 40000
 
 # Copy the Delve binary
 COPY --chown=nonroot:nonroot --from=build /go/bin/dlv /app/dlv
-ENTRYPOINT ["/app/dlv", "--listen=:40000", "--headless", "--api-version=2", "--accept-multiclient", "exec", "--continue", "/app/goshimmer", "--", "--config=/app/config.json"]
+ENTRYPOINT ["/app/dlv", "--listen=:40000", "--headless", "--api-version=2", "--accept-multiclient", "exec", "--continue", "/app/zipp", "--", "--config=/app/config.json"]
 
 # Execute corresponding build stage depending on the REMOTE_DEBUGGING build arg.
 FROM debugger-enabled-${REMOTE_DEBUGGING} as runtime

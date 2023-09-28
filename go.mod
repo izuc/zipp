@@ -1,4 +1,4 @@
-module github.com/iotaledger/goshimmer
+module github.com/izuc/zipp
 
 go 1.20
 
@@ -13,20 +13,7 @@ require (
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/iotaledger/hive.go/ads v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/app v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/autopeering v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/constraints v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/core v1.0.0-rc.3.0.20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/crypto v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/ds v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/kvstore v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/lo v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/logger v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/objectstorage v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/runtime v0.0.0-20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1.0.20230417125513-e2e89991217f
-	github.com/iotaledger/hive.go/stringify v0.0.0-20230417125513-e2e89991217f
+	github.com/izuc/zipp.foundation v0.1.3
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/libp2p/go-libp2p v0.27.1

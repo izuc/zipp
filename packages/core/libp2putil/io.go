@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 // UvarintWriter writes protobuf blocks.

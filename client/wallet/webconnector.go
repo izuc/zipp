@@ -3,12 +3,12 @@ package wallet
 import (
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/client"
-	"github.com/iotaledger/goshimmer/client/wallet/packages/address"
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/client"
+	"github.com/izuc/zipp/client/wallet/packages/address"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 // WebConnector implements a connector that uses the web API to connect to a node to implement the required functions
@@ -158,8 +158,8 @@ func (webConnector WebConnector) GetUnspentAliasOutput(addr *devnetvm.AliasAddre
 
 // colorFromString is an internal utility method that parses the given string into a Color.
 func colorFromString(colorStr string) (color devnetvm.Color) {
-	if colorStr == "IOTA" {
-		color = devnetvm.ColorIOTA
+	if colorStr == "ZIPP" {
+		color = devnetvm.ColorZIPP
 	} else {
 		var t utxo.TransactionID
 		_ = t.FromBase58(colorStr)

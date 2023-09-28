@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/iotaledger/hive.go/kvstore"
+	"github.com/izuc/zipp.foundation/kvstore"
 )
 
 // DB represents a database abstraction.

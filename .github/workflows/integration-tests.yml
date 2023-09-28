@@ -35,7 +35,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |
@@ -85,7 +85,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |
@@ -133,7 +133,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |
@@ -181,7 +181,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |
@@ -229,7 +229,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |
@@ -277,7 +277,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |
@@ -325,7 +325,7 @@ jobs:
         run: |
           docker build \
             --build-arg DOWNLOAD_SNAPSHOT=0 \
-            -t iotaledger/goshimmer .
+            -t izuc/zipp .
 
       - name: Pull additional Docker images
         run: |

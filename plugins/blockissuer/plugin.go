@@ -3,14 +3,14 @@ package blockissuer
 import (
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer"
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer/blockfactory"
-	"github.com/iotaledger/goshimmer/packages/app/blockissuer/ratesetter"
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/packages/protocol"
-	protocolParams "github.com/iotaledger/goshimmer/plugins/protocol"
-	"github.com/iotaledger/hive.go/autopeering/peer"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/autopeering/peer"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/app/blockissuer"
+	"github.com/izuc/zipp/packages/app/blockissuer/blockfactory"
+	"github.com/izuc/zipp/packages/app/blockissuer/ratesetter"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/protocol"
+	protocolParams "github.com/izuc/zipp/plugins/protocol"
 )
 
 // PluginName is the name of the spammer plugin.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/iotaledger/goshimmer/client/wallet"
+	"github.com/izuc/zipp/client/wallet"
 )
 
 func execRequestFundsCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {

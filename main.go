@@ -3,8 +3,8 @@ package main
 import (
 	_ "net/http/pprof"
 
-	"github.com/iotaledger/goshimmer/packages/node"
-	"github.com/iotaledger/goshimmer/plugins"
+	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/plugins"
 )
 
 func main() {

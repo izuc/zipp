@@ -3,7 +3,7 @@ package node
 import (
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
 var Events *NodeEvents

@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool/realitiesledger"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/tangle/testtangle"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/hive.go/runtime/workerpool"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/runtime/workerpool"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
+	"github.com/izuc/zipp/packages/protocol/engine/tangle/testtangle"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 func Test(t *testing.T) {

@@ -1,12 +1,12 @@
 version: "3.9"
 # Create a custom build that can be re-used within Docker network
-x-build-goshimmer: &goshimmer_build
+x-build-zipp: &zipp_build
   context: ../../
   args:
     DOWNLOAD_SNAPSHOT: 0
 services:
   bootstrap:
-    build: *goshimmer_build
+    build: *zipp_build
     stop_grace_period: 1m
     environment:
       - GOTRACEBACK=crash

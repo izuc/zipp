@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/iotaledger/goshimmer/packages/network/models";
+option go_package = "github.com/izuc/zipp/packages/network/models";
 
 package models;
 

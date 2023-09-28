@@ -1,8 +1,8 @@
 package chainmanager
 
 import (
-	"github.com/iotaledger/goshimmer/packages/core/commitment"
-	"github.com/iotaledger/hive.go/crypto/identity"
+	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp/packages/core/commitment"
 )
 
 type Fork struct {

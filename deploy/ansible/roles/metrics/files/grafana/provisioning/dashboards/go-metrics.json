@@ -1121,10 +1121,10 @@
         "current": {
           "selected": true,
           "text": [
-            "faucet-01.feature.shimmer.iota.cafe:9311"
+            "faucet-01.zipp.org:9311"
           ],
           "value": [
-            "faucet-01.feature.shimmer.iota.cafe:9311"
+            "faucet-01.zipp.org:9311"
           ]
         },
         "datasource": {

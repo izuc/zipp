@@ -4,12 +4,12 @@ package proofs
 import (
 	"github.com/celestiaorg/smt"
 	"github.com/pkg/errors"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/lo"
 	"golang.org/x/crypto/blake2b"
-	"github.com/iotaledger/hive.go/core/slot"
-	"github.com/iotaledger/goshimmer/packages/protocol/ledger"
-	"github.com/iotaledger/goshimmer/packages/protocol/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/models"
+	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp/packages/protocol/ledger"
+	"github.com/izuc/zipp/packages/protocol/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 // region proofs helpers ///////////////////////////////////////////////////////////////////////////////////////////////

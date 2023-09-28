@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/iotaledger/goshimmer/packages/app/remotemetrics"
+	"github.com/izuc/zipp/packages/app/remotemetrics"
 )
 
 var isTangleTimeSynced atomic.Bool

@@ -1,8 +1,8 @@
 package ledger
 
 import (
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/hive.go/runtime/event"
+	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 )
 
 // Events is a container that acts as a dictionary for the existing events of a MemPool.

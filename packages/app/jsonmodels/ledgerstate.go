@@ -7,13 +7,13 @@ import (
 	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
 
-	"github.com/iotaledger/goshimmer/packages/core/confirmation"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/utxo"
-	"github.com/iotaledger/goshimmer/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/iotaledger/goshimmer/packages/typeutils"
-	"github.com/iotaledger/hive.go/lo"
+	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/typeutils"
 )
 
 // region Address //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ func NewOutput(output devnetvm.Output) (result *Output) {
 	}
 }
 
-// ToLedgerstateOutput converts the json output object into a goshimmer representation.
+// ToLedgerstateOutput converts the json output object into a zipp representation.
 func (o *Output) ToLedgerstateOutput() (devnetvm.Output, error) {
 	outputType, err := devnetvm.OutputTypeFromString(o.Type)
 	if err != nil {
@@ -175,7 +175,7 @@ func SigLockedSingleOutputFromLedgerstate(output devnetvm.Output) (*SigLockedSin
 	if output.Type() != devnetvm.SigLockedSingleOutputType {
 		return nil, errors.Errorf("wrong output type: %s", output.Type().String())
 	}
-	balance, _ := output.Balances().Get(devnetvm.ColorIOTA)
+	balance, _ := output.Balances().Get(devnetvm.ColorZIPP)
 	res := &SigLockedSingleOutput{
 		Address: output.Address().Base58(),
 		Balance: balance,

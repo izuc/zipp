@@ -12,7 +12,7 @@ import {SigLockedColoredOutputComponent} from "app/components/SigLockedColoredOu
 import {AliasOutputComponent} from "app/components/AliasOutputComponent.tsx";
 import {ExtendedLockedOutputComponent} from "app/components/ExtendedLockedOutput";
 import {ExplorerOutput} from "app/stores/ExplorerStore";
-import {Base58EncodedColorIOTA, resolveColor} from "app/utils/color";
+import {Base58EncodedColorZIPP, resolveColor} from "app/utils/color";
 import {ConfirmationState} from "app/utils/confirmation_state";
 import { Base58, ReadStream } from '@iota/util.js';
 
@@ -44,7 +44,7 @@ export function totalBalanceFromExplorerOutputs(outputs: Array<ExplorerOutput>, 
         switch (o.output.type) {
             case "SigLockedSingleOutputType":
                 let single = o.output.output as SigLockedSingleOutput;
-                let resolvedColor = resolveColor(Base58EncodedColorIOTA);
+                let resolvedColor = resolveColor(Base58EncodedColorZIPP);
                 let prevBalance = totalBalance.get(resolvedColor);
                 if (prevBalance === undefined) {prevBalance = 0;}
                 totalBalance.set(resolvedColor, single.balance + prevBalance);
