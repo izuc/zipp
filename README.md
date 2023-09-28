@@ -1,99 +1,59 @@
-<h1 align="center">
-  <br>
-  <a href="https://wiki.iota.org/goshimmer/welcome"><img src="images/GoShimmer.png"></a>
-</h1>
+# ZIPP: A vision of decentralized data storage with secure access methodologies
 
-<h2 align="center">Prototype node software for an IOTA network without the Coordinator</h2>
+[![Developer documentation portal](https://img.shields.io/badge/Documentation%20portal-blue.svg?style=for-the-badge)](https://www.zipp.org/)
+[![License](https://img.shields.io/github/license/izuc/zipp.svg)](https://github.com/izuc/zipp/blob/master/LICENSE)
+[![Go version](https://img.shields.io/github/go-mod/go-version/izuc/zipp)](https://golang.org/doc/install)
+[![Latest release](https://img.shields.io/github/v/release/izuc/zipp)]()
 
-<p align="center">
-    <a href="https://wiki.iota.org/goshimmer/welcome" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/Documentation%20portal-blue.svg?style=for-the-badge" alt="Developer documentation portal">
-</p>
-<p align="center">
-  <a href="https://discord.iota.org/" style="text-decoration:none;"><img src="https://img.shields.io/badge/Discord-9cf.svg?logo=discord" alt="Discord"></a>
-    <a href="https://iota.stackexchange.com/" style="text-decoration:none;"><img src="https://img.shields.io/badge/StackExchange-9cf.svg?logo=stackexchange" alt="StackExchange"></a>
-    <a href="https://github.com/iotaledger/goshimmer/blob/master/LICENSE" style="text-decoration:none;"><img src="https://img.shields.io/github/license/iotaledger/goshimmer.svg" alt="Apache 2.0 license"></a>
-    <a href="https://golang.org/doc/install" style="text-decoration:none;"><img src="https://img.shields.io/github/go-mod/go-version/iotaledger/goshimmer" alt="Go version"></a>
-    <a href="" style="text-decoration:none;"><img src="https://img.shields.io/github/v/release/iotaledger/goshimmer" alt="Latest release"></a>
-</p>
-      
-<p align="center">
-  <a href="#about">About</a> ◈
-  <a href="#design">Design</a> ◈
-  <a href="#getting-started">Getting started</a> ◈
-  <a href="#client-library-and-http-api-reference">Client-Library and HTTP API reference</a> ◈
-  <a href="#supporting-the-project">Supporting the project</a> ◈
-  <a href="#joining-the-discussion">Joining the discussion</a> 
-</p>
+- [About ZIPP](#about-zipp)
+- [Design](#design)
+- [Getting started](#getting-started)
+- [Client-Library and HTTP API reference](#client-library-and-http-api-reference)
+- [Supporting the project](#supporting-the-project)
+- [Joining the discussion](#joining-the-discussion)
 
 ---
 
-## About
+## About ZIPP
 
-This repository, called GoShimmer, is where the IOTA Foundation's Research Department tests the IOTA 2.0 modules to study and evaluate their performance.
+### Introduction
 
-GoShimmer is first and foremost a research prototype. As such, breaking changes can often happen. We invite researchers and developers to make use of this project as you see fit. Running experiments, test out new ideas, build PoC are all very welcome initiatives.
+ZIPP, short for Zone Internet Peer Protocol, is an endeavor to combine decentralized data storage with secure access methodologies. Partnering with IOTA's 2.0 prototype for initial testing, ZIPP aspires to create a platform that emphasizes privacy and decentralization.
 
-For a documentation, including tutorials and resources, we refer to the [Documentation](https://wiki.iota.org/goshimmer/welcome) (Github [link](https://github.com/iotaledger/goshimmer/blob/develop/documentation/README.md)).
+### ZIPP Vision and Purpose
+
+"The purpose of the ZIPP network is to pioneer a decentralized and secure avenue for running applications, facilitating communication, and enabling seamless information sharing between users. We envision an ecosystem that stands free from ownership, external control, and manipulation. The ZIPP protocol embodies the spirit of a free internet, a realm where data can be hosted without fear of reprisal. Our goal is to craft a network that is scalable, incentivized, user-friendly, and accessible to all at no cost. While we champion freedom, ZIPP is not intended for illegal activities but as a beacon of a free and transparent internet." - Lance.
+
+### Core Focus
+
+ZIPP amalgamates the robustness of IPFS, the privacy-centric features of TOR, and the economic incentives of IOTA's 2.0 prototype to lay the groundwork for a next-generation decentralized internet.
+
+#### Technical Foundation
+- **Distributed Data Hosting with IPFS:** ZIPP harnesses the power of IPFS for decentralized data storage. Files are compressed using 7z, encrypted with AES-256, and then fragmented across the IPFS network, ensuring redundancy, speed, and security.
+- **Anonymous Communication via TOR:** All network communication within ZIPP is routed through TOR, ensuring users' privacy and security against potential surveillance or data breaches.
+- **Economic Layer with ZIPP Coin:** ZIPP introduces its own standalone coin named ZIPP, ensuring transactions remain separate and secure, while also providing an incentive mechanism for network participants.
+
+#### Scope
+ZIPP's primary objective is to revolutionize internet communication by weaving together these potent technologies. The platform's essence lies in its modular node software, designed for adaptability and scalability. This open-source approach encourages community-driven enhancements, especially in the areas of routing and zoning between nodes. One of ZIPP's standout features is its ability to incentivize data hosting, where participants are rewarded for ensuring data longevity and availability.
+
+By uniting these technologies under a single umbrella, ZIPP seeks to lay the groundwork for a decentralized, incentivized, and user-centric internet of the future.
 
 ## Design
-The code in GoShimmer is modular, where each module represents either one of the *IOTA 2.0 components*, or a basic node function such as the gossip, ledger state, and API - just to mention a few.  
 
-![Layers](docOps/static/img/protocol_specification/layers.png)
 
-GoShimmer's modularity is based on a combination of [event-driven](https://wiki.iota.org/goshimmer/implementation_design/event_driven_model) and [layer-based](https://wiki.iota.org/goshimmer/protocol_specification/components/overview) approaches.
 
 ## Client-Library and HTTP API reference
 
-You can use the Go client-library to interact with GoShimmer (located under `github.com/iotaledger/goshimmer/client`).
 
-You can find more info about this on our [client-lib](https://wiki.iota.org/goshimmer/apis/client_lib) and [Web API](https://wiki.iota.org/goshimmer/apis/webAPI) documentation.
 
 ## Getting started
 
-You can find tutorials on how to [setup a GoShimmer node](https://wiki.iota.org/goshimmer/tutorials/setup), [writing a dApp](https://wiki.iota.org/goshimmer/tutorials/dApp), [obtaining tokens from the faucet](https://wiki.iota.org/goshimmer/tutorials/obtain_tokens) and more in the [GoShimmer documentation](https://wiki.iota.org/goshimmer/welcome).
 
-### Compiling from source
-
-We always recommend running your node via [Docker](https://wiki.iota.org/goshimmer/tutorials/setup). However, you can also compile the source and run the node from the compiled binary. GoShimmer uses [RocksDB](https://github.com/linxGnu/grocksdb) as its underlying db engine. That requires a few dependencies before building the project: 
-- librocksdb
-- libsnappy
-- libz
-- liblz4
-- libzstd 
-
-Please follow this guide: https://github.com/facebook/rocksdb/blob/master/INSTALL.md to build above libs.
-
-When compiling GoShimmer, just run the build script:
-
-```shell
-./scripts/build.sh
-```
-
-If you also want to link the libraries statically (only on Linux) run this instead:
-
-```shell
-./scripts/build_goshimmer_rocksdb_builtin.sh
-```
-
-Finally, download the latest snapshot and make sure to place it in the root folder of GoShimmer:
-
-```shell
-wget -O snapshot.bin https://dbfiles-goshimmer.s3.eu-central-1.amazonaws.com/snapshots/nectar/snapshot-latest.bin
-```
 
 ## Supporting the project
 
-If you want to contribute to the code, consider posting a [bug report](https://github.com/iotaledger/goshimmer/issues/new-issue), feature request or a [pull request](https://github.com/iotaledger/goshimmer/pulls/).
 
-When creating a pull request, we recommend that you do the following:
-
-1. Clone the repository
-2. Create a new branch for your fix or feature. For example, `git checkout -b fix/my-fix` or ` git checkout -b feat/my-feature`.
-3. Run the `go fmt` command to make sure your code is well formatted
-4. Document any exported packages
-5. Target your pull request to be merged with `dev`
 
 ## Joining the discussion
 
-If you want to get involved in the community, need help getting started, have any issues related to the repository or just want to discuss blockchain, distributed ledgers, and IoT with other people, feel free to join our [Discord](https://discord.iota.org/).
+
