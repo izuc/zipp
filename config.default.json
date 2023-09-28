@@ -1,14 +1,10 @@
 {
   "autoPeering": {
-    "entryNodes": [
-      "2PV5487xMw5rasGBXXWeqSi4hLz7r19YBt8Y1TGAsQbj@analysisentry-01.zipp.org:15626",
-      "5EDH4uY78EA6wrBkHHAVBWBMDt7EcksRq6pjzipoW15B@entry-0.devnet.tanglebay.com:14646",
-      "CAB87iQZR6BjBrCgEBupQJ4gpEBgvGKKv3uuGVRBKb4n@entry-1.devnet.tanglebay.com:14646"
-    ],
+    "entryNodes": [],
     "bindAddress": "0.0.0.0:14626"
   },
   "dashboard": {
-    "bindAddress": "127.0.0.1:8081",
+    "bindAddress": "0.0.0.0:8081",
     "dev": false,
     "basicAuth": {
       "enabled": false,
@@ -22,20 +18,6 @@
   },
   "p2p": {
     "bindAddress": "0.0.0.0:14666"
-  },
-  "logger": {
-    "level": "info",
-    "disableCaller": false,
-    "disableStacktrace": false,
-    "encoding": "console",
-    "outputPaths": [
-      "stdout",
-      "zipp.log"
-    ],
-    "disableEvents": true,
-    "remotelog": {
-      "serverAddress": "metrics-01.zipp.org:5213"
-    }
   },
   "metrics": {
     "local": true,
@@ -54,7 +36,7 @@
   "node": {
     "seed": "",
     "peerDBDirectory": "peerdb",
-    "disablePlugins": [],
+    "disablePlugins": ["remotelog"],
     "enablePlugins": []
   },
   "pow": {
@@ -63,13 +45,13 @@
     "timeout": "1m"
   },
   "profiling": {
-    "bindAddress": "127.0.0.1:6061"
+    "bindAddress": "0.0.0.0:6061"
   },
   "prometheus": {
-    "bindAddress": "127.0.0.1:9311"
+    "bindAddress": "0.0.0.0:9311"
   },
   "webapi": {
-    "bindAddress": "127.0.0.1:8080",
+    "bindAddress": "0.0.0.0:8080",
     "basicAuth": {
       "enabled": false,
       "username": "zipp",
