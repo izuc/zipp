@@ -18,9 +18,9 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
 )
 
 const (
@@ -70,7 +70,7 @@ func NewSybilProtection(engineInstance *engine.Engine, opts ...options.Option[Sy
 
 				s.engine.HookStopped(s.stopInactivityManager)
 
-				s.engine.Events.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+				s.engine.Events.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 					s.markValidatorActive(block.IssuerID(), block.IssuingTime())
 				} /*, event.WithWorkerPool(s.workers.CreatePool("SybilProtection", 2))*/)
 			})

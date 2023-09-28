@@ -13,16 +13,16 @@ type Roots struct {
 }
 
 type roots struct {
-	TangleRoot        types.Identifier `serix:"0"`
+	MeshRoot          types.Identifier `serix:"0"`
 	StateMutationRoot types.Identifier `serix:"1"`
 	ActivityRoot      types.Identifier `serix:"4"`
 	StateRoot         types.Identifier `serix:"2"`
 	ManaRoot          types.Identifier `serix:"3"`
 }
 
-func NewRoots(tangleRoot, stateMutationRoot, activityRoot, stateRoot, manaRoot types.Identifier) (newRoots *Roots) {
+func NewRoots(meshRoot, stateMutationRoot, activityRoot, stateRoot, manaRoot types.Identifier) (newRoots *Roots) {
 	return model.NewImmutable[Roots](&roots{
-		TangleRoot:        tangleRoot,
+		MeshRoot:          meshRoot,
 		StateMutationRoot: stateMutationRoot,
 		ActivityRoot:      activityRoot,
 		StateRoot:         stateRoot,
@@ -31,15 +31,15 @@ func NewRoots(tangleRoot, stateMutationRoot, activityRoot, stateRoot, manaRoot t
 }
 
 func (r *Roots) ID() (id types.Identifier) {
-	branch1Hashed := blake2b.Sum256(byteutils.ConcatBytes(r.M.TangleRoot.Bytes(), r.M.StateMutationRoot.Bytes()))
+	branch1Hashed := blake2b.Sum256(byteutils.ConcatBytes(r.M.MeshRoot.Bytes(), r.M.StateMutationRoot.Bytes()))
 	branch2Hashed := blake2b.Sum256(byteutils.ConcatBytes(r.M.StateRoot.Bytes(), r.M.ManaRoot.Bytes()))
 	rootHashed := blake2b.Sum256(byteutils.ConcatBytes(branch1Hashed[:], branch2Hashed[:]))
 
 	return rootHashed
 }
 
-func (r *Roots) TangleRoot() (tangleRoot types.Identifier) {
-	return r.M.TangleRoot
+func (r *Roots) MeshRoot() (meshRoot types.Identifier) {
+	return r.M.MeshRoot
 }
 
 func (r *Roots) StateMutationRoot() (stateMutationRoot types.Identifier) {

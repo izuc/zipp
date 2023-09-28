@@ -1,7 +1,7 @@
 import { IGraph } from './graph';
 import { default as Viva } from 'vivagraphjs';
-import { parentRefType, tangleVertex } from 'models/tangle';
-import {COLOR, CONFLICT, LINE_TYPE, LINE_WIDTH, VERTEX} from 'styles/tangleStyles';
+import { parentRefType, meshVertex } from 'models/mesh';
+import {COLOR, CONFLICT, LINE_TYPE, LINE_WIDTH, VERTEX} from 'styles/meshStyles';
 import { ObservableMap } from 'mobx';
 
 export class vivagraphLib implements IGraph {
@@ -100,7 +100,7 @@ export class vivagraphLib implements IGraph {
     }
 }
 
-export function initTangleDAG() {
+export function initMeshDAG() {
     const graph = Viva.Graph.graph();
     const layout = setupLayout(graph);
     const graphics = setupSvgGraphics();
@@ -161,7 +161,7 @@ function setupSvgGraphics() {
 }
 
 function setupRenderer(graph: any, graphics: any, layout: any) {
-    const ele = document.getElementById('tangleVisualizer');
+    const ele = document.getElementById('meshVisualizer');
 
     return Viva.Graph.View.renderer(graph, {
         container: ele,
@@ -171,9 +171,9 @@ function setupRenderer(graph: any, graphics: any, layout: any) {
 }
 
 export function drawBlock(
-    blk: tangleVertex,
+    blk: meshVertex,
     vivaLib: vivagraphLib,
-    blockMap: ObservableMap<string, tangleVertex>
+    blockMap: ObservableMap<string, meshVertex>
 ) {
     let node;
     const existing = vivaLib.graph.getNode(blk.ID);
@@ -310,7 +310,7 @@ export function unselectBlock(
 export function updateGraph(
     vivaLib: vivagraphLib,
     newBlkToAdd: string[],
-    blockMap: ObservableMap<string, tangleVertex>
+    blockMap: ObservableMap<string, meshVertex>
 ) {
     vivaLib.graph.forEachNode((node) => {
         const blk = blockMap.get(node.id);
@@ -334,7 +334,7 @@ export function updateGraph(
 // pause was short - clear only the needed part on left from this.lastBlkAddedBeforePause
 export function reloadAfterShortPause(
     vivaLib: vivagraphLib,
-    blockMap: ObservableMap<string, tangleVertex>
+    blockMap: ObservableMap<string, meshVertex>
 ) {
     vivaLib.graph.forEachNode((node) => {
         const blk = blockMap.get(node.id);
@@ -348,7 +348,7 @@ export function reloadAfterShortPause(
 
 export function updateNodeDataAndColor(
     nodeID: string,
-    blkData: tangleVertex,
+    blkData: meshVertex,
     vivaLib: vivagraphLib
 ) {
     const exists = vivaLib.nodeExist(nodeID);
@@ -432,7 +432,7 @@ function resetLinks(vivaLib: vivagraphLib) {
 }
 
 function updateNodeColorOnConfirmation(
-    blk: tangleVertex,
+    blk: meshVertex,
     vivaLib: vivagraphLib
 ) {
     const nodeUI = vivaLib.graphics.getNodeUI(blk.ID);
@@ -491,7 +491,7 @@ function updateParentRefUI(
     }
 }
 
-// copied over and refactored from https://github.com/glumb/ZIPPtangle
+// copied over and refactored from https://github.com/izuc/ZIPPmesh
 function dfsIterator(
     graph,
     node,
@@ -552,7 +552,7 @@ const svgLinkBuilder = function(color: string, width: number, type: string) {
 };
 
 function maximizeSvgWindow() {
-    const svgEl = document.querySelector('#tangleVisualizer>svg');
+    const svgEl = document.querySelector('#meshVisualizer>svg');
     svgEl.setAttribute('width', '100%');
     svgEl.setAttribute('height', '100%');
 }

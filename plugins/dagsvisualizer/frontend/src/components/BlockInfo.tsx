@@ -2,20 +2,20 @@ import * as React from 'react';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import { inject, observer } from 'mobx-react';
-import TangleStore from 'stores/TangleStore';
+import MeshStore from 'stores/MeshStore';
 import { resolveBase58ConflictID } from 'utils/ConflictIDResolver';
 import * as dateformat from 'dateformat';
 import LinkToDashboard from 'components/LinkToDashboard';
 
 interface Props {
-    tangleStore?: TangleStore;
+    meshStore?: MeshStore;
 }
 
-@inject('tangleStore')
+@inject('meshStore')
 @observer
 export class BlockInfo extends React.Component<Props, any> {
     render() {
-        const { selectedBlk } = this.props.tangleStore;
+        const { selectedBlk } = this.props.meshStore;
 
         return (
             selectedBlk && (

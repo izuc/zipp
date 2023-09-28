@@ -27,19 +27,19 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/clock/blocktime"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/tangleconsensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/meshconsensus"
 	"github.com/izuc/zipp/packages/protocol/engine/filter"
 	"github.com/izuc/zipp/packages/protocol/engine/filter/blockfilter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxoledger"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/inmemorymesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection/dpos"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1"
 	"github.com/izuc/zipp/packages/protocol/enginemanager"
@@ -80,7 +80,7 @@ type Protocol struct {
 	optsSybilProtectionProvider module.Provider[*engine.Engine, sybilprotection.SybilProtection]
 	optsThroughputQuotaProvider module.Provider[*engine.Engine, throughputquota.ThroughputQuota]
 	optsNotarizationProvider    module.Provider[*engine.Engine, notarization.Notarization]
-	optsTangleProvider          module.Provider[*engine.Engine, tangle.Tangle]
+	optsMeshProvider            module.Provider[*engine.Engine, mesh.Mesh]
 	optsConsensusProvider       module.Provider[*engine.Engine, consensus.Consensus]
 }
 
@@ -95,8 +95,8 @@ func New(workers *workerpool.Group, dispatcher network.Endpoint, opts ...options
 		optsSybilProtectionProvider: dpos.NewProvider(),
 		optsThroughputQuotaProvider: mana1.NewProvider(),
 		optsNotarizationProvider:    slotnotarization.NewProvider(),
-		optsTangleProvider:          inmemorytangle.NewProvider(),
-		optsConsensusProvider:       tangleconsensus.NewProvider(),
+		optsMeshProvider:            inmemorymesh.NewProvider(),
+		optsConsensusProvider:       meshconsensus.NewProvider(),
 
 		optsBaseDirectory:    "",
 		optsPruningThreshold: 6 * 60, // 1 hour given that slot duration is 10 seconds
@@ -155,7 +155,7 @@ func (p *Protocol) initEngineManager() {
 		p.optsSybilProtectionProvider,
 		p.optsThroughputQuotaProvider,
 		p.optsNotarizationProvider,
-		p.optsTangleProvider,
+		p.optsMeshProvider,
 		p.optsConsensusProvider,
 	)
 
@@ -283,12 +283,12 @@ func (p *Protocol) initTipManager() {
 
 	wp := p.Workers.CreatePool("TipManagerAttach", 1) // Using just 1 worker to avoid contention
 
-	p.Events.Engine.Tangle.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
+	p.Events.Engine.Mesh.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
 		if schedulerBlock, exists := p.CongestionControl.Block(block.ID()); exists {
 			p.TipManager.DeleteTip(schedulerBlock)
 		}
 	})
-	p.Events.Engine.Tangle.BlockDAG.BlockUnorphaned.Hook(func(block *blockdag.Block) {
+	p.Events.Engine.Mesh.BlockDAG.BlockUnorphaned.Hook(func(block *blockdag.Block) {
 		if schedulerBlock, exists := p.CongestionControl.Block(block.ID()); exists {
 			p.TipManager.AddTip(schedulerBlock)
 		}
@@ -301,7 +301,7 @@ func (p *Protocol) initTipManager() {
 	}, event.WithWorkerPool(wp))
 	p.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
 		// If we accept a block weakly that means that it might not have a strong future cone. If we remove its parents
-		// from the tippool, a portion of the tangle might loose (strong) connection to the tips.
+		// from the tippool, a portion of the mesh might loose (strong) connection to the tips.
 		if !block.IsStronglyAccepted() {
 			return
 		}
@@ -696,9 +696,9 @@ func WithNotarizationProvider(notarizationProvider module.Provider[*engine.Engin
 	}
 }
 
-func WithTangleProvider(tangleProvider module.Provider[*engine.Engine, tangle.Tangle]) options.Option[Protocol] {
+func WithMeshProvider(meshProvider module.Provider[*engine.Engine, mesh.Mesh]) options.Option[Protocol] {
 	return func(n *Protocol) {
-		n.optsTangleProvider = tangleProvider
+		n.optsMeshProvider = meshProvider
 	}
 }
 

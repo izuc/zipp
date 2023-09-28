@@ -50,7 +50,7 @@ var InfoMetrics = collector.NewCollection(infoNamespace,
 	)),
 	collector.WithMetric(collector.NewMetric(syncStatus,
 		collector.WithType(collector.Gauge),
-		collector.WithHelp("Node sync status based on TangleTime."),
+		collector.WithHelp("Node sync status based on MeshTime."),
 		collector.WithCollectFunc(func() map[string]float64 {
 			if deps.Protocol.Engine().IsSynced() {
 				return collector.SingleValue(1)

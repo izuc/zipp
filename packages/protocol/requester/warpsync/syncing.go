@@ -79,7 +79,7 @@ func (m *Manager) syncSlotFunc(errCtx context.Context, eg *errgroup.Group, valid
 				}
 
 				db, _ := database.NewMemDB("")
-				tangleTree := smt.NewSparseMerkleTree(db.NewStore(), db.NewStore(), lo.PanicOnErr(blake2b.New256(nil)))
+				meshTree := smt.NewSparseMerkleTree(db.NewStore(), db.NewStore(), lo.PanicOnErr(blake2b.New256(nil)))
 
 				slotChannels := m.startSlotSyncing(targetSlot)
 				slotChannels.RLock()
@@ -113,7 +113,7 @@ func (m *Manager) syncSlotFunc(errCtx context.Context, eg *errgroup.Group, valid
 					targetPrevEC: ecChain[targetSlot-1],
 					slotChannels: slotChannels,
 					neighbor:     neighbor,
-					tangleTree:   tangleTree,
+					meshTree:     meshTree,
 					slotBlocks:   make(map[models.BlockID]*models.Block),
 				})
 

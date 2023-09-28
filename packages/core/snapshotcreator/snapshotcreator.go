@@ -18,17 +18,17 @@ import (
 	"github.com/izuc/zipp/packages/core/confirmation"
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/clock/blocktime"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/tangleconsensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/meshconsensus"
 	"github.com/izuc/zipp/packages/protocol/engine/filter/blockfilter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/mockedvm"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/inmemorymesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection/dpos"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1"
 	"github.com/izuc/zipp/packages/storage"
 )
@@ -71,8 +71,8 @@ func CreateSnapshot(opts ...options.Option[Options]) error {
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(),
-		tangleconsensus.NewProvider(),
+		inmemorymesh.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 	defer engineInstance.Shutdown()
 

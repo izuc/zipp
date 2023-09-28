@@ -20,7 +20,7 @@ export class Explorer extends React.Component<Props, any> {
     render() {
         return (
             <Container>
-                <h3>Tangle Explorer</h3>
+                <h3>Mesh Explorer</h3>
                 <Row className={"mb-3"}>
                     <Col>
                         <p>
@@ -47,7 +47,7 @@ export class Explorer extends React.Component<Props, any> {
                 <ExplorerLiveFeed/>
                 <small>
                     This explorer implementation is heavily inspired by <a
-                    href={"https://thetangle.org"}>thetangle.org</a>.
+                    href={"https://themesh.org"}>themesh.org</a>.
                 </small>
             </Container>
         );

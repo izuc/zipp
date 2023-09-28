@@ -3,7 +3,7 @@ package blockgadget
 import (
 	"github.com/izuc/zipp.foundation/core/slot"
 	"github.com/izuc/zipp.foundation/runtime/options"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 

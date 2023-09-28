@@ -8,20 +8,20 @@ import (
 
 // CollectionLogEvents defines the events for the remotelogmetrics package.
 type CollectionLogEvents struct {
-	// TangleTimeSyncChanged defines the local sync status change event based on tangle time.
-	TangleTimeSyncChanged *event.Event1[*TangleTimeSyncChangedEvent]
-	SchedulerQuery        *event.Event1[*SchedulerQueryEvent]
+	// MeshTimeSyncChanged defines the local sync status change event based on mesh time.
+	MeshTimeSyncChanged *event.Event1[*MeshTimeSyncChangedEvent]
+	SchedulerQuery      *event.Event1[*SchedulerQueryEvent]
 }
 
 func newCollectionLogEvents() *CollectionLogEvents {
 	return &CollectionLogEvents{
-		TangleTimeSyncChanged: event.New1[*TangleTimeSyncChangedEvent](),
-		SchedulerQuery:        event.New1[*SchedulerQueryEvent](),
+		MeshTimeSyncChanged: event.New1[*MeshTimeSyncChangedEvent](),
+		SchedulerQuery:      event.New1[*SchedulerQueryEvent](),
 	}
 }
 
-// TangleTimeSyncChangedEvent is triggered by a node when its sync status changes. It is also structure that is sent to remote logger.
-type TangleTimeSyncChangedEvent struct {
+// MeshTimeSyncChangedEvent is triggered by a node when its sync status changes. It is also structure that is sent to remote logger.
+type MeshTimeSyncChangedEvent struct {
 	// Type defines the type of the block.
 	Type string `json:"type" bson:"type"`
 	// NodeID defines the ID of the node.
@@ -35,13 +35,13 @@ type TangleTimeSyncChangedEvent struct {
 	// PreviousStatus contains previous sync status
 	PreviousStatus bool `json:"previousStatus" bson:"previousStatus"`
 	// ATT contains time of the last accepted block
-	ATT time.Time `json:"acceptanceTangleTime" bson:"acceptanceTangleTime"`
+	ATT time.Time `json:"acceptanceMeshTime" bson:"acceptanceMeshTime"`
 	// RATT contains relative time of the last accepted block
-	RATT time.Time `json:"relativeAcceptanceTangleTime" bson:"relativeAcceptanceTangleTime"`
+	RATT time.Time `json:"relativeAcceptanceMeshTime" bson:"relativeAcceptanceMeshTime"`
 	// CTT contains time of the last confirmed block
-	CTT time.Time `json:"confirmedTangleTime" bson:"confirmedTangleTime"`
+	CTT time.Time `json:"confirmedMeshTime" bson:"confirmedMeshTime"`
 	// RCTT contains relative time of the last confirmed block
-	RCTT time.Time `json:"relativeConfirmedTangleTime" bson:"relativeConfirmedTangleTime"`
+	RCTT time.Time `json:"relativeConfirmedMeshTime" bson:"relativeConfirmedMeshTime"`
 }
 
 // SchedulerQueryEvent is used to trigger scheduler metric collection for remote metric monitoring.

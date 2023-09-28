@@ -5,14 +5,14 @@ import (
 )
 
 const (
-	// BlkTypeTangleVertex is the type of the Tangle DAG vertex.
-	BlkTypeTangleVertex byte = iota
-	// BlkTypeTangleBooked is the type of the Tangle DAG confirmed block.
-	BlkTypeTangleBooked
-	// BlkTypeTangleConfirmed is the type of the Tangle DAG confirmed block.
-	BlkTypeTangleConfirmed
-	// BlkTypeTangleTxConfirmationState is the type of the Tangle DAG transaction ConfirmationState.
-	BlkTypeTangleTxConfirmationState
+	// BlkTypeMeshVertex is the type of the Mesh DAG vertex.
+	BlkTypeMeshVertex byte = iota
+	// BlkTypeMeshBooked is the type of the Mesh DAG confirmed block.
+	BlkTypeMeshBooked
+	// BlkTypeMeshConfirmed is the type of the Mesh DAG confirmed block.
+	BlkTypeMeshConfirmed
+	// BlkTypeMeshTxConfirmationState is the type of the Mesh DAG transaction ConfirmationState.
+	BlkTypeMeshTxConfirmationState
 	// BlkTypeUTXOVertex is the type of the UTXO DAG vertex.
 	BlkTypeUTXOVertex
 	// BlkTypeUTXOBooked is the type of the booked transaction.
@@ -34,7 +34,7 @@ type wsBlock struct {
 	Data interface{} `json:"data"`
 }
 
-type tangleVertex struct {
+type meshVertex struct {
 	ID                    string   `json:"ID"`
 	StrongParentIDs       []string `json:"strongParentIDs"`
 	WeakParentIDs         []string `json:"weakParentIDs"`
@@ -48,19 +48,19 @@ type tangleVertex struct {
 	ConfirmationState     string   `json:"confirmationState,omitempty"`
 }
 
-type tangleBooked struct {
+type meshBooked struct {
 	ID          string   `json:"ID"`
 	IsMarker    bool     `json:"isMarker"`
 	ConflictIDs []string `json:"conflictIDs"`
 }
 
-type tangleConfirmed struct {
+type meshConfirmed struct {
 	ID           string `json:"ID"`
 	Accepted     bool   `json:"confirmationState"`
 	AcceptedTime int64  `json:"confirmationStateTime"`
 }
 
-type tangleTxConfirmationStateChanged struct {
+type meshTxConfirmationStateChanged struct {
 	ID          string `json:"ID"`
 	IsConfirmed bool   `json:"isConfirmed"`
 }
@@ -115,7 +115,7 @@ type conflictWeightChanged struct {
 }
 
 type searchResult struct {
-	Blocks    []*tangleVertex   `json:"blocks"`
+	Blocks    []*meshVertex     `json:"blocks"`
 	Txs       []*utxoVertex     `json:"txs"`
 	Conflicts []*conflictVertex `json:"conflicts"`
 	Error     string            `json:"error,omitempty"`

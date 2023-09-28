@@ -11,31 +11,31 @@ interface Props {
 
 @inject("nodeStore")
 @observer
-export default class TangleTime extends React.Component<Props, any> {
+export default class MeshTime extends React.Component<Props, any> {
     render() {
         return (
             <Card>
                 <Card.Body>
-                    <Card.Title>TangleTime
-                        Synced: {this.props.nodeStore.status.tangleTime.synced ? "Yes" : "No"}</Card.Title>
+                    <Card.Title>MeshTime
+                        Synced: {this.props.nodeStore.status.meshTime.synced ? "Yes" : "No"}</Card.Title>
                     <small>
                         <div>
                             <hr/>
                             <div className={"row"}>
                                 <div className={"col-12"}>Last Accepted Block: <Link
-                                    to={`/explorer/block/${this.props.nodeStore.status.tangleTime.acceptedBlockID}`}>
-                                    {this.props.nodeStore.status.tangleTime.acceptedBlockID}
+                                    to={`/explorer/block/${this.props.nodeStore.status.meshTime.acceptedBlockID}`}>
+                                    {this.props.nodeStore.status.meshTime.acceptedBlockID}
                                 </Link></div>
                             </div>
                             <div className={"row"}>
                                 <div className={"col-12"}>Last Confirmed Block: <Link
-                                    to={`/explorer/block/${this.props.nodeStore.status.tangleTime.confirmedBlockID}`}>
-                                    {this.props.nodeStore.status.tangleTime.confirmedBlockID}
+                                    to={`/explorer/block/${this.props.nodeStore.status.meshTime.confirmedBlockID}`}>
+                                    {this.props.nodeStore.status.meshTime.confirmedBlockID}
                                 </Link></div>
                             </div>
                             <div className={"row"}>
                                 <div className={"col-12"}>Last Confirmed Slot:
-                                    {this.props.nodeStore.status.tangleTime.confirmedSlot}
+                                    {this.props.nodeStore.status.meshTime.confirmedSlot}
                                 </div>
                             </div>
                             <hr/>
@@ -44,13 +44,13 @@ export default class TangleTime extends React.Component<Props, any> {
                                     Acceptance Time:
                                 </div>
                                 <div className={"col-3"}>
-                                    {dateformat(new Date(this.props.nodeStore.status.tangleTime.ATT / 1000000), "dd.mm.yyyy HH:MM:ss")}
+                                    {dateformat(new Date(this.props.nodeStore.status.meshTime.ATT / 1000000), "dd.mm.yyyy HH:MM:ss")}
                                 </div>
                                 <div className={"col-3"}>
                                     Confirmation Time:
                                 </div>
                                 <div className={"col-3"}>
-                                    {dateformat(new Date(this.props.nodeStore.status.tangleTime.CTT / 1000000), "dd.mm.yyyy HH:MM:ss")}
+                                    {dateformat(new Date(this.props.nodeStore.status.meshTime.CTT / 1000000), "dd.mm.yyyy HH:MM:ss")}
                                 </div>
                             </div>
                             <div className={"row"}>
@@ -58,13 +58,13 @@ export default class TangleTime extends React.Component<Props, any> {
                                     Relative Acceptance Time:
                                 </div>
                                 <div className={"col-3"}>
-                                    {dateformat(new Date(this.props.nodeStore.status.tangleTime.RATT / 1000000), "dd.mm.yyyy HH:MM:ss")}
+                                    {dateformat(new Date(this.props.nodeStore.status.meshTime.RATT / 1000000), "dd.mm.yyyy HH:MM:ss")}
                                 </div>
                                 <div className={"col-3"}>
                                     Relative Confirmation Time:
                                 </div>
                                 <div className={"col-3"}>
-                                    {dateformat(new Date(this.props.nodeStore.status.tangleTime.RCTT / 1000000), "dd.mm.yyyy HH:MM:ss")}
+                                    {dateformat(new Date(this.props.nodeStore.status.meshTime.RCTT / 1000000), "dd.mm.yyyy HH:MM:ss")}
                                 </div>
                             </div>
                         </div>

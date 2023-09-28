@@ -3,7 +3,7 @@ import Container from 'react-bootstrap/Container';
 import { inject, observer } from 'mobx-react';
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md';
 import { Collapse } from 'react-bootstrap';
-import TangleStore from 'stores/TangleStore';
+import MeshStore from 'stores/MeshStore';
 import { BlockInfo } from 'components/BlockInfo';
 import 'styles/style.css';
 import Row from 'react-bootstrap/Row';
@@ -14,49 +14,49 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 import GlobalStore from '../stores/GlobalStore';
-import { TangleLegend } from './Legend';
+import { MeshLegend } from './Legend';
 
 interface Props {
-    tangleStore?: TangleStore;
+    meshStore?: MeshStore;
     globalStore?: GlobalStore;
 }
 
-@inject('tangleStore')
+@inject('meshStore')
 @inject('globalStore')
 @observer
-export default class TangleDAG extends React.Component<Props, any> {
+export default class MeshDAG extends React.Component<Props, any> {
     constructor(props) {
         super(props);
         this.state = { open: true };
     }
 
     componentDidMount() {
-        this.props.tangleStore.start();
+        this.props.meshStore.start();
     }
 
     componentWillUnmount() {
-        this.props.tangleStore.stop();
+        this.props.meshStore.stop();
     }
 
     pauseResumeVisualizer = () => {
-        this.props.tangleStore.pauseResume();
+        this.props.meshStore.pauseResume();
     };
 
     updateVerticesLimit = (e) => {
-        this.props.tangleStore.updateVerticesLimit(e.target.value);
+        this.props.meshStore.updateVerticesLimit(e.target.value);
     };
 
     updateSearch = (e) => {
-        this.props.tangleStore.updateSearch(e.target.value);
+        this.props.meshStore.updateSearch(e.target.value);
     };
 
     searchAndSelect = (e: any) => {
         if (e.key !== 'Enter') return;
-        this.props.tangleStore.searchAndSelect();
+        this.props.meshStore.searchAndSelect();
     };
 
     centerGraph = () => {
-        this.props.tangleStore.centerEntireGraph();
+        this.props.meshStore.centerEntireGraph();
     };
 
     syncWithBlk = () => {
@@ -64,7 +64,7 @@ export default class TangleDAG extends React.Component<Props, any> {
     };
 
     render() {
-        const { paused, maxTangleVertices, search } = this.props.tangleStore;
+        const { paused, maxMeshVertices, search } = this.props.meshStore;
 
         return (
             <Container>
@@ -76,7 +76,7 @@ export default class TangleDAG extends React.Component<Props, any> {
                     }
                 >
                     <h2>
-                        Tangle DAG
+                        Mesh DAG
                         {this.state.open ? (
                             <MdKeyboardArrowUp />
                         ) : (
@@ -144,7 +144,7 @@ export default class TangleDAG extends React.Component<Props, any> {
                                     </InputGroup.Text>
                                     <FormControl
                                         placeholder="limit"
-                                        value={maxTangleVertices.toString()}
+                                        value={maxMeshVertices.toString()}
                                         onChange={this.updateVerticesLimit}
                                         aria-label="vertices-limit"
                                         aria-describedby="vertices-limit"
@@ -170,9 +170,9 @@ export default class TangleDAG extends React.Component<Props, any> {
                         </Row>
                         <div className="graphFrame">
                             <BlockInfo />
-                            <div id="tangleVisualizer" />
+                            <div id="meshVisualizer" />
                         </div>
-                        <TangleLegend />
+                        <MeshLegend />
                     </div>
                 </Collapse>
                 <br />

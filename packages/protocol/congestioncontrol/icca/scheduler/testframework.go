@@ -18,19 +18,19 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/clock/blocktime"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/tangleconsensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/meshconsensus"
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
 	"github.com/izuc/zipp/packages/protocol/engine/filter/blockfilter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxoledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/mockedvm"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag/inmemoryblockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/inmemorymesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection/dpos"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag/inmemoryblockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
@@ -42,7 +42,7 @@ import (
 
 type TestFramework struct {
 	Scheduler *Scheduler
-	Tangle    *tangle.TestFramework
+	Mesh      *mesh.TestFramework
 	workers   *workerpool.Group
 
 	storage        *storage.Storage
@@ -93,8 +93,8 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, optsScheduler 
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(),
-		tangleconsensus.NewProvider(),
+		inmemorymesh.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 
 	test.Cleanup(func() {
@@ -106,13 +106,13 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, optsScheduler 
 
 	require.NoError(test, t.engine.Initialize(tempDir.Path("genesis_snapshot.bin")))
 
-	t.Tangle = tangle.NewTestFramework(
+	t.Mesh = mesh.NewTestFramework(
 		test,
-		t.engine.Tangle,
-		booker.NewTestFramework(test, workers.CreateGroup("BookerTestFramework"), t.engine.Tangle.Booker(), t.engine.Tangle.BlockDAG(), t.engine.Ledger.MemPool(), t.engine.SybilProtection.Validators(), t.engine.SlotTimeProvider),
+		t.engine.Mesh,
+		booker.NewTestFramework(test, workers.CreateGroup("BookerTestFramework"), t.engine.Mesh.Booker(), t.engine.Mesh.BlockDAG(), t.engine.Ledger.MemPool(), t.engine.SybilProtection.Validators(), t.engine.SlotTimeProvider),
 	)
 
-	t.Scheduler = New(t.Tangle.BlockDAG.Instance.(*inmemoryblockdag.BlockDAG).EvictionState(), t.engine.SlotTimeProvider(), t.mockAcceptance.IsBlockAccepted, t.ManaMap, t.TotalMana, optsScheduler...)
+	t.Scheduler = New(t.Mesh.BlockDAG.Instance.(*inmemoryblockdag.BlockDAG).EvictionState(), t.engine.SlotTimeProvider(), t.mockAcceptance.IsBlockAccepted, t.ManaMap, t.TotalMana, optsScheduler...)
 
 	t.setupEvents()
 
@@ -121,8 +121,8 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, optsScheduler 
 
 func (t *TestFramework) setupEvents() {
 	t.mockAcceptance.Events().BlockAccepted.Hook(t.Scheduler.HandleAcceptedBlock, event.WithWorkerPool(t.workers.CreatePool("HandleAccepted", 2)))
-	t.Tangle.Instance.Events().Booker.BlockTracked.Hook(t.Scheduler.AddBlock, event.WithWorkerPool(t.workers.CreatePool("Add", 2)))
-	t.Tangle.Instance.Events().BlockDAG.BlockOrphaned.Hook(t.Scheduler.HandleOrphanedBlock, event.WithWorkerPool(t.workers.CreatePool("HandleOrphaned", 2)))
+	t.Mesh.Instance.Events().Booker.BlockTracked.Hook(t.Scheduler.AddBlock, event.WithWorkerPool(t.workers.CreatePool("Add", 2)))
+	t.Mesh.Instance.Events().BlockDAG.BlockOrphaned.Hook(t.Scheduler.HandleOrphanedBlock, event.WithWorkerPool(t.workers.CreatePool("HandleOrphaned", 2)))
 
 	t.Scheduler.Events.BlockScheduled.Hook(func(block *Block) {
 		if debug.GetEnabled() {
@@ -223,7 +223,7 @@ func (t *TestFramework) AssertBlocksDropped(blocksDropped uint32) {
 
 func (t *TestFramework) ValidateScheduledBlocks(expectedState map[string]bool) {
 	for blockID, expected := range expectedState {
-		block, exists := t.Scheduler.Block(t.Tangle.BlockDAG.Block(blockID).ID())
+		block, exists := t.Scheduler.Block(t.Mesh.BlockDAG.Block(blockID).ID())
 		require.Truef(t.test, exists, "block %s not registered", blockID)
 
 		actual := block.IsScheduled()
@@ -233,7 +233,7 @@ func (t *TestFramework) ValidateScheduledBlocks(expectedState map[string]bool) {
 
 func (t *TestFramework) ValidateSkippedBlocks(expectedState map[string]bool) {
 	for blockID, expected := range expectedState {
-		block, exists := t.Scheduler.Block(t.Tangle.BlockDAG.Block(blockID).ID())
+		block, exists := t.Scheduler.Block(t.Mesh.BlockDAG.Block(blockID).ID())
 		require.Truef(t.test, exists, "block %s not registered", blockID)
 
 		actual := block.IsSkipped()
@@ -244,7 +244,7 @@ func (t *TestFramework) ValidateSkippedBlocks(expectedState map[string]bool) {
 
 func (t *TestFramework) ValidateDroppedBlocks(expectedState map[string]bool) {
 	for blockID, expected := range expectedState {
-		block, exists := t.Scheduler.Block(t.Tangle.BlockDAG.Block(blockID).ID())
+		block, exists := t.Scheduler.Block(t.Mesh.BlockDAG.Block(blockID).ID())
 		require.Truef(t.test, exists, "block %s not registered", blockID)
 
 		actual := block.IsDropped()

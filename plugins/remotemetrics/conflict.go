@@ -11,7 +11,7 @@ import (
 	"github.com/izuc/zipp/packages/app/remotemetrics"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 )
 
 var (
@@ -100,7 +100,7 @@ func sendConflictMetrics() {
 }
 
 func updateMetricCounts(conflictID utxo.TransactionID, transactionID utxo.TransactionID) (oldestAttachment *booker.Block) {
-	oldestAttachment = deps.Protocol.Engine().Tangle.Booker().GetEarliestAttachment(transactionID)
+	oldestAttachment = deps.Protocol.Engine().Mesh.Booker().GetEarliestAttachment(transactionID)
 	conflict, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().Conflict(conflictID)
 	if !exists {
 		return oldestAttachment

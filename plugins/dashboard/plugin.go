@@ -196,15 +196,15 @@ type blk struct {
 }
 
 type nodestatus struct {
-	ID         string          `json:"id"`
-	Version    string          `json:"version"`
-	Uptime     int64           `json:"uptime"`
-	Mem        *memmetrics     `json:"mem"`
-	TangleTime tangleTime      `json:"tangleTime"`
-	Scheduler  schedulerMetric `json:"scheduler"`
+	ID        string          `json:"id"`
+	Version   string          `json:"version"`
+	Uptime    int64           `json:"uptime"`
+	Mem       *memmetrics     `json:"mem"`
+	MeshTime  meshTime        `json:"meshTime"`
+	Scheduler schedulerMetric `json:"scheduler"`
 }
 
-type tangleTime struct {
+type meshTime struct {
 	Synced       bool  `json:"synced"`
 	Bootstrapped bool  `json:"bootstrapped"`
 	ATT          int64 `json:"ATT"`
@@ -319,9 +319,9 @@ func currentNodeStatus() *nodestatus {
 		LastPauseGC:  m.PauseNs[(m.NumGC+255)%256],
 	}
 
-	// get TangleTime
+	// get MeshTime
 	tm := deps.Protocol.Engine().Clock
-	status.TangleTime = tangleTime{
+	status.MeshTime = meshTime{
 		Synced:           deps.Protocol.Engine().IsSynced(),
 		Bootstrapped:     deps.Protocol.Engine().IsBootstrapped(),
 		AcceptedBlockID:  lastAcceptedBlock.BlockID().Base58(),

@@ -17,8 +17,8 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/syncutils"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -33,7 +33,7 @@ var ErrNotRunning = errors.New("scheduler stopped")
 
 // region Scheduler ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Scheduler is a Tangle component that takes care of scheduling the blocks that shall be booked.
+// Scheduler is a Mesh component that takes care of scheduling the blocks that shall be booked.
 type Scheduler struct {
 	Events *Events
 

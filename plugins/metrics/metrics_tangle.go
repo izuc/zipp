@@ -8,13 +8,13 @@ import (
 	"github.com/izuc/zipp/packages/network"
 	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 const (
-	tangleNamespace = "tangle"
+	meshNamespace = "mesh"
 
 	tipsCount                     = "tips_count"
 	blockPerTypeCount             = "block_per_type_total"
@@ -27,10 +27,10 @@ const (
 	acceptedBlocksCount           = "accepted_blocks_count"
 )
 
-var TangleMetrics = collector.NewCollection(tangleNamespace,
+var MeshMetrics = collector.NewCollection(meshNamespace,
 	collector.WithMetric(collector.NewMetric(tipsCount,
 		collector.WithType(collector.Gauge),
-		collector.WithHelp("Number of tips in the tangle"),
+		collector.WithHelp("Number of tips in the mesh"),
 		collector.WithCollectFunc(func() map[string]float64 {
 			count := deps.Protocol.TipManager.TipCount()
 			return collector.SingleValue(count)
@@ -38,21 +38,21 @@ var TangleMetrics = collector.NewCollection(tangleNamespace,
 	)),
 	collector.WithMetric(collector.NewMetric(blockPerTypeCount,
 		collector.WithType(collector.GaugeVec),
-		collector.WithHelp("Number of blocks per type in the tangle"),
+		collector.WithHelp("Number of blocks per type in the mesh"),
 		collector.WithLabels("type"),
 		collector.WithInitFunc(func() {
 			deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
 				blockType := collector.NewBlockType(block.Payload().Type()).String()
-				deps.Collector.Increment(tangleNamespace, blockPerTypeCount, blockType)
+				deps.Collector.Increment(meshNamespace, blockPerTypeCount, blockType)
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
 	)),
 	collector.WithMetric(collector.NewMetric(missingBlocksCount,
 		collector.WithType(collector.Counter),
-		collector.WithHelp("Number of blocks missing during the solidification in the tangle"),
+		collector.WithHelp("Number of blocks missing during the solidification in the mesh"),
 		collector.WithInitFunc(func() {
-			deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockMissing.Hook(func(_ *blockdag.Block) {
-				deps.Collector.Increment(tangleNamespace, missingBlocksCount)
+			deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockMissing.Hook(func(_ *blockdag.Block) {
+				deps.Collector.Increment(meshNamespace, missingBlocksCount)
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
 	)),
@@ -64,7 +64,7 @@ var TangleMetrics = collector.NewCollection(tangleNamespace,
 			deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
 				blockType := collector.NewBlockType(block.Payload().Type()).String()
 				block.ForEachParent(func(parent models.Parent) {
-					deps.Collector.Increment(tangleNamespace, parentPerTypeCount, blockType)
+					deps.Collector.Increment(meshNamespace, parentPerTypeCount, blockType)
 				})
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
@@ -75,31 +75,31 @@ var TangleMetrics = collector.NewCollection(tangleNamespace,
 		collector.WithLabels("component"),
 		collector.WithInitFunc(func() {
 			deps.Protocol.Events.Network.BlockReceived.Hook(func(_ *network.BlockReceivedEvent) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Received.String())
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Received.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 			deps.Protocol.Events.Engine.Filter.BlockAllowed.Hook(func(_ *models.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Allowed.String())
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Allowed.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 			deps.BlockIssuer.Events.BlockIssued.Hook(func(_ *models.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Issued.String())
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Issued.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
-			deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Attached.String())
+			deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Attached.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
-			deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockSolid.Hook(func(block *blockdag.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Solidified.String())
+			deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockSolid.Hook(func(block *blockdag.Block) {
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Solidified.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 			deps.Protocol.Events.CongestionControl.Scheduler.BlockScheduled.Hook(func(block *scheduler.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Scheduled.String())
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Scheduled.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
-			deps.Protocol.Events.Engine.Tangle.Booker.BlockBooked.Hook(func(_ *booker.BlockBookedEvent) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.Booked.String())
+			deps.Protocol.Events.Engine.Mesh.Booker.BlockBooked.Hook(func(_ *booker.BlockBookedEvent) {
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.Booked.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 			deps.Protocol.Events.CongestionControl.Scheduler.BlockDropped.Hook(func(block *scheduler.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.SchedulerDropped.String())
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.SchedulerDropped.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 			deps.Protocol.Events.CongestionControl.Scheduler.BlockSkipped.Hook(func(block *scheduler.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksPerComponentCount, collector.SchedulerSkipped.String())
+				deps.Collector.Increment(meshNamespace, blocksPerComponentCount, collector.SchedulerSkipped.String())
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
 	)),
@@ -107,8 +107,8 @@ var TangleMetrics = collector.NewCollection(tangleNamespace,
 		collector.WithType(collector.Counter),
 		collector.WithHelp("Number of orphaned blocks"),
 		collector.WithInitFunc(func() {
-			deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
-				deps.Collector.Increment(tangleNamespace, blocksOrphanedCount)
+			deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
+				deps.Collector.Increment(meshNamespace, blocksOrphanedCount)
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
 	)),
@@ -117,7 +117,7 @@ var TangleMetrics = collector.NewCollection(tangleNamespace,
 		collector.WithHelp("Number of accepted blocks"),
 		collector.WithInitFunc(func() {
 			deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
-				deps.Collector.Increment(tangleNamespace, acceptedBlocksCount)
+				deps.Collector.Increment(meshNamespace, acceptedBlocksCount)
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
 	)),
@@ -129,7 +129,7 @@ var TangleMetrics = collector.NewCollection(tangleNamespace,
 			deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
 				blockType := collector.NewBlockType(block.Payload().Type()).String()
 				timeSince := float64(time.Since(block.IssuingTime()).Milliseconds())
-				deps.Collector.Update(tangleNamespace, timeSinceReceivedPerComponent, collector.MultiLabelsValues([]string{blockType}, timeSince))
+				deps.Collector.Update(meshNamespace, timeSinceReceivedPerComponent, collector.MultiLabelsValues([]string{blockType}, timeSince))
 			}, event.WithWorkerPool(Plugin.WorkerPool))
 		}),
 	)),

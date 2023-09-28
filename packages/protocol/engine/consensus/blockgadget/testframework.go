@@ -16,9 +16,9 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
@@ -28,7 +28,7 @@ import (
 type TestFramework struct {
 	test          *testing.T
 	Gadget        Gadget
-	Tangle        *tangle.TestFramework
+	Mesh          *mesh.TestFramework
 	VirtualVoting *booker.VirtualVotingTestFramework
 	MemPool       *mempool.TestFramework
 	BlockDAG      *blockdag.TestFramework
@@ -40,15 +40,15 @@ type TestFramework struct {
 	conflictsRejected uint32
 }
 
-func NewTestFramework(test *testing.T, gadget Gadget, tangleTF *tangle.TestFramework) *TestFramework {
+func NewTestFramework(test *testing.T, gadget Gadget, meshTF *mesh.TestFramework) *TestFramework {
 	t := &TestFramework{
 		test:          test,
 		Gadget:        gadget,
-		Tangle:        tangleTF,
-		VirtualVoting: tangleTF.VirtualVoting,
-		MemPool:       tangleTF.MemPool,
-		BlockDAG:      tangleTF.BlockDAG,
-		Votes:         tangleTF.Votes,
+		Mesh:          meshTF,
+		VirtualVoting: meshTF.VirtualVoting,
+		MemPool:       meshTF.MemPool,
+		BlockDAG:      meshTF.BlockDAG,
+		Votes:         meshTF.Votes,
 	}
 
 	t.setupEvents()
@@ -72,14 +72,14 @@ func (t *TestFramework) setupEvents() {
 		atomic.AddUint32(&(t.confirmedBlocks), 1)
 	})
 
-	t.Tangle.VirtualVoting.ConflictDAG.Instance.Events.ConflictAccepted.Hook(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+	t.Mesh.VirtualVoting.ConflictDAG.Instance.Events.ConflictAccepted.Hook(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
 		if debug.GetEnabled() {
 			t.test.Logf("CONFLICT ACCEPTED: %s", conflict.ID())
 		}
 		atomic.AddUint32(&(t.conflictsAccepted), 1)
 	})
 
-	t.Tangle.VirtualVoting.ConflictDAG.Instance.Events.ConflictRejected.Hook(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+	t.Mesh.VirtualVoting.ConflictDAG.Instance.Events.ConflictRejected.Hook(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
 		if debug.GetEnabled() {
 			t.test.Logf("CONFLICT REJECTED: %s", conflict.ID())
 		}
@@ -106,14 +106,14 @@ func (t *TestFramework) AssertConflictsRejected(conflictsRejected uint32) {
 
 func (t *TestFramework) ValidateAcceptedBlocks(expectedAcceptedBlocks map[string]bool) {
 	for blockID, blockExpectedAccepted := range expectedAcceptedBlocks {
-		actualBlockAccepted := t.Gadget.IsBlockAccepted(t.Tangle.BlockDAG.Block(blockID).ID())
+		actualBlockAccepted := t.Gadget.IsBlockAccepted(t.Mesh.BlockDAG.Block(blockID).ID())
 		require.Equal(t.test, blockExpectedAccepted, actualBlockAccepted, "Block %s should be accepted=%t but is %t", blockID, blockExpectedAccepted, actualBlockAccepted)
 	}
 }
 
 func (t *TestFramework) ValidateConfirmedBlocks(expectedConfirmedBlocks map[string]bool) {
 	for blockID, blockExpectedConfirmed := range expectedConfirmedBlocks {
-		actualBlockConfirmed := t.Gadget.IsBlockConfirmed(t.Tangle.BlockDAG.Block(blockID).ID())
+		actualBlockConfirmed := t.Gadget.IsBlockConfirmed(t.Mesh.BlockDAG.Block(blockID).ID())
 		require.Equal(t.test, blockExpectedConfirmed, actualBlockConfirmed, "Block %s should be confirmed=%t but is %t", blockID, blockExpectedConfirmed, actualBlockConfirmed)
 	}
 }
@@ -127,7 +127,7 @@ func (t *TestFramework) ValidateAcceptedMarker(expectedConflictIDs map[markers.M
 
 func (t *TestFramework) ValidateConflictAcceptance(expectedConflictIDs map[string]confirmation.State) {
 	for conflictIDAlias, conflictExpectedState := range expectedConflictIDs {
-		actualMarkerAccepted := t.Tangle.VirtualVoting.ConflictDAG.Instance.ConfirmationState(advancedset.New(t.Tangle.MemPool.Transaction(conflictIDAlias).ID()))
+		actualMarkerAccepted := t.Mesh.VirtualVoting.ConflictDAG.Instance.ConfirmationState(advancedset.New(t.Mesh.MemPool.Transaction(conflictIDAlias).ID()))
 		require.Equal(t.test, conflictExpectedState, actualMarkerAccepted, "%s should be accepted=%s but is %s", conflictIDAlias, conflictExpectedState, actualMarkerAccepted)
 	}
 }

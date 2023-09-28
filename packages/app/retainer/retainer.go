@@ -1,6 +1,9 @@
 package retainer
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/pkg/errors"
 
 	"github.com/izuc/zipp.foundation/core/memstorage"
@@ -17,9 +20,9 @@ import (
 	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -104,13 +107,15 @@ func (r *Retainer) LoadAllBlockMetadata(index slot.Index) (ids *advancedset.Adva
 	defer r.metadataEvictionLock.RUnlock(index)
 
 	ids = advancedset.New[*BlockMetadata]()
-	r.StreamBlocksMetadata(index, func(id models.BlockID, metadata *BlockMetadata) {
+	if err := r.StreamBlocksMetadata(index, func(id models.BlockID, metadata *BlockMetadata) {
 		ids.Add(metadata)
-	})
+	}); err != nil {
+		log.Println("Error in StreamBlocksMetadata:", err)
+	}
 	return
 }
 
-func (r *Retainer) StreamBlocksMetadata(index slot.Index, callback func(id models.BlockID, metadata *BlockMetadata)) {
+func (r *Retainer) StreamBlocksMetadata(index slot.Index, callback func(id models.BlockID, metadata *BlockMetadata)) error {
 	r.metadataEvictionLock.RLock(index)
 	defer r.metadataEvictionLock.RUnlock(index)
 
@@ -119,13 +124,23 @@ func (r *Retainer) StreamBlocksMetadata(index slot.Index, callback func(id model
 			callback(id, newBlockMetadata(cachedMetadata))
 			return true
 		})
-		return
+		return nil
 	}
 
-	_ = r.blockStorage.Iterate(index, func(id models.BlockID, metadata BlockMetadata) bool {
+	if r.blockStorage == nil {
+		return fmt.Errorf("blockStorage is nil")
+	}
+
+	err := r.blockStorage.Iterate(index, func(id models.BlockID, metadata BlockMetadata) bool {
 		callback(id, &metadata)
 		return true
 	})
+
+	if err != nil {
+		log.Println("Error iterating blockStorage:", err)
+	}
+
+	return err
 }
 
 // DatabaseSize returns the size of the underlying databases.
@@ -144,25 +159,25 @@ func (r *Retainer) PruneUntilSlot(index slot.Index) {
 }
 
 func (r *Retainer) setupEvents() {
-	r.protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+	r.protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 		if cm := r.createOrGetCachedMetadata(block.ID()); cm != nil {
 			cm.setBlockDAGBlock(block)
 		}
 	}, event.WithWorkerPool(r.blockWorkerPool))
 
 	// TODO: missing blocks make the node fail due to empty strong parents
-	// r.protocol.Events.Engine.Tangle.BlockDAG.BlockMissing.AttachWithWorkerPool(event.NewClosure(func(block *blockdag.Block) {
+	// r.protocol.Events.Engine.Mesh.BlockDAG.BlockMissing.AttachWithWorkerPool(event.NewClosure(func(block *blockdag.Block) {
 	//	cm := r.createOrGetCachedMetadata(block.ID())
 	//	cm.setBlockDAGBlock(block)
 	// }))
 
-	r.protocol.Events.Engine.Tangle.BlockDAG.BlockSolid.Hook(func(block *blockdag.Block) {
+	r.protocol.Events.Engine.Mesh.BlockDAG.BlockSolid.Hook(func(block *blockdag.Block) {
 		if cm := r.createOrGetCachedMetadata(block.ID()); cm != nil {
 			cm.setBlockDAGBlock(block)
 		}
 	}, event.WithWorkerPool(r.blockWorkerPool))
 
-	r.protocol.Events.Engine.Tangle.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
+	r.protocol.Events.Engine.Mesh.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
 		if cm := r.createOrGetCachedMetadata(evt.Block.ID()); cm != nil {
 			cm.setBookerBlock(evt.Block)
 			cm.Lock()
@@ -171,7 +186,7 @@ func (r *Retainer) setupEvents() {
 		}
 	}, event.WithWorkerPool(r.blockWorkerPool))
 
-	r.protocol.Events.Engine.Tangle.Booker.BlockTracked.Hook(func(block *booker.Block) {
+	r.protocol.Events.Engine.Mesh.Booker.BlockTracked.Hook(func(block *booker.Block) {
 		if cm := r.createOrGetCachedMetadata(block.ID()); cm != nil {
 			cm.setVirtualVotingBlock(block)
 		}
@@ -251,7 +266,7 @@ func (r *Retainer) createStorableBlockMetadata(index slot.Index) (metas []*Block
 	storage.ForEach(func(blockID models.BlockID, cm *cachedMetadata) bool {
 		blockMetadata := newBlockMetadata(cm)
 		if cm.Booker != nil {
-			blockMetadata.M.ConflictIDs = r.protocol.Engine().Tangle.Booker().BlockConflicts(cm.Booker.Block)
+			blockMetadata.M.ConflictIDs = r.protocol.Engine().Mesh.Booker().BlockConflicts(cm.Booker.Block)
 		} else {
 			blockMetadata.M.ConflictIDs = utxo.NewTransactionIDs()
 		}

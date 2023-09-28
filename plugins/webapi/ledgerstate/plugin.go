@@ -25,7 +25,7 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/plugins/webapi"
 )
@@ -270,7 +270,7 @@ func GetConflict(c echo.Context) (err error) {
 		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load Conflict with %s", conflictID)))
 	}
 
-	return c.JSON(http.StatusOK, jsonmodels.NewConflictWeight(conflict, conflict.ConfirmationState(), deps.Protocol.Engine().Tangle.Booker().VirtualVoting().ConflictVotersTotalWeight(conflictID)))
+	return c.JSON(http.StatusOK, jsonmodels.NewConflictWeight(conflict, conflict.ConfirmationState(), deps.Protocol.Engine().Mesh.Booker().VirtualVoting().ConflictVotersTotalWeight(conflictID)))
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -329,7 +329,7 @@ func GetConflictVoters(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	voters := deps.Protocol.Engine().Tangle.Booker().VirtualVoting().ConflictVoters(conflictID)
+	voters := deps.Protocol.Engine().Mesh.Booker().VirtualVoting().ConflictVoters(conflictID)
 	defer voters.Detach()
 
 	return c.JSON(http.StatusOK, jsonmodels.NewGetConflictVotersResponse(conflictID, voters))
@@ -347,7 +347,7 @@ func GetConflictSequenceIDs(c echo.Context) (err error) {
 	// }
 	//
 	// sequenceIDs := make([]string, 0)
-	// deps.Tangle.booker.MarkersManager.SequenceAliasMapping(markers.NewSequenceAlias(conflictID.Bytes())).Consume(func(sequenceAliasMapping *markers.SequenceAliasMapping) {
+	// deps.Mesh.booker.MarkersManager.SequenceAliasMapping(markers.NewSequenceAlias(conflictID.Bytes())).Consume(func(sequenceAliasMapping *markers.SequenceAliasMapping) {
 	//	sequenceAliasMapping.ForEachSequenceID(func(sequenceID markers.SequenceID) bool {
 	//		sequenceIDs = append(sequenceIDs, strconv.FormatUint(uint64(sequenceID), 10))
 	//		return true
@@ -471,7 +471,7 @@ func GetTransactionAttachments(c echo.Context) (err error) {
 	}
 
 	blockIDs := models.NewBlockIDs()
-	_ = deps.Protocol.Engine().Tangle.Booker().GetAllAttachments(transactionID).ForEach(func(attachment *booker.Block) error {
+	_ = deps.Protocol.Engine().Mesh.Booker().GetAllAttachments(transactionID).ForEach(func(attachment *booker.Block) error {
 		blockIDs.Add(attachment.ID())
 		return nil
 	})
@@ -534,7 +534,7 @@ func PostTransaction(c echo.Context) error {
 
 	// TODO: check if transaction is too old
 	// if tx.Essence().Timestamp().Before(time.Now().Add(-models.MaxReattachmentTimeMin)) {
-	//	return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: fmt.Sprintf("transaction timestamp is older than MaxReattachmentTime (%s) and cannot be issued", tangleold.MaxReattachmentTimeMin)})
+	//	return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: fmt.Sprintf("transaction timestamp is older than MaxReattachmentTime (%s) and cannot be issued", meshold.MaxReattachmentTimeMin)})
 	// }
 
 	// if transaction is in the future we wait until the time arrives

@@ -6,7 +6,7 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/options"
 	"github.com/izuc/zipp.foundation/stringify"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )

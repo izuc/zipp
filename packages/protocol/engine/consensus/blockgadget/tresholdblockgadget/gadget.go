@@ -23,9 +23,9 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
@@ -68,7 +68,7 @@ func NewProvider(opts ...options.Option[Gadget]) module.Provider[*engine.Engine,
 
 		e.HookConstructed(func() {
 			e.SybilProtection.HookInitialized(func() {
-				g.Initialize(e.Workers.CreateGroup("BlockGadget"), e.Tangle.Booker(), e.Tangle.BlockDAG(), e.Ledger.MemPool(), e.EvictionState, e.SlotTimeProvider(), e.SybilProtection.Validators(), e.SybilProtection.Weights().TotalWeightWithoutZeroIdentity)
+				g.Initialize(e.Workers.CreateGroup("BlockGadget"), e.Mesh.Booker(), e.Mesh.BlockDAG(), e.Ledger.MemPool(), e.EvictionState, e.SlotTimeProvider(), e.SybilProtection.Validators(), e.SybilProtection.Weights().TotalWeightWithoutZeroIdentity)
 			})
 		})
 

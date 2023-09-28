@@ -24,13 +24,13 @@ type CommitmentProof struct {
 // GetBlockInclusionProof gets the proof of the inclusion (acceptance) of a block.
 func (m *Manager) GetBlockInclusionProof(blockID models.BlockID) (*CommitmentProof, error) {
 	var ei slot.Index
-	block, exists := m.tangle.BlockDAG.Block(blockID)
+	block, exists := m.mesh.BlockDAG.Block(blockID)
 	if !exists {
 		return nil, errors.Errorf("cannot retrieve block with id %s", blockID)
 	}
 	t := block.IssuingTime()
 	ei = slot.IndexFromTime(t)
-	proof, err := m.commitmentFactory.ProofTangleRoot(ei, blockID)
+	proof, err := m.commitmentFactory.ProofMeshRoot(ei, blockID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +61,12 @@ func (f *commitmentFactory) ProofStateRoot(ei slot.Index, outID utxo.OutputID) (
 	if !exists {
 		return nil, errors.Errorf("could not obtain commitment trees for slot %d", ei)
 	}
-	tangleRoot := root.tangleTree.Root()
-	proof, err := f.stateRootTree.ProveForRoot(key, tangleRoot)
+	meshRoot := root.meshTree.Root()
+	proof, err := f.stateRootTree.ProveForRoot(key, meshRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not generate the state root proof")
 	}
-	return &CommitmentProof{ei, proof, tangleRoot}, nil
+	return &CommitmentProof{ei, proof, meshRoot}, nil
 }
 
 // ProofStateMutationRoot returns the merkle proof for the transactionID against the state mutation root.
@@ -85,24 +85,24 @@ func (f *commitmentFactory) ProofStateMutationRoot(ei slot.Index, txID utxo.Tran
 	return &CommitmentProof{ei, proof, root}, nil
 }
 
-// ProofTangleRoot returns the merkle proof for the blockID against the tangle root.
-func (f *commitmentFactory) ProofTangleRoot(ei slot.Index, blockID models.BlockID) (*CommitmentProof, error) {
+// ProofMeshRoot returns the merkle proof for the blockID against the mesh root.
+func (f *commitmentFactory) ProofMeshRoot(ei slot.Index, blockID models.BlockID) (*CommitmentProof, error) {
 	committmentTrees, err := f.getCommitmentTrees(ei)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot get commitment trees for slot %d", ei)
 	}
 
 	key, _ := blockID.Bytes()
-	root := committmentTrees.tangleTree.Root()
-	proof, err := committmentTrees.tangleTree.ProveForRoot(key, root)
+	root := committmentTrees.meshTree.Root()
+	proof, err := committmentTrees.meshTree.ProveForRoot(key, root)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not generate the tangle root proof")
+		return nil, errors.Wrap(err, "could not generate the mesh root proof")
 	}
 	return &CommitmentProof{ei, proof, root}, nil
 }
 
-// VerifyTangleRoot verify the provided merkle proof against the tangle root.
-func (f *commitmentFactory) VerifyTangleRoot(proof CommitmentProof, blockID models.BlockID) bool {
+// VerifyMeshRoot verify the provided merkle proof against the mesh root.
+func (f *commitmentFactory) VerifyMeshRoot(proof CommitmentProof, blockID models.BlockID) bool {
 	key, _ := blockID.Bytes()
 	return f.verifyRoot(proof, key, key)
 }

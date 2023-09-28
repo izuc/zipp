@@ -17,7 +17,7 @@ import (
 //			      = MaxBlockSize - 1172 bytes = 64364
 const MaxSize = 65536 - 1172
 
-// Payload represents the generic interface for an object that can be embedded in Blocks of the Tangle.
+// Payload represents the generic interface for an object that can be embedded in Blocks of the Mesh.
 type Payload interface {
 	// Type returns the Type of the Payload.
 	Type() Type

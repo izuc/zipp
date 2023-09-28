@@ -14,8 +14,8 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/debug"
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
@@ -45,7 +45,7 @@ func TestScheduler_AddBlock(t *testing.T) {
 	tf := NewTestFramework(t, workers.CreateGroup("SchedulerTestFramework"))
 	tf.Scheduler.Start()
 
-	blk := booker.NewBlock(blockdag.NewBlock(models.NewBlock(models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis"))), blockdag.WithSolid(true), blockdag.WithOrphaned(true)), booker.WithBooked(true), booker.WithStructureDetails(markers.NewStructureDetails()))
+	blk := booker.NewBlock(blockdag.NewBlock(models.NewBlock(models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis"))), blockdag.WithSolid(true), blockdag.WithOrphaned(true)), booker.WithBooked(true), booker.WithStructureDetails(markers.NewStructureDetails()))
 	require.NoError(t, blk.DetermineID(tf.SlotTimeProvider()))
 
 	tf.Scheduler.AddBlock(blk)
@@ -149,12 +149,12 @@ func TestScheduler_Dropped(t *testing.T) {
 
 	for i := 0; i < numBlocks; i++ {
 		alias := fmt.Sprintf("blk-%d", i)
-		tf.Tangle.BlockDAG.CreateBlock(alias, models.WithIssuer(tf.Issuer("nomana").PublicKey()), models.WithStrongParents(models.NewBlockIDs(tf.Tangle.BlockDAG.Block("Genesis").ID())))
-		tf.Tangle.BlockDAG.IssueBlocks(alias)
+		tf.Mesh.BlockDAG.CreateBlock(alias, models.WithIssuer(tf.Issuer("nomana").PublicKey()), models.WithStrongParents(models.NewBlockIDs(tf.Mesh.BlockDAG.Block("Genesis").ID())))
+		tf.Mesh.BlockDAG.IssueBlocks(alias)
 	}
 	blockCounter := 0
 	require.Eventually(t, func() bool {
-		expectedBlock := tf.Tangle.BlockDAG.Block(fmt.Sprintf("blk-%d", blockCounter))
+		expectedBlock := tf.Mesh.BlockDAG.Block(fmt.Sprintf("blk-%d", blockCounter))
 		select {
 		case droppedBlock := <-processedBlocksChan:
 			blockCounter++
@@ -212,7 +212,7 @@ func TestScheduler_HandleOrphanedBlock_Ready(t *testing.T) {
 	blk := tf.CreateSchedulerBlock(models.WithIssuer(tf.Issuer("peer").PublicKey()))
 	require.NoError(t, tf.Scheduler.Submit(blk))
 	tf.Scheduler.Ready(blk)
-	tf.Tangle.BlockDAG.Instance.SetOrphaned(blk.Block.Block, true)
+	tf.Mesh.BlockDAG.Instance.SetOrphaned(blk.Block.Block, true)
 
 	require.Eventually(t, func() bool {
 		select {
@@ -255,7 +255,7 @@ func TestScheduler_HandleOrphanedBlock_Scheduled(t *testing.T) {
 		}
 	}, 1*time.Second, 10*time.Millisecond)
 
-	tf.Tangle.BlockDAG.Instance.SetOrphaned(blk.Block.Block, true)
+	tf.Mesh.BlockDAG.Instance.SetOrphaned(blk.Block.Block, true)
 
 	tf.AssertBlocksDropped(0)
 }
@@ -276,7 +276,7 @@ func TestScheduler_HandleOrphanedBlock_Unready(t *testing.T) {
 	// create a new block from a different node
 	blk := tf.CreateSchedulerBlock(models.WithIssuer(tf.Issuer("peer").PublicKey()))
 	require.NoError(t, tf.Scheduler.Submit(blk))
-	tf.Tangle.BlockDAG.Instance.SetOrphaned(blk.Block.Block, true)
+	tf.Mesh.BlockDAG.Instance.SetOrphaned(blk.Block.Block, true)
 
 	require.Eventually(t, func() bool {
 		select {
@@ -448,7 +448,7 @@ func TestScheduler_Issue(t *testing.T) {
 		require.Failf(t, "unexpected error", "error event triggered: %v", err)
 	})
 
-	// setup tangle up till the Scheduler
+	// setup mesh up till the Scheduler
 	tf.Scheduler.Start()
 
 	const numBlocks = 5
@@ -459,9 +459,9 @@ func TestScheduler_Issue(t *testing.T) {
 
 	ids := models.NewBlockIDs()
 	for i := 0; i < numBlocks; i++ {
-		block := tf.Tangle.BlockDAG.CreateBlock(fmt.Sprintf("blk-%d", i), models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithStrongParents(models.NewBlockIDs(tf.Tangle.BlockDAG.Block("Genesis").ID())))
+		block := tf.Mesh.BlockDAG.CreateBlock(fmt.Sprintf("blk-%d", i), models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithStrongParents(models.NewBlockIDs(tf.Mesh.BlockDAG.Block("Genesis").ID())))
 		ids.Add(block.ID())
-		_, _, err := tf.Tangle.Instance.BlockDAG().Attach(block)
+		_, _, err := tf.Mesh.Instance.BlockDAG().Attach(block)
 		require.NoError(t, err)
 	}
 
@@ -478,7 +478,7 @@ func TestScheduler_Issue(t *testing.T) {
 	require.Equal(t, ids, scheduledIDs)
 
 	for i := 0; i < numBlocks; i++ {
-		block, _ := tf.Scheduler.Block(tf.Tangle.BlockDAG.Block(fmt.Sprintf("blk-%d", i)).ID())
+		block, _ := tf.Scheduler.Block(tf.Mesh.BlockDAG.Block(fmt.Sprintf("blk-%d", i)).ID())
 		lo.MergeMaps(tf.mockAcceptance.AcceptedBlocks, map[models.BlockID]types.Empty{
 			block.ID(): types.Void,
 		})
@@ -503,22 +503,22 @@ func TestSchedulerFlow(t *testing.T) {
 	tf.Scheduler.Start()
 
 	// testing desired scheduled order: A - B - D - E - C
-	tf.Tangle.BlockDAG.CreateBlock("A", models.WithIssuer(tf.Issuer("self").PublicKey()), models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis")))
-	tf.Tangle.BlockDAG.CreateBlock("B", models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithIssuingTime(time.Now().Add(1*time.Second)), models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis")))
+	tf.Mesh.BlockDAG.CreateBlock("A", models.WithIssuer(tf.Issuer("self").PublicKey()), models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis")))
+	tf.Mesh.BlockDAG.CreateBlock("B", models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithIssuingTime(time.Now().Add(1*time.Second)), models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis")))
 
 	// set C to have a timestamp in the future
-	tf.Tangle.BlockDAG.CreateBlock("C", models.WithIssuer(tf.Issuer("self").PublicKey()), models.WithIssuingTime(time.Now().Add(5*time.Second)), models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("A", "B")))
+	tf.Mesh.BlockDAG.CreateBlock("C", models.WithIssuer(tf.Issuer("self").PublicKey()), models.WithIssuingTime(time.Now().Add(5*time.Second)), models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("A", "B")))
 
-	tf.Tangle.BlockDAG.CreateBlock("D", models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithIssuingTime(time.Now().Add(1*time.Second)), models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("A", "B")))
+	tf.Mesh.BlockDAG.CreateBlock("D", models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithIssuingTime(time.Now().Add(1*time.Second)), models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("A", "B")))
 
-	tf.Tangle.BlockDAG.CreateBlock("E", models.WithIssuer(tf.Issuer("self").PublicKey()), models.WithIssuingTime(time.Now().Add(3*time.Second)), models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("A", "B")))
+	tf.Mesh.BlockDAG.CreateBlock("E", models.WithIssuer(tf.Issuer("self").PublicKey()), models.WithIssuingTime(time.Now().Add(3*time.Second)), models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("A", "B")))
 
 	blockScheduled := make(chan models.BlockID, 5)
 	tf.Scheduler.Events.BlockScheduled.Hook(func(block *Block) {
 		blockScheduled <- block.ID()
 	})
 
-	tf.Tangle.BlockDAG.IssueBlocks("A", "B", "C", "D", "E")
+	tf.Mesh.BlockDAG.IssueBlocks("A", "B", "C", "D", "E")
 	workers.WaitChildren()
 
 	var scheduledIDs []models.BlockID
@@ -532,7 +532,7 @@ func TestSchedulerFlow(t *testing.T) {
 		}
 	}, 10*time.Second, 100*time.Millisecond)
 
-	require.Equal(t, scheduledIDs, []models.BlockID{tf.Tangle.BlockDAG.Block("A").ID(), tf.Tangle.BlockDAG.Block("B").ID(), tf.Tangle.BlockDAG.Block("D").ID(), tf.Tangle.BlockDAG.Block("E").ID(), tf.Tangle.BlockDAG.Block("C").ID()})
+	require.Equal(t, scheduledIDs, []models.BlockID{tf.Mesh.BlockDAG.Block("A").ID(), tf.Mesh.BlockDAG.Block("B").ID(), tf.Mesh.BlockDAG.Block("D").ID(), tf.Mesh.BlockDAG.Block("E").ID(), tf.Mesh.BlockDAG.Block("C").ID()})
 }
 
 func TestSchedulerParallelSubmit(t *testing.T) {
@@ -559,24 +559,24 @@ func TestSchedulerParallelSubmit(t *testing.T) {
 	for i := 0; i < totalBlkCount/2; i++ {
 		alias := fmt.Sprintf("blk-%d", i)
 
-		parentOption := models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis"))
+		parentOption := models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis"))
 		if i > 1 {
-			parentOption = models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(fmt.Sprintf("blk-%d", i-1), fmt.Sprintf("blk-%d", i-2)))
+			parentOption = models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(fmt.Sprintf("blk-%d", i-1), fmt.Sprintf("blk-%d", i-2)))
 		}
 
-		tf.Tangle.BlockDAG.CreateBlock(alias, models.WithIssuer(tf.Issuer("self").PublicKey()), parentOption)
+		tf.Mesh.BlockDAG.CreateBlock(alias, models.WithIssuer(tf.Issuer("self").PublicKey()), parentOption)
 		blockAliases = append(blockAliases, alias)
 	}
 
 	for i := totalBlkCount / 2; i < totalBlkCount; i++ {
 		alias := fmt.Sprintf("blk-%d", i)
 
-		tf.Tangle.BlockDAG.CreateBlock(alias, models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(fmt.Sprintf("blk-%d", i-1), fmt.Sprintf("blk-%d", i-2))))
+		tf.Mesh.BlockDAG.CreateBlock(alias, models.WithIssuer(tf.Issuer("peer").PublicKey()), models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(fmt.Sprintf("blk-%d", i-1), fmt.Sprintf("blk-%d", i-2))))
 		blockAliases = append(blockAliases, alias)
 	}
 
 	// issue tips to start solidification
-	tf.Tangle.BlockDAG.IssueBlocks(blockAliases...)
+	tf.Mesh.BlockDAG.IssueBlocks(blockAliases...)
 	workers.WaitChildren()
 
 	// wait for all blocks to have a formed opinion

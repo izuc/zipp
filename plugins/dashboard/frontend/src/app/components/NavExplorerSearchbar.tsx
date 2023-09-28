@@ -31,7 +31,7 @@ export class NavExplorerSearchbar extends React.Component<Props, any> {
             <Form inline as={"div"}>
                 <FormControl
                     type="text" onChange={this.updateSearch}
-                    placeholder="Search the Tangle..." value={search}
+                    placeholder="Search the Mesh..." value={search}
                     className=" mr-sm-2" disabled={searching}
                     onKeyUp={this.executeSearch}
                 />

@@ -8,9 +8,9 @@ import (
 	"github.com/izuc/zipp.foundation/ds/generalheap"
 	"github.com/izuc/zipp.foundation/runtime/options"
 	"github.com/izuc/zipp.foundation/runtime/timed"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -19,7 +19,7 @@ import (
 // Manager is a manager that tracks orphaned blocks.
 type Manager struct {
 	unacceptedBlocks generalheap.Heap[timed.HeapKey, *blockdag.Block]
-	tangle           tangle.Tangle
+	mesh             mesh.Mesh
 	isBlockAccepted  func(models.BlockID) bool
 
 	optsTimeSinceConfirmationThreshold time.Duration
@@ -28,10 +28,10 @@ type Manager struct {
 }
 
 // New returns a new instance of Manager.
-func New(isBlockAccepted func(models.BlockID) bool, tangle tangle.Tangle, opts ...options.Option[Manager]) *Manager {
+func New(isBlockAccepted func(models.BlockID) bool, mesh mesh.Mesh, opts ...options.Option[Manager]) *Manager {
 	return options.Apply(&Manager{
 		isBlockAccepted:                    isBlockAccepted,
-		tangle:                             tangle,
+		mesh:                               mesh,
 		optsTimeSinceConfirmationThreshold: time.Minute,
 	}, opts)
 }
@@ -61,7 +61,7 @@ func (o *Manager) orphanBeforeTSC(minAllowedTime time.Time) {
 		blockToOrphan := o.unacceptedBlocks[0].Value
 		heap.Pop(&o.unacceptedBlocks)
 		if !o.isBlockAccepted(blockToOrphan.ID()) {
-			o.tangle.BlockDAG().SetOrphaned(blockToOrphan, true)
+			o.mesh.BlockDAG().SetOrphaned(blockToOrphan, true)
 		}
 	}
 }

@@ -15,7 +15,7 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/syncutils"
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/core/commitment"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 

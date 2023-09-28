@@ -203,7 +203,7 @@ type PostPayloadResponse struct {
 	ID string `json:"id"`
 }
 
-// NewPostPayloadResponse returns a PostPayloadResponse from the given tangleold.Block.
+// NewPostPayloadResponse returns a PostPayloadResponse from the given meshold.Block.
 func NewPostPayloadResponse(block *models.Block) *PostPayloadResponse {
 	return &PostPayloadResponse{
 		ID: block.ID().Base58(),

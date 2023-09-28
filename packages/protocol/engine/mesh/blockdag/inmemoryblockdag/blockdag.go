@@ -19,8 +19,8 @@ import (
 	"github.com/izuc/zipp/packages/core/commitment"
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -77,11 +77,11 @@ func NewProvider(opts ...options.Option[BlockDAG]) module.Provider[*engine.Engin
 				if _, _, err := b.Attach(block); err != nil {
 					e.Events.Error.Trigger(errors.Wrapf(err, "failed to attach block with %s (issuerID: %s)", block.ID(), block.IssuerID()))
 				}
-			} /*, event.WithWorkerPool(e.Workers.CreatePool("Tangle.Attach", 2))*/)
+			} /*, event.WithWorkerPool(e.Workers.CreatePool("Mesh.Attach", 2))*/)
 
 			e.Events.Notarization.SlotCommitted.Hook(func(evt *notarization.SlotCommittedDetails) {
 				b.PromoteFutureBlocksUntil(evt.Commitment.Index())
-			} /*, event.WithWorkerPool(e.Workers.CreatePool("Tangle.PromoteFutureBlocksUntil", 1))*/)
+			} /*, event.WithWorkerPool(e.Workers.CreatePool("Mesh.PromoteFutureBlocksUntil", 1))*/)
 
 			b.TriggerInitialized()
 		})

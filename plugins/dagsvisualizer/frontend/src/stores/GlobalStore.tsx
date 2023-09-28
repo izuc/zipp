@@ -1,7 +1,7 @@
 import {action, makeObservable, observable} from 'mobx';
 import moment, {Moment} from 'moment';
-import TangleStore from './TangleStore';
-import {tangleVertex} from 'models/tangle';
+import MeshStore from './MeshStore';
+import {meshVertex} from 'models/mesh';
 import UTXOStore from './UTXOStore';
 import {utxoVertex} from 'models/utxo';
 import ConflictStore from './ConflictStore';
@@ -9,7 +9,7 @@ import {conflictVertex} from 'models/conflict';
 import {DEFAULT_DASHBOARD_URL} from 'utils/constants';
 
 export class searchResult {
-    blocks: Array<tangleVertex>;
+    blocks: Array<meshVertex>;
     txs: Array<utxoVertex>;
     conflicts: Array<conflictVertex>;
     error: string;
@@ -25,18 +25,18 @@ export class GlobalStore {
     searchResult: searchResult = undefined;
     searchMode = false;
 
-    tangleStore: TangleStore;
+    meshStore: MeshStore;
     utxoStore: UTXOStore;
     conflictStore: ConflictStore;
 
     constructor(
-        tangleStore: TangleStore,
+        meshStore: MeshStore,
         utxoStore: UTXOStore,
         conflictStore: ConflictStore
     ) {
         makeObservable(this);
 
-        this.tangleStore = tangleStore;
+        this.meshStore = meshStore;
         this.utxoStore = utxoStore;
         this.conflictStore = conflictStore;
     }
@@ -52,7 +52,7 @@ export class GlobalStore {
     };
 
     syncWithBlk = () => {
-        const blk = this.tangleStore.selectedBlk;
+        const blk = this.meshStore.selectedBlk;
         if (!blk) return;
 
         this.utxoStore.clearSelected(true);
@@ -72,14 +72,14 @@ export class GlobalStore {
         if (!tx) return;
 
         // clear previous highlight and selected
-        this.tangleStore.clearSelected();
-        this.tangleStore.clearHighlightedBlks();
+        this.meshStore.clearSelected();
+        this.meshStore.clearHighlightedBlks();
         this.conflictStore.clearSelected(true);
 
-        const blk = this.tangleStore.getTangleVertex(tx.blkID);
+        const blk = this.meshStore.getMeshVertex(tx.blkID);
         if (blk) {
-            this.tangleStore.selectBlk(tx.blkID);
-            this.tangleStore.centerBlk(tx.blkID);
+            this.meshStore.selectBlk(tx.blkID);
+            this.meshStore.centerBlk(tx.blkID);
         }
 
         const conflict = this.conflictStore.getConflictVertex(tx.conflictID);
@@ -94,13 +94,13 @@ export class GlobalStore {
         if (!conflict) return;
 
         // iterate blocks to highlight all blocks lies in that conflict
-        const blks = this.tangleStore.getBlksFromConflict(
+        const blks = this.meshStore.getBlksFromConflict(
             conflict.ID,
             this.searchMode
         );
-        this.tangleStore.clearSelected();
-        this.tangleStore.clearHighlightedBlks();
-        this.tangleStore.highlightBlks(blks);
+        this.meshStore.clearSelected();
+        this.meshStore.clearHighlightedBlks();
+        this.meshStore.highlightBlks(blks);
 
         const txs = this.utxoStore.getTxsFromConflict(conflict.ID, this.searchMode);
         this.utxoStore.clearSelected(true);
@@ -109,8 +109,8 @@ export class GlobalStore {
     };
 
     clearSync = () => {
-        this.tangleStore.clearSelected();
-        this.tangleStore.clearHighlightedBlks();
+        this.meshStore.clearSelected();
+        this.meshStore.clearHighlightedBlks();
         this.utxoStore.clearSelected(true);
         this.utxoStore.clearHighlightedTxs();
         this.conflictStore.clearSelected(true);
@@ -202,8 +202,8 @@ export class GlobalStore {
         this.clearGraphs();
 
         (this.searchResult.blocks || []).forEach((blk) => {
-            this.tangleStore.addFoundBlk(blk);
-            this.tangleStore.drawVertex(blk);
+            this.meshStore.addFoundBlk(blk);
+            this.meshStore.drawVertex(blk);
         });
 
         (this.searchResult.txs || []).forEach((tx) => {
@@ -234,7 +234,7 @@ export class GlobalStore {
         this.clearSelectedVertices();
 
         // re-draw all existed latest vertices.
-        this.tangleStore.drawExistedBlks();
+        this.meshStore.drawExistedBlks();
         this.utxoStore.drawExistedTxs();
         this.conflictStore.drawExistedConflicts();
 
@@ -245,31 +245,31 @@ export class GlobalStore {
 
     drawNewVertices() {
         // resume need redraw all existed vertices
-        this.tangleStore.updateDrawStatus(true);
+        this.meshStore.updateDrawStatus(true);
         this.utxoStore.updateDrawStatus(true);
         this.conflictStore.updateDrawStatus(true);
     }
 
     stopDrawNewVertices() {
-        this.tangleStore.updateDrawStatus(false);
+        this.meshStore.updateDrawStatus(false);
         this.utxoStore.updateDrawStatus(false);
         this.conflictStore.updateDrawStatus(false);
     }
 
     clearSelectedVertices() {
-        this.tangleStore.clearSelected();
+        this.meshStore.clearSelected();
         this.utxoStore.clearSelected();
         this.conflictStore.clearSelected();
     }
 
     clearGraphs() {
-        this.tangleStore.clearGraph();
+        this.meshStore.clearGraph();
         this.conflictStore.clearGraph();
         this.utxoStore.clearGraph();
     }
 
     clearFoundVertices() {
-        this.tangleStore.clearFoundBlks();
+        this.meshStore.clearFoundBlks();
         this.utxoStore.clearFoundTxs();
         this.conflictStore.clearFoundConflicts();
     }

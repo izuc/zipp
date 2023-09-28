@@ -82,7 +82,7 @@ func (c *WebClients) ServerStatus(cltIdx int) (status *wallet.ServerStatus, err 
 	}
 
 	status.ID = response.IdentityID
-	status.Synced = response.TangleTime.Synced
+	status.Synced = response.MeshTime.Synced
 	status.Version = response.Version
 	return status, nil
 }
@@ -173,7 +173,7 @@ type Client interface {
 	GetRateSetterEstimate() (estimate time.Duration, err error)
 	// SleepRateSetterEstimate sleeps for rate setter estimate.
 	SleepRateSetterEstimate() (err error)
-	// PostTransaction sends a transaction to the Tangle via a given client.
+	// PostTransaction sends a transaction to the Mesh via a given client.
 	PostTransaction(tx *devnetvm.Transaction) (utxo.TransactionID, models.BlockID, error)
 	// PostData sends the given data (payload) by creating a block in the backend.
 	PostData(data []byte) (blkID string, err error)
@@ -254,7 +254,7 @@ func (c *WebClient) BroadcastFaucetRequest(address string, powTarget int) (err e
 	return
 }
 
-// PostTransaction sends a transaction to the Tangle via a given client.
+// PostTransaction sends a transaction to the Mesh via a given client.
 func (c *WebClient) PostTransaction(tx *devnetvm.Transaction) (txID utxo.TransactionID, blockID models.BlockID, err error) {
 	txBytes, err := tx.Bytes()
 	if err != nil {

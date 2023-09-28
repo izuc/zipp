@@ -24,21 +24,21 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/clock/blocktime"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/tangleconsensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/meshconsensus"
 	"github.com/izuc/zipp/packages/protocol/engine/filter/blockfilter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxoledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/mockedvm"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/inmemorymesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection/dpos"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
@@ -50,7 +50,7 @@ import (
 type TestFramework struct {
 	Instance *TipManager
 	Engine   *engine.Engine
-	Tangle   *tangle.TestFramework
+	Mesh     *mesh.TestFramework
 
 	mockAcceptance       *blockgadget.MockBlockGadget
 	scheduledBlocks      *shrinkingmap.ShrinkingMap[models.BlockID, *scheduler.Block]
@@ -100,10 +100,10 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, opts ...option
 			dpos.NewProvider(),
 			mana1.NewProvider(),
 			slotnotarization.NewProvider(t.optsSlotNotarizationOptions...),
-			inmemorytangle.NewProvider(inmemorytangle.WithBookerProvider(
+			inmemorymesh.NewProvider(inmemorymesh.WithBookerProvider(
 				markerbooker.NewProvider(t.optsBookerOptions...),
 			)),
-			tangleconsensus.NewProvider(),
+			meshconsensus.NewProvider(),
 			t.optsEngineOptions...,
 		)
 		require.NoError(test, t.Engine.Initialize(tempDir.Path("genesis_snapshot.bin")))
@@ -114,10 +114,10 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, opts ...option
 			storageInstance.Shutdown()
 		})
 
-		t.Tangle = tangle.NewTestFramework(
+		t.Mesh = mesh.NewTestFramework(
 			test,
-			t.Engine.Tangle,
-			booker.NewTestFramework(test, workers.CreateGroup("BookerTestFramework"), t.Engine.Tangle.Booker().(*markerbooker.Booker), t.Engine.Tangle.BlockDAG(), t.Engine.Ledger.MemPool(), t.Engine.SybilProtection.Validators(), t.Engine.SlotTimeProvider),
+			t.Engine.Mesh,
+			booker.NewTestFramework(test, workers.CreateGroup("BookerTestFramework"), t.Engine.Mesh.Booker().(*markerbooker.Booker), t.Engine.Mesh.BlockDAG(), t.Engine.Ledger.MemPool(), t.Engine.SybilProtection.Validators(), t.Engine.SlotTimeProvider),
 		)
 
 		t.Instance = New(workers.CreateGroup("TipManager"), t.mockSchedulerBlock, t.optsTipManagerOptions...)
@@ -127,12 +127,12 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, opts ...option
 
 		t.SetAcceptedTime(t.SlotTimeProvider().GenesisTime())
 
-		t.Tangle.BlockDAG.ModelsTestFramework.SetBlock("Genesis", models.NewEmptyBlock(models.EmptyBlockID, models.WithIssuingTime(t.SlotTimeProvider().GenesisTime())))
+		t.Mesh.BlockDAG.ModelsTestFramework.SetBlock("Genesis", models.NewEmptyBlock(models.EmptyBlockID, models.WithIssuingTime(t.SlotTimeProvider().GenesisTime())))
 	}, (*TestFramework).createGenesis, (*TestFramework).setupEvents)
 }
 
 func (t *TestFramework) setupEvents() {
-	t.Tangle.Instance.Events().Booker.BlockTracked.Hook(func(block *booker.Block) {
+	t.Mesh.Instance.Events().Booker.BlockTracked.Hook(func(block *booker.Block) {
 		if debug.GetEnabled() {
 			t.test.Logf("SIMULATING SCHEDULED: %s", block.ID())
 		}
@@ -205,13 +205,13 @@ func (t *TestFramework) SlotTimeProvider() *slot.TimeProvider {
 }
 
 func (t *TestFramework) IssueBlocksAndSetAccepted(aliases ...string) {
-	t.Tangle.BlockDAG.IssueBlocks(aliases...)
+	t.Mesh.BlockDAG.IssueBlocks(aliases...)
 	t.SetBlocksAccepted(aliases...)
 }
 
 func (t *TestFramework) SetBlocksAccepted(aliases ...string) {
 	for _, alias := range aliases {
-		block := t.Tangle.Booker.Block(alias)
+		block := t.Mesh.Booker.Block(alias)
 		t.mockAcceptance.SetBlockAccepted(blockgadget.NewBlock(block))
 	}
 }
@@ -225,7 +225,7 @@ func (t *TestFramework) SetAcceptedTime(acceptedTime time.Time) {
 }
 
 func (t *TestFramework) AssertIsPastConeTimestampCorrect(blockAlias string, expected bool) {
-	block, exists := t.mockSchedulerBlock(t.Tangle.Booker.Block(blockAlias).ID())
+	block, exists := t.mockSchedulerBlock(t.Mesh.Booker.Block(blockAlias).ID())
 	if !exists {
 		panic(fmt.Sprintf("block with %s not found", blockAlias))
 	}
@@ -260,7 +260,7 @@ func (t *TestFramework) FormCommitment(index slot.Index, acceptedBlocksAliases [
 	adsBlocks := ads.NewSet[models.BlockID](mapdb.NewMapDB())
 	adsAttestations := ads.NewMap[identity.ID, notarization.Attestation](mapdb.NewMapDB())
 	for _, acceptedBlockAlias := range acceptedBlocksAliases {
-		acceptedBlock := t.Tangle.Booker.Block(acceptedBlockAlias)
+		acceptedBlock := t.Mesh.Booker.Block(acceptedBlockAlias)
 		adsBlocks.Add(acceptedBlock.ID())
 		adsAttestations.Set(acceptedBlock.IssuerID(), notarization.NewAttestation(acceptedBlock.ModelsBlock, t.Engine.SlotTimeProvider()))
 	}

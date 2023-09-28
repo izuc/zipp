@@ -15,8 +15,8 @@ import (
 	"github.com/izuc/zipp/packages/core/commitment"
 	"github.com/izuc/zipp/packages/protocol"
 	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/protocol/models/payload"
 )
@@ -55,7 +55,7 @@ func New(protocol *protocol.Protocol, localIdentity *identity.LocalIdentity, opt
 			localIdentity,
 			protocol.SlotTimeProvider,
 			func(blockID models.BlockID) (block *blockdag.Block, exists bool) {
-				return i.protocol.Engine().Tangle.BlockDAG().Block(blockID)
+				return i.protocol.Engine().Mesh.BlockDAG().Block(blockID)
 			},
 			func(countParents int) (parents models.BlockIDs) {
 				return i.protocol.TipManager.Tips(countParents)
@@ -126,7 +126,7 @@ func (i *BlockIssuer) IssueBlockAndAwaitBlockToBeBooked(block *models.Block, max
 	exit := make(chan struct{})
 	defer close(exit)
 
-	defer i.protocol.Events.Engine.Tangle.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
+	defer i.protocol.Events.Engine.Mesh.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
 		if block.ID() != evt.Block.ID() {
 			return
 		}
@@ -163,7 +163,7 @@ func (i *BlockIssuer) IssueBlockAndAwaitBlockToBeTracked(block *models.Block, ma
 	exit := make(chan struct{})
 	defer close(exit)
 
-	defer i.protocol.Events.Engine.Tangle.Booker.BlockTracked.Hook(func(evtBlock *booker.Block) {
+	defer i.protocol.Events.Engine.Mesh.Booker.BlockTracked.Hook(func(evtBlock *booker.Block) {
 		if block.ID() != evtBlock.ID() {
 			return
 		}

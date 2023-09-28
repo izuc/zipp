@@ -8,13 +8,13 @@ import (
 
 // ParametersDefinition contains the definition of the parameters used by the blocklayer plugin.
 type ParametersDefinition struct {
-	// TangleWidth can be used to specify the number of tips the Tangle tries to maintain.
-	TangleWidth int `default:"0" usage:"the width of the Tangle"`
+	// MeshWidth can be used to specify the number of tips the Mesh tries to maintain.
+	MeshWidth int `default:"0" usage:"the width of the Mesh"`
 	// TimeSinceConfirmationThreshold is used to set the limit for which tips with old unconfirmed blocks in its past cone will not be selected.
 	TimeSinceConfirmationThreshold time.Duration `default:"30s" usage:"Time Since Confirmation (TSC) threshold"`
 	// ValidatorActivityWindow is used to define period of inactivity after which validator is removed from the set of active validators.
 	ValidatorActivityWindow time.Duration `default:"30s" usage:"define period of inactivity after which validator is removed from the set of active validators"`
-	// BootstrapWindow defines the time window in which the node considers itself as synced according to TangleTime.
+	// BootstrapWindow defines the time window in which the node considers itself as synced according to MeshTime.
 	BootstrapWindow time.Duration `default:"20s" usage:"the time window in which the node considers itself as bootstrapped according to AcceptanceTime"`
 	// Snapshot contains snapshots related configuration parameters.
 	Snapshot struct {

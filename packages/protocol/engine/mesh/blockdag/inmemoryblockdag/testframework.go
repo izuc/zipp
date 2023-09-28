@@ -11,7 +11,7 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/core/commitment"
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 )
 
 func NewTestBlockDAG(t *testing.T, workers *workerpool.Group, evictionState *eviction.State, slotTimeProvider *slot.TimeProvider, commitmentLoadFunc func(index slot.Index) (commitment *commitment.Commitment, err error), optsBlockDAG ...options.Option[BlockDAG]) *BlockDAG {

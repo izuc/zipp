@@ -64,8 +64,8 @@ func configure(_ *node.Plugin) {
 //		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 //	}
 //
-//	if deps.Tangle.Booker.MarkersManager.Sequence(sequenceID).Consume(func(sequence *markersold.Sequence) {
-//		blockWithLastMarker := deps.Tangle.Booker.MarkersManager.BlockID(markersold.NewMarker(sequenceID, sequence.HighestIndex()))
+//	if deps.Mesh.Booker.MarkersManager.Sequence(sequenceID).Consume(func(sequence *markersold.Sequence) {
+//		blockWithLastMarker := deps.Mesh.Booker.MarkersManager.BlockID(markersold.NewMarker(sequenceID, sequence.HighestIndex()))
 //		err = c.String(http.StatusOK, stringify.Struct("Sequence",
 //			stringify.NewStructField("ID", sequence.ID()),
 //			stringify.NewStructField("LowestIndex", sequence.LowestIndex()),
@@ -90,7 +90,7 @@ func configure(_ *node.Plugin) {
 //		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 //	}
 //
-//	if deps.Tangle.Storage.MarkerIndexConflictIDMapping(sequenceID).Consume(func(markerIndexConflictIDMapping *tangleold.MarkerIndexConflictIDMapping) {
+//	if deps.Mesh.Storage.MarkerIndexConflictIDMapping(sequenceID).Consume(func(markerIndexConflictIDMapping *meshold.MarkerIndexConflictIDMapping) {
 //		err = c.String(http.StatusOK, markerIndexConflictIDMapping.String())
 //	}) {
 //		return

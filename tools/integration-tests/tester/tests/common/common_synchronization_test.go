@@ -73,7 +73,7 @@ func TestCommonSynchronization(t *testing.T) {
 	require.NoError(t, newPeer.Stop(ctx))
 	log.Println("Stopping new node... done")
 
-	log.Printf("Issuing %d blocks and waiting until they have old tangle time...", numBlocks)
+	log.Printf("Issuing %d blocks and waiting until they have old mesh time...", numBlocks)
 	ids = tests.SendDataBlocksWithDelay(t, n.Peers()[:initialPeers], numBlocks, 10*time.Millisecond, ids)
 	// wait to assure that the new peer is actually out of sync when starting
 	log.Printf("Sleeping %s to make sure new peer is out of sync when starting...", newPeer.Config().Protocol.BootstrapWindow.String())
@@ -145,7 +145,7 @@ func createNewPeerConfig(t *testing.T, snapshotOptions []options.Option[snapshot
 	conf := framework.PeerConfig()
 	conf.Seed = seedBytes
 	conf.Protocol.Snapshot.Path = opt.FilePath
-	// the new peer should use a shorter TangleTimeWindow than regular peers to go out of sync before them
+	// the new peer should use a shorter MeshTimeWindow than regular peers to go out of sync before them
 	conf.Protocol.BootstrapWindow = 30 * time.Second
 	return conf
 }

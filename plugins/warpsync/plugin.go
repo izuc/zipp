@@ -46,7 +46,7 @@ func init() {
 			//	return block, nil
 			// }
 			// processBlockFunc := func(blk *models.Block, peer *peer.Peer) {
-			//	p..Parser.Events.BlockParsed.Trigger(&tangleold.BlockParsedEvent{
+			//	p..Parser.Events.BlockParsed.Trigger(&meshold.BlockParsedEvent{
 			//		Block: blk,
 			//		Peer:  peer,
 			//	})

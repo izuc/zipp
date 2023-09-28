@@ -22,7 +22,7 @@ type syncingFlowParams struct {
 	targetPrevEC   commitment.ID
 	slotChannels   *slotChannels
 	neighbor       *p2p.Neighbor
-	tangleTree     *smt.SparseMerkleTree
+	meshTree       *smt.SparseMerkleTree
 	slotBlocksLeft int64
 	slotBlocks     map[models.BlockID]*models.Block
 	roots          *commitment.Roots
@@ -69,8 +69,8 @@ func (m *Manager) slotBlockCommand(params *syncingFlowParams, next dataflow.Next
 
 			m.log.Debugw("read block", "peer", params.neighbor, "Index", slotBlock.si, "blockID", block.ID())
 
-			if _, err := params.tangleTree.Update(lo.PanicOnErr(block.ID().Bytes()), lo.PanicOnErr(block.ID().Bytes())); err != nil {
-				return errors.Wrap(err, "error updating tangleTree")
+			if _, err := params.meshTree.Update(lo.PanicOnErr(block.ID().Bytes()), lo.PanicOnErr(block.ID().Bytes())); err != nil {
+				return errors.Wrap(err, "error updating meshTree")
 			}
 			params.slotBlocks[block.ID()] = block
 			params.slotBlocksLeft--
@@ -105,7 +105,7 @@ func (m *Manager) slotEndCommand(params *syncingFlowParams, next dataflow.Next[*
 }
 
 func (m *Manager) slotVerifyCommand(params *syncingFlowParams, next dataflow.Next[*syncingFlowParams]) (err error) {
-	// rootID := commitment.NewRootsID(commitment.NewMerkleRoot(params.tangleTree.Root()), params.stateMutationRoot, params.stateRoot, params.manaRoot)
+	// rootID := commitment.NewRootsID(commitment.NewMerkleRoot(params.meshTree.Root()), params.stateMutationRoot, params.stateRoot, params.manaRoot)
 	//
 	// syncedECRecord := commitment.New(commitment.NewID(params.targetSlot, rootID, params.targetPrevEC))
 	// syncedECRecord.PublishData(params.targetPrevEC, params.targetSlot, rootID)

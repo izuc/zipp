@@ -1,4 +1,4 @@
-package tangleconsensus
+package meshconsensus
 
 import (
 	"github.com/izuc/zipp.foundation/runtime/module"
@@ -41,7 +41,7 @@ func NewProvider(opts ...options.Option[Consensus]) module.Provider[*engine.Engi
 			c.events.SlotGadget.LinkTo(c.slotGadget.Events())
 
 			e.HookConstructed(func() {
-				c.conflictResolver = conflictresolver.New(e.Ledger.MemPool().ConflictDAG(), e.Tangle.Booker().VirtualVoting().ConflictVotersTotalWeight)
+				c.conflictResolver = conflictresolver.New(e.Ledger.MemPool().ConflictDAG(), e.Mesh.Booker().VirtualVoting().ConflictVotersTotalWeight)
 
 				e.Events.Consensus.LinkTo(c.events)
 

@@ -25,13 +25,13 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/filter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker/markermanager"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/inmemorymesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/storage/utils"
@@ -68,9 +68,9 @@ func NewNode(t *testing.T, keyPair ed25519.KeyPair, network *network.MockedNetwo
 		protocol.WithSnapshotPath(snapshotPath),
 		protocol.WithStorageDatabaseManagerOptions(database.WithDBProvider(database.NewDB)),
 		protocol.WithLedgerProvider(ledgerProvider),
-		protocol.WithTangleProvider(
-			inmemorytangle.NewProvider(
-				inmemorytangle.WithBookerProvider(
+		protocol.WithMeshProvider(
+			inmemorymesh.NewProvider(
+				inmemorymesh.WithBookerProvider(
 					markerbooker.NewProvider(
 						markerbooker.WithMarkerManagerOptions(
 							markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -116,9 +116,9 @@ func NewNodeFromDisk(t *testing.T, keyPair ed25519.KeyPair, network *network.Moc
 		node.Endpoint,
 		protocol.WithBaseDirectory(node.BaseDir.Path()),
 		protocol.WithStorageDatabaseManagerOptions(database.WithDBProvider(database.NewDB)),
-		protocol.WithTangleProvider(
-			inmemorytangle.NewProvider(
-				inmemorytangle.WithBookerProvider(
+		protocol.WithMeshProvider(
+			inmemorymesh.NewProvider(
+				inmemorymesh.WithBookerProvider(
 					markerbooker.NewProvider(
 						markerbooker.WithMarkerManagerOptions(
 							markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -231,40 +231,40 @@ func (n *Node) attachEngineLogs(instance *engine.Engine) {
 	engineName := fmt.Sprintf("%s - %s", lo.Cond(n.Protocol.Engine() != instance, "Candidate", "Main"), instance.Name()[:8])
 	events := instance.Events
 
-	events.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+	events.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 		fmt.Printf("%s > [%s] BlockDAG.BlockAttached: %s\n", n.Name, engineName, block.ID())
 	})
 
-	events.Tangle.BlockDAG.BlockSolid.Hook(func(block *blockdag.Block) {
+	events.Mesh.BlockDAG.BlockSolid.Hook(func(block *blockdag.Block) {
 		fmt.Printf("%s > [%s] BlockDAG.BlockSolid: %s\n", n.Name, engineName, block.ID())
 	})
 
-	events.Tangle.BlockDAG.BlockInvalid.Hook(func(event *blockdag.BlockInvalidEvent) {
+	events.Mesh.BlockDAG.BlockInvalid.Hook(func(event *blockdag.BlockInvalidEvent) {
 		fmt.Printf("%s > [%s] BlockDAG.BlockInvalid: %s - %s\n", n.Name, engineName, event.Block.ID(), event.Reason.Error())
 	})
 
-	events.Tangle.BlockDAG.BlockMissing.Hook(func(block *blockdag.Block) {
+	events.Mesh.BlockDAG.BlockMissing.Hook(func(block *blockdag.Block) {
 		fmt.Printf("%s > [%s] BlockDAG.BlockMissing: %s\n", n.Name, engineName, block.ID())
 	})
 
-	events.Tangle.BlockDAG.MissingBlockAttached.Hook(func(block *blockdag.Block) {
+	events.Mesh.BlockDAG.MissingBlockAttached.Hook(func(block *blockdag.Block) {
 		fmt.Printf("%s > [%s] BlockDAG.MissingBlockAttached: %s\n", n.Name, engineName, block.ID())
 	})
 
-	events.Tangle.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
+	events.Mesh.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
 		fmt.Printf("%s > [%s] BlockDAG.BlockOrphaned: %s\n", n.Name, engineName, block.ID())
 	})
 
-	events.Tangle.BlockDAG.BlockUnorphaned.Hook(func(block *blockdag.Block) {
+	events.Mesh.BlockDAG.BlockUnorphaned.Hook(func(block *blockdag.Block) {
 		fmt.Printf("%s > [%s] BlockDAG.BlockUnorphaned: %s\n", n.Name, engineName, block.ID())
 	})
 
-	events.Tangle.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
+	events.Mesh.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
 		fmt.Printf("%s > [%s] Booker.BlockBooked: %s\n", n.Name, engineName, evt.Block.ID())
 	})
 
-	events.Tangle.Booker.SequenceTracker.VotersUpdated.Hook(func(event *sequencetracker.VoterUpdatedEvent) {
-		fmt.Printf("%s > [%s] Tangle.VirtualVoting.SequenceTracker.VotersUpdated: %s %s %d -> %d\n", n.Name, engineName, event.Voter, event.SequenceID, event.PrevMaxSupportedIndex, event.NewMaxSupportedIndex)
+	events.Mesh.Booker.SequenceTracker.VotersUpdated.Hook(func(event *sequencetracker.VoterUpdatedEvent) {
+		fmt.Printf("%s > [%s] Mesh.VirtualVoting.SequenceTracker.VotersUpdated: %s %s %d -> %d\n", n.Name, engineName, event.Voter, event.SequenceID, event.PrevMaxSupportedIndex, event.NewMaxSupportedIndex)
 	})
 
 	events.Clock.AcceptedTimeUpdated.Hook(func(newTime time.Time) {

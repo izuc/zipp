@@ -8,17 +8,17 @@ import (
 	"github.com/izuc/zipp/packages/app/remotemetrics"
 )
 
-var isTangleTimeSynced atomic.Bool
+var isMeshTimeSynced atomic.Bool
 
 func checkSynced() {
-	oldTangleTimeSynced := isTangleTimeSynced.Load()
+	oldMeshTimeSynced := isMeshTimeSynced.Load()
 	tts := deps.Protocol.Engine().IsSynced()
-	if oldTangleTimeSynced != tts {
+	if oldMeshTimeSynced != tts {
 		var myID string
 		if deps.Local != nil {
 			myID = deps.Local.ID().String()
 		}
-		syncStatusChangedEvent := &remotemetrics.TangleTimeSyncChangedEvent{
+		syncStatusChangedEvent := &remotemetrics.MeshTimeSyncChangedEvent{
 			Type:           "sync",
 			NodeID:         myID,
 			MetricsLevel:   Parameters.MetricsLevel,
@@ -28,12 +28,12 @@ func checkSynced() {
 			CTT:            deps.Protocol.Engine().Clock.Confirmed().Time(),
 			RCTT:           deps.Protocol.Engine().Clock.Confirmed().RelativeTime(),
 			CurrentStatus:  tts,
-			PreviousStatus: oldTangleTimeSynced,
+			PreviousStatus: oldMeshTimeSynced,
 		}
-		remotemetrics.Events.TangleTimeSyncChanged.Trigger(syncStatusChangedEvent)
+		remotemetrics.Events.MeshTimeSyncChanged.Trigger(syncStatusChangedEvent)
 	}
 }
 
-func sendSyncStatusChangedEvent(syncUpdate *remotemetrics.TangleTimeSyncChangedEvent) {
+func sendSyncStatusChangedEvent(syncUpdate *remotemetrics.MeshTimeSyncChangedEvent) {
 	_ = deps.RemoteLogger.Send(syncUpdate)
 }

@@ -2,7 +2,7 @@ package jsonmodels
 
 // region Block ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Block represents the JSON model of a tangleold.Block.
+// Block represents the JSON model of a meshold.Block.
 type Block struct {
 	ID                   string   `json:"id"`
 	StrongParents        []string `json:"strongParents"`

@@ -51,8 +51,8 @@ func (c *CongestionControl) LinkTo(engine *engine.Engine) {
 
 	//wp := engine.Workers.CreatePool("Scheduler", 1)
 	engine.HookStopped(lo.Batch(
-		engine.Events.Tangle.Booker.BlockTracked.Hook(c.scheduler.AddBlock /*, event.WithWorkerPool(wp)*/).Unhook,
-		engine.Events.Tangle.BlockDAG.BlockOrphaned.Hook(c.scheduler.HandleOrphanedBlock /*, event.WithWorkerPool(wp)*/).Unhook,
+		engine.Events.Mesh.Booker.BlockTracked.Hook(c.scheduler.AddBlock /*, event.WithWorkerPool(wp)*/).Unhook,
+		engine.Events.Mesh.BlockDAG.BlockOrphaned.Hook(c.scheduler.HandleOrphanedBlock /*, event.WithWorkerPool(wp)*/).Unhook,
 		engine.Consensus.Events().BlockGadget.BlockAccepted.Hook(c.scheduler.HandleAcceptedBlock /*, event.WithWorkerPool(wp)*/).Unhook,
 	))
 

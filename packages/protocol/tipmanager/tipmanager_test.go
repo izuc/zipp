@@ -13,11 +13,11 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/core/commitment"
 	"github.com/izuc/zipp/packages/protocol/engine"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker/markermanager"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
@@ -32,41 +32,41 @@ func TestTipManager_DataBlockTips(t *testing.T) {
 
 	// without any tip -> genesis
 	{
-		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Tangle.BlockDAG.BlockIDs("Genesis"))
+		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Mesh.BlockDAG.BlockIDs("Genesis"))
 	}
 
 	// Block 1
 	{
-		tf.Tangle.BlockDAG.CreateBlock("Block1")
-		tf.Tangle.BlockDAG.IssueBlocks("Block1")
+		tf.Mesh.BlockDAG.CreateBlock("Block1")
+		tf.Mesh.BlockDAG.IssueBlocks("Block1")
 		workers.WaitChildren()
 
 		tf.AssertTipCount(1)
-		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Tangle.BlockDAG.BlockIDs("Block1"))
+		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Mesh.BlockDAG.BlockIDs("Block1"))
 		tf.AssertTipsAdded(1)
 		tf.AssertTipsRemoved(0)
 	}
 
 	// Block 2
 	{
-		tf.Tangle.BlockDAG.CreateBlock("Block2")
+		tf.Mesh.BlockDAG.CreateBlock("Block2")
 		tf.IssueBlocksAndSetAccepted("Block2")
 		workers.WaitChildren()
 
 		tf.AssertTipCount(2)
-		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Tangle.BlockDAG.BlockIDs("Block1", "Block2"))
+		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Mesh.BlockDAG.BlockIDs("Block1", "Block2"))
 		tf.AssertTipsAdded(2)
 		tf.AssertTipsRemoved(0)
 	}
 
 	// Block 3
 	{
-		tf.Tangle.BlockDAG.CreateBlock("Block3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1", "Block2")))
+		tf.Mesh.BlockDAG.CreateBlock("Block3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1", "Block2")))
 		tf.IssueBlocksAndSetAccepted("Block3")
 		workers.WaitChildren()
 
 		tf.AssertTipCount(1)
-		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Tangle.BlockDAG.BlockIDs("Block3"))
+		tf.AssertEqualBlocks(tipManager.Tips(2), tf.Mesh.BlockDAG.BlockIDs("Block3"))
 		tf.AssertTipsAdded(3)
 		tf.AssertTipsRemoved(2)
 	}
@@ -77,7 +77,7 @@ func TestTipManager_DataBlockTips(t *testing.T) {
 			count++
 
 			alias := fmt.Sprintf("Block%d", n)
-			tf.Tangle.BlockDAG.CreateBlock(alias, models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1")))
+			tf.Mesh.BlockDAG.CreateBlock(alias, models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1")))
 			tf.IssueBlocksAndSetAccepted(alias)
 			workers.WaitChildren()
 
@@ -96,7 +96,7 @@ func TestTipManager_DataBlockTips(t *testing.T) {
 
 	// Tips(8) -> 6
 	{
-		tf.AssertEqualBlocks(tipManager.Tips(8), tf.Tangle.BlockDAG.BlockIDs("Block3", "Block4", "Block5", "Block6", "Block7", "Block8"))
+		tf.AssertEqualBlocks(tipManager.Tips(8), tf.Mesh.BlockDAG.BlockIDs("Block3", "Block4", "Block5", "Block6", "Block7", "Block8"))
 	}
 
 	// Tips(0) -> 1
@@ -106,7 +106,7 @@ func TestTipManager_DataBlockTips(t *testing.T) {
 	}
 }
 
-// Test based on packages/tangle/images/TSC_test_scenario.png except nothing is confirmed.
+// Test based on packages/mesh/images/TSC_test_scenario.png except nothing is confirmed.
 func TestTipManager_TimeSinceConfirmation_Unconfirmed(t *testing.T) {
 	workers := workerpool.NewGroup(t.Name())
 	genesisTime := time.Now().Add(-5 * time.Hour)
@@ -132,15 +132,15 @@ func TestTipManager_TimeSinceConfirmation_Unconfirmed(t *testing.T) {
 	)
 	tf.Engine.EvictionState.AddRootBlock(models.EmptyBlockID, commitment.ID{})
 
-	createTestTangleTSC(tf)
+	createTestMeshTSC(tf)
 
 	// Even without any confirmations, it should be possible to attach to genesis.
 	tf.AssertIsPastConeTimestampCorrect("Genesis", true)
 
-	// case 0 - only one block can attach to genesis, so there should not be two subtangles starting from the genesis, but TSC allows using such tip.
+	// case 0 - only one block can attach to genesis, so there should not be two submeshs starting from the genesis, but TSC allows using such tip.
 	tf.AssertIsPastConeTimestampCorrect("7/1_2", true)
 
-	tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Marker-2/3").IssuingTime())
+	tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Marker-2/3").IssuingTime())
 
 	// case #1
 	tf.AssertIsPastConeTimestampCorrect("0/3_4", false)
@@ -176,7 +176,7 @@ func TestTipManager_TimeSinceConfirmation_Unconfirmed(t *testing.T) {
 	tf.AssertIsPastConeTimestampCorrect("0/1-postTSC-direct_0", false)
 }
 
-// Test based on packages/tangle/images/TSC_test_scenario.png.
+// Test based on packages/mesh/images/TSC_test_scenario.png.
 func TestTipManager_TimeSinceConfirmation_Confirmed(t *testing.T) {
 	workers := workerpool.NewGroup(t.Name())
 	genesisTime := time.Now().Add(-5 * time.Hour)
@@ -201,19 +201,19 @@ func TestTipManager_TimeSinceConfirmation_Confirmed(t *testing.T) {
 		),
 	)
 	tf.Engine.EvictionState.AddRootBlock(models.EmptyBlockID, commitment.ID{})
-	createTestTangleTSC(tf)
+	createTestMeshTSC(tf)
 
-	// case 0 - only one block can attach to genesis, so there should not be two subtangles starting from the genesis, but TSC allows using such tip.
+	// case 0 - only one block can attach to genesis, so there should not be two submeshs starting from the genesis, but TSC allows using such tip.
 	tf.AssertIsPastConeTimestampCorrect("7/1_2", true)
 
 	acceptedBlockIDsAliases := []string{"Marker-0/1", "0/1-preTSCSeq1_0", "0/1-preTSCSeq1_1", "0/1-preTSCSeq1_2", "0/1-postTSCSeq1_0", "0/1-postTSCSeq1_1", "0/1-postTSCSeq1_2", "0/1-postTSCSeq1_3", "0/1-postTSCSeq1_4", "0/1-postTSCSeq1_5", "Marker-1/2", "0/1-preTSCSeq2_0", "0/1-preTSCSeq2_1", "0/1-preTSCSeq2_2", "0/1-postTSCSeq2_0", "0/1-postTSCSeq2_1", "0/1-postTSCSeq2_2", "0/1-postTSCSeq2_3", "0/1-postTSCSeq2_4", "0/1-postTSCSeq2_5", "Marker-2/2", "2/2_0", "2/2_1", "2/2_2", "2/2_3", "2/2_4", "Marker-2/3"}
 	acceptedMarkers := []markers.Marker{markers.NewMarker(0, 1), markers.NewMarker(1, 2), markers.NewMarker(2, 3)}
 	tf.SetBlocksAccepted(acceptedBlockIDsAliases...)
 	tf.SetMarkersAccepted(acceptedMarkers...)
-	tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Marker-2/3").IssuingTime())
+	tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Marker-2/3").IssuingTime())
 	require.Eventually(t, tf.Engine.IsBootstrapped, 1*time.Minute, 500*time.Millisecond)
 
-	// case 0 - only one block can attach to genesis, so there should not be two subtangles starting from the genesis, but TSC allows using such tip.
+	// case 0 - only one block can attach to genesis, so there should not be two submeshs starting from the genesis, but TSC allows using such tip.
 	tf.AssertIsPastConeTimestampCorrect("7/1_2", false)
 	// case #1
 	tf.AssertIsPastConeTimestampCorrect("0/3_4", false)
@@ -249,7 +249,7 @@ func TestTipManager_TimeSinceConfirmation_Confirmed(t *testing.T) {
 	tf.AssertIsPastConeTimestampCorrect("0/1-postTSC-direct_0", false)
 }
 
-// Test based on packages/tangle/images/TSC_test_scenario.png.
+// Test based on packages/mesh/images/TSC_test_scenario.png.
 func TestTipManager_TimeSinceConfirmation_MultipleParents(t *testing.T) {
 	workers := workerpool.NewGroup(t.Name())
 	genesisTime := time.Now().Add(-5 * time.Hour)
@@ -275,13 +275,13 @@ func TestTipManager_TimeSinceConfirmation_MultipleParents(t *testing.T) {
 	)
 	tf.Engine.EvictionState.AddRootBlock(models.EmptyBlockID, commitment.ID{})
 
-	createTestTangleMultipleParents(tf)
+	createTestMeshMultipleParents(tf)
 
 	acceptedBlockIDsAliases := []string{"Marker-0/1", "Marker-0/2", "Marker-0/3"}
 	acceptedMarkers := []markers.Marker{markers.NewMarker(0, 1), markers.NewMarker(0, 2), markers.NewMarker(0, 3)}
 	tf.SetBlocksAccepted(acceptedBlockIDsAliases...)
 	tf.SetMarkersAccepted(acceptedMarkers...)
-	tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Marker-0/3").IssuingTime())
+	tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Marker-0/3").IssuingTime())
 	require.Eventually(t, tf.Engine.IsBootstrapped, 1*time.Minute, 500*time.Millisecond)
 
 	// As we advance ATT, Genesis should be beyond TSC, and thus invalid.
@@ -295,66 +295,66 @@ func TestTipManager_TimeSinceConfirmation_MultipleParents(t *testing.T) {
 	tf.AssertIsPastConeTimestampCorrect("IncorrectTip", false)
 }
 
-func createTestTangleMultipleParents(tf *TestFramework) {
+func createTestMeshMultipleParents(tf *TestFramework) {
 	now := tf.Engine.SlotTimeProvider().GenesisTime().Add(20 * time.Minute)
 
 	// SEQUENCE 0
 	{
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(now.Add(-9*time.Minute)))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/1")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(now.Add(-9*time.Minute)))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/1")
 
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Marker-0/1")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Marker-0/1")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/2")
 
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Marker-0/2")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/3")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Marker-0/2")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/3")
 
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/4", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Marker-0/3")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/4")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/4", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Marker-0/3")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/4")
 
-		tf.Tangle.BlockDAG.CreateBlock("IncorrectTip", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Marker-0/1", "Marker-0/3")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("IncorrectTip")
+		tf.Mesh.BlockDAG.CreateBlock("IncorrectTip", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Marker-0/1", "Marker-0/3")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("IncorrectTip")
 
-		tf.Tangle.BlockDAG.CreateBlock("IncorrectTip2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Marker-0/1")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("IncorrectTip2")
+		tf.Mesh.BlockDAG.CreateBlock("IncorrectTip2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Marker-0/1")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("IncorrectTip2")
 	}
 }
 
-func createTestTangleTSC(tf *TestFramework) {
+func createTestMeshTSC(tf *TestFramework) {
 	now := tf.Engine.SlotTimeProvider().GenesisTime().Add(20 * time.Minute)
 
 	var lastBlockAlias string
 
 	// SEQUENCE 0
 	{
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(now.Add(-9*time.Minute)))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/1")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(now.Add(-9*time.Minute)))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/1")
 		lastBlockAlias = issueBlocks(tf, "0/1-preTSC", 3, []string{"Marker-0/1"}, time.Minute*8)
 		lastBlockAlias = issueBlocks(tf, "0/1-postTSC", 3, []string{lastBlockAlias}, time.Minute)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/2")
 		lastBlockAlias = issueBlocks(tf, "0/2", 5, []string{"Marker-0/2"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/3")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/3")
 		lastBlockAlias = issueBlocks(tf, "0/3", 5, []string{"Marker-0/3"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-0/4", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-0/4")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-0/4", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-0/4")
 		_ = issueBlocks(tf, "0/4", 5, []string{"Marker-0/4"}, 0)
 
 		// issue block for test case #16
-		tf.Tangle.BlockDAG.CreateBlock("0/1-postTSC-direct_0", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Marker-0/1")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("0/1-postTSC-direct_0")
+		tf.Mesh.BlockDAG.CreateBlock("0/1-postTSC-direct_0", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Marker-0/1")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("0/1-postTSC-direct_0")
 	}
 
 	// SEQUENCE 1
 	{
 		lastBlockAlias = issueBlocks(tf, "0/1-preTSCSeq1", 3, []string{"Marker-0/1"}, time.Minute*6)
 		lastBlockAlias = issueBlocks(tf, "0/1-postTSCSeq1", 6, []string{lastBlockAlias}, time.Minute*4)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-1/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now.Add(-3*time.Minute)))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-1/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-1/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now.Add(-3*time.Minute)))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-1/2")
 		lastBlockAlias = issueBlocks(tf, "1/2", 5, []string{"Marker-1/2"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-1/3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-1/3")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-1/3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-1/3")
 		_ = issueBlocks(tf, "1/3", 5, []string{"Marker-1/3"}, 0)
 	}
 
@@ -362,48 +362,48 @@ func createTestTangleTSC(tf *TestFramework) {
 	{
 		lastBlockAlias = issueBlocks(tf, "0/1-preTSCSeq2", 3, []string{"Marker-0/1"}, time.Minute*6)
 		lastBlockAlias = issueBlocks(tf, "0/1-postTSCSeq2", 6, []string{lastBlockAlias}, time.Minute*4)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-2/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now.Add(-3*time.Minute)))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-2/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-2/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now.Add(-3*time.Minute)))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-2/2")
 		lastBlockAlias = issueBlocks(tf, "2/2", 5, []string{"Marker-2/2"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-2/3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-2/3")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-2/3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-2/3")
 		_ = issueBlocks(tf, "2/3", 5, []string{"Marker-2/3"}, 0)
 	}
 
 	// SEQUENCE 2 + 0
 	{
-		tf.Tangle.BlockDAG.CreateBlock("Marker-2/5", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("0/4_4", "2/3_4")), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-2/5")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-2/5", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("0/4_4", "2/3_4")), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-2/5")
 		_ = issueBlocks(tf, "2/5", 5, []string{"Marker-2/5"}, 0)
 	}
 
 	// SEQUENCE 3
 	{
 		lastBlockAlias = issueBlocks(tf, "0/1-postTSCSeq3", 5, []string{"0/1-postTSCSeq2_0"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-3/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-3/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-3/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-3/2")
 		_ = issueBlocks(tf, "3/2", 5, []string{"Marker-3/2"}, 0)
 	}
 
 	// SEQUENCE 2 + 0 (two past markers) -> SEQUENCE 4
 	{
 		lastBlockAlias = issueBlocks(tf, "2/3+0/4", 5, []string{"0/4_4", "2/3_4"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-4/5", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-4/5")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-4/5", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-4/5")
 	}
 	// SEQUENCE 5
 	{
 		lastBlockAlias = issueBlocks(tf, "0/1-preTSCSeq5", 6, []string{"0/1-preTSCSeq2_2"}, time.Minute*6)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-5/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-5/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-5/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-5/2")
 		_ = issueBlocks(tf, "5/2", 5, []string{"Marker-5/2"}, 0)
 	}
 
 	// SEQUENCE 6
 	{
 		lastBlockAlias = issueBlocks(tf, "0/1-postTSCSeq6", 6, []string{"0/1-preTSCSeq2_2"}, 0)
-		tf.Tangle.BlockDAG.CreateBlock("Marker-6/2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
-		tf.Tangle.BlockDAG.IssueBlocks("Marker-6/2")
+		tf.Mesh.BlockDAG.CreateBlock("Marker-6/2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(lastBlockAlias)), models.WithIssuingTime(now))
+		tf.Mesh.BlockDAG.IssueBlocks("Marker-6/2")
 		_ = issueBlocks(tf, "6/2", 5, []string{"Marker-6/2"}, 0)
 	}
 
@@ -418,14 +418,14 @@ func issueBlocks(tf *TestFramework, blockPrefix string, blockCount int, parents 
 
 	blockAlias := fmt.Sprintf("%s_%d", blockPrefix, 0)
 
-	tf.Tangle.BlockDAG.CreateBlock(blockAlias, models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(parents...)), models.WithIssuingTime(now.Add(-timestampOffset)))
-	tf.Tangle.BlockDAG.IssueBlocks(blockAlias)
+	tf.Mesh.BlockDAG.CreateBlock(blockAlias, models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(parents...)), models.WithIssuingTime(now.Add(-timestampOffset)))
+	tf.Mesh.BlockDAG.IssueBlocks(blockAlias)
 
 	for i := 1; i < blockCount; i++ {
 		alias := fmt.Sprintf("%s_%d", blockPrefix, i)
-		tf.Tangle.BlockDAG.CreateBlock(alias, models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs(blockAlias)), models.WithIssuingTime(now.Add(-timestampOffset)))
-		tf.Tangle.BlockDAG.IssueBlocks(alias)
-		// fmt.Println("issuing block", tf.Tangle.BlockDAG.Block(alias).ID())
+		tf.Mesh.BlockDAG.CreateBlock(alias, models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs(blockAlias)), models.WithIssuingTime(now.Add(-timestampOffset)))
+		tf.Mesh.BlockDAG.IssueBlocks(alias)
+		// fmt.Println("issuing block", tf.Mesh.BlockDAG.Block(alias).ID())
 		blockAlias = alias
 	}
 	return blockAlias
@@ -456,21 +456,21 @@ func TestTipManager_TimeSinceConfirmation_RootBlockParent(t *testing.T) {
 
 	tf.Engine.EvictionState.AddRootBlock(models.EmptyBlockID, commitment.ID{})
 
-	tf.Tangle.BlockDAG.CreateBlock("Block1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(now.Add(-50*time.Second)))
-	tf.Tangle.BlockDAG.IssueBlocks("Block1")
-	tf.Tangle.BlockDAG.CreateBlock("Block2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1")), models.WithIssuingTime(now))
-	tf.Tangle.BlockDAG.IssueBlocks("Block2")
-	tf.Tangle.BlockDAG.CreateBlock("Block3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block2")), models.WithIssuingTime(now.Add(5*time.Second)))
-	tf.Tangle.BlockDAG.IssueBlocks("Block3")
-	tf.Tangle.BlockDAG.CreateBlock("Block4", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block3")), models.WithIssuingTime(now.Add(10*time.Second)))
-	tf.Tangle.BlockDAG.IssueBlocks("Block4")
+	tf.Mesh.BlockDAG.CreateBlock("Block1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(now.Add(-50*time.Second)))
+	tf.Mesh.BlockDAG.IssueBlocks("Block1")
+	tf.Mesh.BlockDAG.CreateBlock("Block2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1")), models.WithIssuingTime(now))
+	tf.Mesh.BlockDAG.IssueBlocks("Block2")
+	tf.Mesh.BlockDAG.CreateBlock("Block3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block2")), models.WithIssuingTime(now.Add(5*time.Second)))
+	tf.Mesh.BlockDAG.IssueBlocks("Block3")
+	tf.Mesh.BlockDAG.CreateBlock("Block4", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block3")), models.WithIssuingTime(now.Add(10*time.Second)))
+	tf.Mesh.BlockDAG.IssueBlocks("Block4")
 
 	acceptedBlockIDsAliases := []string{"Block1", "Block2"}
 	acceptedMarkers := []markers.Marker{markers.NewMarker(0, 1), markers.NewMarker(0, 2)}
 	tf.SetBlocksAccepted(acceptedBlockIDsAliases...)
 	tf.SetMarkersAccepted(acceptedMarkers...)
 	tf.SetAcceptedTime(now.Add(25 * time.Second))
-	block := tf.Tangle.BlockDAG.Block("Block1")
+	block := tf.Mesh.BlockDAG.Block("Block1")
 	tf.Engine.EvictionState.AddRootBlock(block.ID(), block.Commitment().ID())
 
 	tf.Engine.EvictionState.RemoveRootBlock(models.EmptyBlockID)
@@ -479,8 +479,8 @@ func TestTipManager_TimeSinceConfirmation_RootBlockParent(t *testing.T) {
 
 	tf.Engine.Workers.WaitParents()
 
-	tf.Tangle.BlockDAG.CreateBlock("Block5", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1")), models.WithIssuingTime(now))
-	tf.Tangle.BlockDAG.IssueBlocks("Block5")
+	tf.Mesh.BlockDAG.CreateBlock("Block5", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1")), models.WithIssuingTime(now))
+	tf.Mesh.BlockDAG.IssueBlocks("Block5")
 
 	tf.AssertIsPastConeTimestampCorrect("Block3", true)
 	tf.AssertIsPastConeTimestampCorrect("Block2", true)
@@ -509,52 +509,52 @@ func TestTipManager_FutureTips(t *testing.T) {
 	// Let's add a few blocks to slot 1
 	{
 		blockTime := tf.SlotTimeProvider().GenesisTime().Add(5 * time.Second)
-		tf.Tangle.BlockDAG.CreateBlock("Block1.1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(blockTime))
-		tf.Tangle.BlockDAG.CreateBlock("Block1.2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1.1")), models.WithIssuingTime(blockTime))
-		tf.Tangle.BlockDAG.CreateBlock("Block1.3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1.2")), models.WithIssuingTime(blockTime))
-		tf.Tangle.BlockDAG.CreateBlock("Block1.4", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1.2", "Block1.3")), models.WithIssuingTime(blockTime))
+		tf.Mesh.BlockDAG.CreateBlock("Block1.1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(blockTime))
+		tf.Mesh.BlockDAG.CreateBlock("Block1.2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1.1")), models.WithIssuingTime(blockTime))
+		tf.Mesh.BlockDAG.CreateBlock("Block1.3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1.2")), models.WithIssuingTime(blockTime))
+		tf.Mesh.BlockDAG.CreateBlock("Block1.4", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1.2", "Block1.3")), models.WithIssuingTime(blockTime))
 
-		tf.Tangle.BlockDAG.IssueBlocks("Block1.1", "Block1.2", "Block1.3", "Block1.4")
+		tf.Mesh.BlockDAG.IssueBlocks("Block1.1", "Block1.2", "Block1.3", "Block1.4")
 		workers.WaitChildren()
 		tf.SetBlocksAccepted("Block1.1", "Block1.2", "Block1.3", "Block1.4")
-		tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Block1.4").IssuingTime())
+		tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Block1.4").IssuingTime())
 		workers.WaitChildren()
 
 		tf.AssertTipsAdded(4)
 		tf.AssertTipsRemoved(3)
-		tf.AssertTips(tf.Tangle.BlockDAG.BlockIDs("Block1.4"))
+		tf.AssertTips(tf.Mesh.BlockDAG.BlockIDs("Block1.4"))
 	}
 
 	// Let's add a few blocks to slot 2
 	{
 		blockTime := tf.SlotTimeProvider().GenesisTime().Add(15 * time.Second)
-		tf.Tangle.BlockDAG.CreateBlock("Block2.1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block1.4")), models.WithIssuingTime(blockTime))
+		tf.Mesh.BlockDAG.CreateBlock("Block2.1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block1.4")), models.WithIssuingTime(blockTime))
 
-		tf.Tangle.BlockDAG.IssueBlocks("Block2.1")
+		tf.Mesh.BlockDAG.IssueBlocks("Block2.1")
 		workers.WaitChildren()
 		tf.SetBlocksAccepted("Block2.1")
-		tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Block2.1").IssuingTime())
+		tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Block2.1").IssuingTime())
 		workers.WaitChildren()
 
 		tf.AssertTipsAdded(5)
 		tf.AssertTipsRemoved(4)
-		tf.AssertTips(tf.Tangle.BlockDAG.BlockIDs("Block2.1"))
+		tf.AssertTips(tf.Mesh.BlockDAG.BlockIDs("Block2.1"))
 	}
 
 	// Let's add a few blocks to slot 3
 	{
 		blockTime := tf.SlotTimeProvider().GenesisTime().Add(25 * time.Second)
-		tf.Tangle.BlockDAG.CreateBlock("Block3.1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block2.1")), models.WithIssuingTime(blockTime))
+		tf.Mesh.BlockDAG.CreateBlock("Block3.1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block2.1")), models.WithIssuingTime(blockTime))
 
-		tf.Tangle.BlockDAG.IssueBlocks("Block3.1")
+		tf.Mesh.BlockDAG.IssueBlocks("Block3.1")
 		workers.WaitChildren()
 		tf.SetBlocksAccepted("Block3.1")
-		tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Block3.1").IssuingTime())
+		tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Block3.1").IssuingTime())
 		workers.WaitChildren()
 
 		tf.AssertTipsAdded(6)
 		tf.AssertTipsRemoved(5)
-		tf.AssertTips(tf.Tangle.BlockDAG.BlockIDs("Block3.1"))
+		tf.AssertTips(tf.Mesh.BlockDAG.BlockIDs("Block3.1"))
 	}
 
 	commitment2_1 := tf.FormCommitment(2, []string{}, 1)
@@ -564,24 +564,24 @@ func TestTipManager_FutureTips(t *testing.T) {
 	// Let's introduce a future tip, in slot 4
 	{
 		blockTime := tf.SlotTimeProvider().GenesisTime().Add(35 * time.Second)
-		tf.Tangle.BlockDAG.CreateBlock("Block4.1", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block3.1")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment2_1))
-		tf.Tangle.BlockDAG.CreateBlock("Block4.2", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block3.1")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment2_2))
-		tf.Tangle.BlockDAG.CreateBlock("Block4.3", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block3.1")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment3_1))
-		tf.Tangle.BlockDAG.CreateBlock("Block4.4", models.WithStrongParents(tf.Tangle.BlockDAG.BlockIDs("Block4.2")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment2_2))
+		tf.Mesh.BlockDAG.CreateBlock("Block4.1", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block3.1")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment2_1))
+		tf.Mesh.BlockDAG.CreateBlock("Block4.2", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block3.1")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment2_2))
+		tf.Mesh.BlockDAG.CreateBlock("Block4.3", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block3.1")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment3_1))
+		tf.Mesh.BlockDAG.CreateBlock("Block4.4", models.WithStrongParents(tf.Mesh.BlockDAG.BlockIDs("Block4.2")), models.WithIssuingTime(blockTime), models.WithCommitment(commitment2_2))
 
-		tf.Tangle.BlockDAG.IssueBlocks("Block4.1", "Block4.2", "Block4.3", "Block4.4")
+		tf.Mesh.BlockDAG.IssueBlocks("Block4.1", "Block4.2", "Block4.3", "Block4.4")
 		workers.WaitChildren()
 
 		tf.AssertTipsAdded(6)
 		tf.AssertTipsRemoved(5)
-		tf.AssertTips(tf.Tangle.BlockDAG.BlockIDs("Block3.1"))
+		tf.AssertTips(tf.Mesh.BlockDAG.BlockIDs("Block3.1"))
 		// tf.AssertFutureTips(map[slot.Index]map[commitment.ID]models.BlockIDs{
 		//	2: {
-		//		commitment2_1.ID(): tf.Tangle.BlockDAG.BlockIDs("Block4.1"),
-		//		commitment2_2.ID(): tf.Tangle.BlockDAG.BlockIDs("Block4.2", "Block4.4"),
+		//		commitment2_1.ID(): tf.Mesh.BlockDAG.BlockIDs("Block4.1"),
+		//		commitment2_2.ID(): tf.Mesh.BlockDAG.BlockIDs("Block4.2", "Block4.4"),
 		//	},
 		//	3: {
-		//		commitment3_1.ID(): tf.Tangle.BlockDAG.BlockIDs("Block4.3"),
+		//		commitment3_1.ID(): tf.Mesh.BlockDAG.BlockIDs("Block4.3"),
 		//	},
 		// })
 	}
@@ -589,19 +589,19 @@ func TestTipManager_FutureTips(t *testing.T) {
 	// We accept a block of slot 4, rendering slot 2 committable and refreshing the tippool
 	{
 		tf.SetBlocksAccepted("Block4.2")
-		tf.SetAcceptedTime(tf.Tangle.BlockDAG.Block("Block4.2").IssuingTime())
+		tf.SetAcceptedTime(tf.Mesh.BlockDAG.Block("Block4.2").IssuingTime())
 		workers.WaitChildren()
 
 		// tf.AssertFutureTips(map[slot.Index]map[commitment.ID]models.BlockIDs{
 		//	3: {
-		//		commitment3_1.ID(): tf.Tangle.BlockDAG.BlockIDs("Block4.3"),
+		//		commitment3_1.ID(): tf.Mesh.BlockDAG.BlockIDs("Block4.3"),
 		//	},
 		// })
 
 		tf.AssertTipsAdded(7)
 		tf.AssertTipsRemoved(6)
-		tf.AssertTips(tf.Tangle.BlockDAG.BlockIDs("Block4.4"))
+		tf.AssertTips(tf.Mesh.BlockDAG.BlockIDs("Block4.4"))
 
-		tf.AssertEqualBlocks(tf.Instance.Tips(1), tf.Tangle.BlockDAG.BlockIDs("Block4.4"))
+		tf.AssertEqualBlocks(tf.Instance.Tips(1), tf.Mesh.BlockDAG.BlockIDs("Block4.4"))
 	}
 }

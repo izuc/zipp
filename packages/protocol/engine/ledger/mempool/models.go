@@ -31,7 +31,7 @@ type transactionMetadata struct {
 	// BookingTime contains the time the Transaction was Booked.
 	BookingTime time.Time `serix:"2"`
 
-	// InclusionSlot contains the slot of the earliest included attachment of this transaction in the tangle.
+	// InclusionSlot contains the slot of the earliest included attachment of this transaction in the mesh.
 	InclusionSlot slot.Index `serix:"3"`
 
 	// OutputIDs contains the identifiers of the Outputs that the Transaction created.

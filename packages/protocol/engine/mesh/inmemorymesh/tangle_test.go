@@ -1,4 +1,4 @@
-package inmemorytangle_test
+package inmemorymesh_test
 
 import (
 	"testing"
@@ -7,13 +7,13 @@ import (
 	"github.com/izuc/zipp.foundation/core/slot"
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/testtangle"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/testmesh"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 func Test(t *testing.T) {
 	workers := workerpool.NewGroup(t.Name())
-	tf := testtangle.NewDefaultTestFramework(t,
+	tf := testmesh.NewDefaultTestFramework(t,
 		workers.CreateGroup("LedgerTestFramework"),
 		realitiesledger.NewTestLedger(t, workers.CreateGroup("Ledger")),
 		slot.NewTimeProvider(time.Now().Unix(), 10),

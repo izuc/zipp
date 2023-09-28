@@ -20,9 +20,9 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/consensus"
 	"github.com/izuc/zipp/packages/protocol/engine/filter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota"
 	"github.com/izuc/zipp/packages/storage"
 	"github.com/izuc/zipp/packages/storage/utils"
@@ -49,7 +49,7 @@ type EngineManager struct {
 	sybilProtectionProvider module.Provider[*engine.Engine, sybilprotection.SybilProtection]
 	throughputQuotaProvider module.Provider[*engine.Engine, throughputquota.ThroughputQuota]
 	notarizationProvider    module.Provider[*engine.Engine, notarization.Notarization]
-	tangleProvider          module.Provider[*engine.Engine, tangle.Tangle]
+	meshProvider            module.Provider[*engine.Engine, mesh.Mesh]
 	consensusProvider       module.Provider[*engine.Engine, consensus.Consensus]
 
 	activeInstance *engine.Engine
@@ -67,7 +67,7 @@ func New(
 	sybilProtectionProvider module.Provider[*engine.Engine, sybilprotection.SybilProtection],
 	throughputQuotaProvider module.Provider[*engine.Engine, throughputquota.ThroughputQuota],
 	notarizationProvider module.Provider[*engine.Engine, notarization.Notarization],
-	tangleProvider module.Provider[*engine.Engine, tangle.Tangle],
+	meshProvider module.Provider[*engine.Engine, mesh.Mesh],
 	consensusProvider module.Provider[*engine.Engine, consensus.Consensus],
 ) *EngineManager {
 	return &EngineManager{
@@ -82,7 +82,7 @@ func New(
 		sybilProtectionProvider: sybilProtectionProvider,
 		throughputQuotaProvider: throughputQuotaProvider,
 		notarizationProvider:    notarizationProvider,
-		tangleProvider:          tangleProvider,
+		meshProvider:            meshProvider,
 		consensusProvider:       consensusProvider,
 	}
 }
@@ -159,7 +159,7 @@ func (e *EngineManager) loadEngineInstance(dirName string) *engine.Engine {
 		e.sybilProtectionProvider,
 		e.throughputQuotaProvider,
 		e.notarizationProvider,
-		e.tangleProvider,
+		e.meshProvider,
 		e.consensusProvider,
 		e.engineOptions...,
 	)

@@ -12,11 +12,11 @@ class Status {
     version: string;
     uptime: number;
     mem: MemoryMetrics = new MemoryMetrics();
-    tangleTime: TangleTime;
+    meshTime: MeshTime;
     scheduler: SchedulerMetric = new SchedulerMetric();
 }
 
-class TangleTime {
+class MeshTime {
     synced: boolean;
     bootstrapped: boolean;
     ATT: number;
@@ -204,11 +204,11 @@ export class NodeStore {
     @observable collecting: boolean = true;
 
     constructor() {
-        this.status.tangleTime = new TangleTime;
-        this.status.tangleTime.ATT = 0;
-        this.status.tangleTime.RATT = 0;
-        this.status.tangleTime.CTT = 0;
-        this.status.tangleTime.RCTT = 0;
+        this.status.meshTime = new MeshTime;
+        this.status.meshTime.ATT = 0;
+        this.status.meshTime.RATT = 0;
+        this.status.meshTime.CTT = 0;
+        this.status.meshTime.RCTT = 0;
         this.registerHandlers();
     }
 

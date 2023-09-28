@@ -14,16 +14,16 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget/tresholdblockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/testtangle"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker/markermanager"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/testmesh"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
 func NewDefaultTestFramework(t *testing.T, workers *workerpool.Group, memPool mempool.MemPool, optsGadget ...options.Option[tresholdblockgadget.Gadget]) *blockgadget.TestFramework {
-	tangleTF := testtangle.NewDefaultTestFramework(t, workers.CreateGroup("TangleTestFramework"),
+	meshTF := testmesh.NewDefaultTestFramework(t, workers.CreateGroup("MeshTestFramework"),
 		memPool,
 		slot.NewTimeProvider(time.Now().Unix(), 10),
 		markerbooker.WithMarkerManagerOptions(
@@ -36,14 +36,14 @@ func NewDefaultTestFramework(t *testing.T, workers *workerpool.Group, memPool me
 	)
 
 	gadget.Initialize(workers.CreateGroup("BlockGadget"),
-		tangleTF.Instance.Booker(),
-		tangleTF.Instance.BlockDAG(),
+		meshTF.Instance.Booker(),
+		meshTF.Instance.BlockDAG(),
 		memPool,
-		tangleTF.Instance.(*testtangle.TestTangle).EvictionState(), tangleTF.Instance.(*testtangle.TestTangle).SlotTimeProvider(), tangleTF.Votes.Validators, tangleTF.Votes.Validators.TotalWeight)
+		meshTF.Instance.(*testmesh.TestMesh).EvictionState(), meshTF.Instance.(*testmesh.TestMesh).SlotTimeProvider(), meshTF.Votes.Validators, meshTF.Votes.Validators.TotalWeight)
 
 	return blockgadget.NewTestFramework(t,
 		gadget,
-		tangleTF,
+		meshTF,
 	)
 }
 
@@ -516,7 +516,7 @@ func TestGadget_update_multipleSequences_onlyAcceptThenConfirm(t *testing.T) {
 
 	workers := workerpool.NewGroup(t.Name())
 
-	tangleTF := testtangle.NewDefaultTestFramework(t, workers.CreateGroup("TangleTestFramework"),
+	meshTF := testmesh.NewDefaultTestFramework(t, workers.CreateGroup("MeshTestFramework"),
 		realitiesledger.NewTestLedger(t, workers.CreateGroup("Ledger")),
 		slot.NewTimeProvider(time.Now().Unix(), 10),
 		markerbooker.WithMarkerManagerOptions(
@@ -530,17 +530,17 @@ func TestGadget_update_multipleSequences_onlyAcceptThenConfirm(t *testing.T) {
 	)
 
 	gadget.Initialize(workers.CreateGroup("BlockGadget"),
-		tangleTF.Instance.Booker(),
-		tangleTF.Instance.BlockDAG(),
-		tangleTF.Instance.(*testtangle.TestTangle).MemPool(),
-		tangleTF.Instance.(*testtangle.TestTangle).EvictionState(),
-		tangleTF.Instance.(*testtangle.TestTangle).SlotTimeProvider(),
-		tangleTF.Instance.(*testtangle.TestTangle).Validators(),
+		meshTF.Instance.Booker(),
+		meshTF.Instance.BlockDAG(),
+		meshTF.Instance.(*testmesh.TestMesh).MemPool(),
+		meshTF.Instance.(*testmesh.TestMesh).EvictionState(),
+		meshTF.Instance.(*testmesh.TestMesh).SlotTimeProvider(),
+		meshTF.Instance.(*testmesh.TestMesh).Validators(),
 		func() int64 {
 			return 100
 		})
 
-	tf := blockgadget.NewTestFramework(t, gadget, tangleTF)
+	tf := blockgadget.NewTestFramework(t, gadget, meshTF)
 
 	tf.VirtualVoting.CreateIdentity("A", 20)
 	tf.VirtualVoting.CreateIdentity("B", 30)

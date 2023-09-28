@@ -20,7 +20,7 @@ import (
 	"github.com/izuc/zipp/packages/protocol"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 )
 
 const (
@@ -76,7 +76,7 @@ func newFaucet() *Faucet {
 func configure(plugin *node.Plugin) {
 	targetPoWDifficulty = Parameters.PowDifficulty
 
-	deps.Protocol.Events.Engine.Tangle.Booker.BlockTracked.Hook(onBlockProcessed, event.WithWorkerPool(plugin.WorkerPool))
+	deps.Protocol.Events.Engine.Mesh.Booker.BlockTracked.Hook(onBlockProcessed, event.WithWorkerPool(plugin.WorkerPool))
 }
 
 func run(plugin *node.Plugin) {

@@ -1,6 +1,8 @@
 package database
 
 import (
+	"errors"
+
 	"github.com/izuc/zipp.foundation/core/slot"
 	"github.com/izuc/zipp.foundation/kvstore"
 	"github.com/izuc/zipp.foundation/serializer"
@@ -32,7 +34,11 @@ func (p *PersistentSlotStorage[K, V, KPtr, VPtr]) Delete(key K) (success bool) {
 }
 
 func (p *PersistentSlotStorage[K, V, KPtr, VPtr]) Iterate(index slot.Index, callback func(key K, value V) (advance bool), direction ...kvstore.IterDirection) (err error) {
-	return kvstore.NewTypedStore[K, V, KPtr, VPtr](p.dbManager.Get(index, p.realm)).Iterate([]byte{}, func(key K, value V) (advance bool) {
+	store := p.dbManager.Get(index, p.realm)
+	if store == nil {
+		return errors.New("failed to get store from dbManager")
+	}
+	return kvstore.NewTypedStore[K, V, KPtr, VPtr](store).Iterate([]byte{}, func(key K, value V) (advance bool) {
 		return callback(key, value)
 	}, direction...)
 }

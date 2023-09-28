@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import TangleDAG from 'components/TangleDAG';
+import MeshDAG from 'components/MeshDAG';
 import UTXODAG from 'components/UTXODAG';
 import ConflictDAG from 'components/ConflictDAG';
 import GlobalSettings from 'components/GlobalSettings';
@@ -48,7 +48,7 @@ export class Root extends React.Component {
                         <GlobalSettings />
                     </Row>
                     <Row>
-                        <TangleDAG />
+                        <MeshDAG />
                     </Row>
                     <Row>
                         <UTXODAG />

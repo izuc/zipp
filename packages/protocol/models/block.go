@@ -62,7 +62,7 @@ const (
 	LastValidBlockType = ShallowLikeParentType
 )
 
-// Block represents the core block for the base layer Tangle.
+// Block represents the core block for the base layer Mesh.
 type Block struct {
 	model.Storable[BlockID, Block, *Block, block] `serix:"0"`
 	payload                                       payload.Payload

@@ -26,20 +26,20 @@ import (
 	"github.com/izuc/zipp/packages/protocol"
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/clock/blocktime"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/tangleconsensus"
+	"github.com/izuc/zipp/packages/protocol/engine/consensus/meshconsensus"
 	"github.com/izuc/zipp/packages/protocol/engine/filter/blockfilter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxoledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/mockedvm"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker/markermanager"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/inmemorymesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization/slotnotarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection/dpos"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/inmemorytangle"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/mockednetwork"
@@ -178,8 +178,8 @@ func TestEngine_NonEmptyInitialValidators(t *testing.T) {
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(),
-		tangleconsensus.NewProvider(),
+		inmemorymesh.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 	require.NoError(t, tf.Instance.Initialize(tempDir.Path("genesis_snapshot.bin")))
 
@@ -257,8 +257,8 @@ func TestEngine_BlocksForwardAndRollback(t *testing.T) {
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(),
-		tangleconsensus.NewProvider(),
+		inmemorymesh.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 	require.NoError(t, tf.Instance.Initialize(tempDir.Path("genesis_snapshot.bin")))
 
@@ -332,8 +332,8 @@ func TestEngine_BlocksForwardAndRollback(t *testing.T) {
 			dpos.NewProvider(),
 			mana1.NewProvider(),
 			slotnotarization.NewProvider(),
-			inmemorytangle.NewProvider(),
-			tangleconsensus.NewProvider(),
+			inmemorymesh.NewProvider(),
+			meshconsensus.NewProvider(),
 		)
 
 		require.NoError(t, tf2.Instance.Initialize(tempDir.Path("snapshot_slot4.bin")))
@@ -420,8 +420,8 @@ func TestEngine_BlocksForwardAndRollback(t *testing.T) {
 			dpos.NewProvider(),
 			mana1.NewProvider(),
 			slotnotarization.NewProvider(),
-			inmemorytangle.NewProvider(),
-			tangleconsensus.NewProvider(),
+			inmemorymesh.NewProvider(),
+			meshconsensus.NewProvider(),
 		)
 
 		require.NoError(t, tf3.Instance.Initialize(tempDir.Path("snapshot_slot1.bin")))
@@ -491,8 +491,8 @@ func TestEngine_BlocksForwardAndRollback(t *testing.T) {
 			dpos.NewProvider(),
 			mana1.NewProvider(),
 			slotnotarization.NewProvider(),
-			inmemorytangle.NewProvider(),
-			tangleconsensus.NewProvider(),
+			inmemorymesh.NewProvider(),
+			meshconsensus.NewProvider(),
 		)
 
 		require.NoError(t, tf4.Instance.Initialize(tempDir.Path("snapshot_slot2.bin")))
@@ -588,8 +588,8 @@ func TestEngine_TransactionsForwardAndRollback(t *testing.T) {
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(
-			inmemorytangle.WithBookerProvider(
+		inmemorymesh.NewProvider(
+			inmemorymesh.WithBookerProvider(
 				markerbooker.NewProvider(
 					markerbooker.WithMarkerManagerOptions(
 						markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -597,7 +597,7 @@ func TestEngine_TransactionsForwardAndRollback(t *testing.T) {
 				),
 			),
 		),
-		tangleconsensus.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 	tf := engine.NewTestFramework(t, workers.CreateGroup("EngineTestFramework1"), engine1)
 	require.NoError(t, tf.Instance.Initialize(tempDir.Path("genesis_snapshot.bin")))
@@ -688,8 +688,8 @@ func TestEngine_TransactionsForwardAndRollback(t *testing.T) {
 			dpos.NewProvider(),
 			mana1.NewProvider(),
 			slotnotarization.NewProvider(),
-			inmemorytangle.NewProvider(
-				inmemorytangle.WithBookerProvider(
+			inmemorymesh.NewProvider(
+				inmemorymesh.WithBookerProvider(
 					markerbooker.NewProvider(
 						markerbooker.WithMarkerManagerOptions(
 							markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -697,7 +697,7 @@ func TestEngine_TransactionsForwardAndRollback(t *testing.T) {
 					),
 				),
 			),
-			tangleconsensus.NewProvider(),
+			meshconsensus.NewProvider(),
 		)
 		require.NoError(t, tf2.Instance.Initialize(tempDir.Path("snapshot_slot1.bin")))
 
@@ -741,8 +741,8 @@ func TestEngine_TransactionsForwardAndRollback(t *testing.T) {
 			dpos.NewProvider(),
 			mana1.NewProvider(),
 			slotnotarization.NewProvider(),
-			inmemorytangle.NewProvider(
-				inmemorytangle.WithBookerProvider(
+			inmemorymesh.NewProvider(
+				inmemorymesh.WithBookerProvider(
 					markerbooker.NewProvider(
 						markerbooker.WithMarkerManagerOptions(
 							markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -750,7 +750,7 @@ func TestEngine_TransactionsForwardAndRollback(t *testing.T) {
 					),
 				),
 			),
-			tangleconsensus.NewProvider(),
+			meshconsensus.NewProvider(),
 		)
 		tf3 := engine.NewTestFramework(t, workers.CreateGroup("EngineTestFramework3"), engine3)
 
@@ -825,8 +825,8 @@ func TestEngine_ShutdownResume(t *testing.T) {
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(
-			inmemorytangle.WithBookerProvider(
+		inmemorymesh.NewProvider(
+			inmemorymesh.WithBookerProvider(
 				markerbooker.NewProvider(
 					markerbooker.WithMarkerManagerOptions(
 						markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -834,7 +834,7 @@ func TestEngine_ShutdownResume(t *testing.T) {
 				),
 			),
 		),
-		tangleconsensus.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 
 	tf := engine.NewTestFramework(t, workers.CreateGroup("EngineTestFramework1"), engine1)
@@ -863,8 +863,8 @@ func TestEngine_ShutdownResume(t *testing.T) {
 		dpos.NewProvider(),
 		mana1.NewProvider(),
 		slotnotarization.NewProvider(),
-		inmemorytangle.NewProvider(
-			inmemorytangle.WithBookerProvider(
+		inmemorymesh.NewProvider(
+			inmemorymesh.WithBookerProvider(
 				markerbooker.NewProvider(
 					markerbooker.WithMarkerManagerOptions(
 						markermanager.WithSequenceManagerOptions[models.BlockID, *booker.Block](markers.WithMaxPastMarkerDistance(1)),
@@ -872,7 +872,7 @@ func TestEngine_ShutdownResume(t *testing.T) {
 				),
 			),
 		),
-		tangleconsensus.NewProvider(),
+		meshconsensus.NewProvider(),
 	)
 
 	tf2 := engine.NewTestFramework(t, workers.CreateGroup("EngineTestFramework2"), engine2)

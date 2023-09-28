@@ -7,7 +7,7 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/mockedvm"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 )
 
 func NewTestLedger(t *testing.T, workers *workerpool.Group, optsLedger ...options.Option[RealitiesLedger]) mempool.MemPool {

@@ -12,7 +12,7 @@ export default class Bootstrapped extends React.Component<Props, any> {
     render() {
         return (
             <React.Fragment>
-                Bootstrapped: {this.props.nodeStore.status.tangleTime.bootstrapped ? "Yes" : "No"}
+                Bootstrapped: {this.props.nodeStore.status.meshTime.bootstrapped ? "Yes" : "No"}
             </React.Fragment>
         );
     }

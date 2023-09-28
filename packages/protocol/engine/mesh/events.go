@@ -1,9 +1,9 @@
-package tangle
+package mesh
 
 import (
 	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 )
 
 type Events struct {

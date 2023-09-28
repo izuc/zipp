@@ -7,9 +7,9 @@ import (
 
 	"github.com/izuc/zipp.foundation/runtime/options"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/tsc"
 )
 
@@ -20,24 +20,24 @@ type TestFramework struct {
 	Manager        *tsc.Manager
 	MockAcceptance *blockgadget.MockBlockGadget
 
-	Tangle        *tangle.TestFramework
+	Mesh          *mesh.TestFramework
 	BlockDAG      *blockdag.TestFramework
 	Booker        *booker.TestFramework
 	VirtualVoting *booker.VirtualVotingTestFramework
 }
 
-func NewTestFramework(test *testing.T, tangleTF *tangle.TestFramework, optsTSCManager ...options.Option[tsc.Manager]) *TestFramework {
+func NewTestFramework(test *testing.T, meshTF *mesh.TestFramework, optsTSCManager ...options.Option[tsc.Manager]) *TestFramework {
 	t := &TestFramework{
 		test:           test,
-		Tangle:         tangleTF,
-		BlockDAG:       tangleTF.BlockDAG,
-		Booker:         tangleTF.Booker,
-		VirtualVoting:  tangleTF.VirtualVoting,
+		Mesh:           meshTF,
+		BlockDAG:       meshTF.BlockDAG,
+		Booker:         meshTF.Booker,
+		VirtualVoting:  meshTF.VirtualVoting,
 		MockAcceptance: blockgadget.NewMockAcceptanceGadget(),
 	}
 
-	t.Manager = tsc.New(t.MockAcceptance.IsBlockAccepted, tangleTF.Instance, optsTSCManager...)
-	t.Tangle.Booker.Instance.Events().BlockBooked.Hook(func(event *booker.BlockBookedEvent) {
+	t.Manager = tsc.New(t.MockAcceptance.IsBlockAccepted, meshTF.Instance, optsTSCManager...)
+	t.Mesh.Booker.Instance.Events().BlockBooked.Hook(func(event *booker.BlockBookedEvent) {
 		t.Manager.AddBlock(event.Block)
 	})
 
@@ -46,7 +46,7 @@ func NewTestFramework(test *testing.T, tangleTF *tangle.TestFramework, optsTSCMa
 
 func (t *TestFramework) AssertOrphaned(expectedState map[string]bool) {
 	for alias, expectedOrphanage := range expectedState {
-		t.Tangle.Booker.AssertBlock(alias, func(block *booker.Block) {
+		t.Mesh.Booker.AssertBlock(alias, func(block *booker.Block) {
 			require.Equal(t.test, expectedOrphanage, block.Block.IsOrphaned(), "block %s is incorrectly orphaned", block.ID())
 		})
 	}

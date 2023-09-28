@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -161,13 +162,20 @@ func (m *Manager) IsTooOld(index slot.Index) (isTooOld bool) {
 
 func (m *Manager) Get(index slot.Index, realm kvstore.Realm) kvstore.KVStore {
 	if m.IsTooOld(index) {
+		log.Println("Attempted to access a too old index:", index)
 		return nil
 	}
 
 	bucket := m.getBucket(index)
+	if bucket == nil {
+		log.Println("Failed to get bucket for index:", index)
+		return nil
+	}
+
 	withRealm, err := bucket.WithExtendedRealm(realm)
 	if err != nil {
-		panic(err)
+		log.Println("Error extending bucket with realm for index:", index, "Error:", err)
+		return nil
 	}
 
 	return withRealm
@@ -286,10 +294,15 @@ func (m *Manager) getDBInstance(index slot.Index) (db *dbInstance) {
 	m.openDBsMutex.Lock()
 	defer m.openDBsMutex.Unlock()
 
-	// check if exists again, as other goroutine might have created it in parallel
+	// check if exists again, as another goroutine might have created it in parallel
 	db, exists := m.openDBs.Get(baseIndex)
 	if !exists {
 		db = m.createDBInstance(baseIndex)
+
+		if db == nil {
+			log.Println("Failed to create DB instance for baseIndex:", baseIndex)
+			return nil
+		}
 
 		// Remove the cached db size since we will open the db
 		m.dbSizes.Delete(baseIndex)
@@ -322,7 +335,8 @@ func (m *Manager) getDBAndBucket(index slot.Index) (db *dbInstance, bucket kvsto
 func (m *Manager) createDBInstance(index slot.Index) (newDBInstance *dbInstance) {
 	db, err := m.optsDBProvider(dbPathFromIndex(m.bucketedBaseDir, index))
 	if err != nil {
-		panic(err)
+		log.Println("Error creating DB instance for index:", index, "Error:", err)
+		return nil
 	}
 
 	return &dbInstance{

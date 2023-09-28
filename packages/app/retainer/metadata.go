@@ -11,8 +11,8 @@ import (
 	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )

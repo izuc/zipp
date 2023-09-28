@@ -12,7 +12,7 @@ import (
 	"github.com/izuc/zipp.foundation/ds/types"
 	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/packages/core/commitment"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/protocol/models/payload"
 )

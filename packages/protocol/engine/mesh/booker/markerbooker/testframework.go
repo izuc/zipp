@@ -10,10 +10,10 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag/inmemoryblockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag/inmemoryblockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
 )
 
 func NewDefaultTestFramework(t *testing.T, workers *workerpool.Group, ledger mempool.MemPool, optsBooker ...options.Option[Booker]) *booker.TestFramework {

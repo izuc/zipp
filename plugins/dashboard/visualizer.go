@@ -19,7 +19,7 @@ import (
 	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -66,7 +66,7 @@ func sendTipInfo(block *scheduler.Block, isTip bool) {
 func runVisualizer(plugin *node.Plugin) {
 	if err := daemon.BackgroundWorker("Dashboard[Visualizer]", func(ctx context.Context) {
 		unhook := lo.Batch(
-			deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+			deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 				sendVertex(block.ModelsBlock, false)
 				if block.ID().Index() > slot.Index(currentSlot.Load()) {
 					currentSlot.Store(int64(block.ID().Index()))
@@ -96,6 +96,9 @@ func setupVisualizerRoutes(routeGroup *echo.Group) {
 		var res []vertex
 
 		start := slot.Index(currentSlot.Load())
+		if start <= 0 {
+			return c.JSON(http.StatusOK, history{Vertices: []vertex{}})
+		}
 		for _, ei := range []slot.Index{start - 1, start} {
 			blocks := deps.Retainer.LoadAllBlockMetadata(ei)
 			_ = blocks.ForEach(func(element *retainer.BlockMetadata) (err error) {

@@ -8,8 +8,8 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
 	"github.com/izuc/zipp/packages/protocol/engine/filter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -20,7 +20,7 @@ type Events struct {
 	EvictionState  *eviction.Events
 	Filter         *filter.Events
 	Ledger         *ledger.Events
-	Tangle         *tangle.Events
+	Mesh           *mesh.Events
 	Consensus      *consensus.Events
 	Clock          *clock.Events
 	Notarization   *notarization.Events
@@ -37,7 +37,7 @@ var NewEvents = event.CreateGroupConstructor(func() (newEvents *Events) {
 		EvictionState:  eviction.NewEvents(),
 		Filter:         filter.NewEvents(),
 		Ledger:         ledger.NewEvents(),
-		Tangle:         tangle.NewEvents(),
+		Mesh:           mesh.NewEvents(),
 		Consensus:      consensus.NewEvents(),
 		Clock:          clock.NewEvents(),
 		Notarization:   notarization.NewEvents(),

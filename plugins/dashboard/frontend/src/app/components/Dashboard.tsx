@@ -12,7 +12,7 @@ import ListGroup from "react-bootstrap/ListGroup";
 import Card from "react-bootstrap/Card";
 import MemChart from "app/components/MemChart";
 import ComponentCounterChart from "app/components/ComponentCounterChart";
-import TangleTime from "app/components/TangleTime";
+import MeshTime from "app/components/MeshTime";
 import Scheduler from "app/components/Scheduler";
 import Bootstrapped from "app/components/Bootstrapped";
 
@@ -54,7 +54,7 @@ export class Dashboard extends React.Component<Props, any> {
                     </Col>
                 </Row>
                 <Row className={"mb-3"}>
-                    <Col><TangleTime/></Col>
+                    <Col><MeshTime/></Col>
                 </Row>
                 <Row className={"mb-3"}>
                     <Col><BPSChart/></Col>

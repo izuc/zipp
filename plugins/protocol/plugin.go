@@ -104,7 +104,7 @@ func provide(n *p2p.Manager) (p *protocol.Protocol) {
 			chainmanager.WithForkDetectionMinimumDepth(Parameters.ForkDetectionMinimumDepth),
 		),
 		protocol.WithTipManagerOptions(
-			tipmanager.WithWidth(Parameters.TangleWidth),
+			tipmanager.WithWidth(Parameters.MeshWidth),
 			tipmanager.WithTimeSinceConfirmationThreshold(Parameters.TimeSinceConfirmationThreshold),
 		),
 		protocol.WithCongestionControlOptions(
@@ -129,15 +129,15 @@ func provide(n *p2p.Manager) (p *protocol.Protocol) {
 }
 
 func configureLogging(plugin *node.Plugin) {
-	// deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Attach(event.NewClosure(func(block *blockdag.Block) {
+	// deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Attach(event.NewClosure(func(block *blockdag.Block) {
 	// 	Plugin.LogDebugf("Block %s attached", block.ID())
 	// }))
 	//
-	// deps.Protocol.Events.Engine.Tangle.Booker.BlockBooked.Attach(event.NewClosure(func(block *booker.Block) {
+	// deps.Protocol.Events.Engine.Mesh.Booker.BlockBooked.Attach(event.NewClosure(func(block *booker.Block) {
 	// 	Plugin.LogDebugf("Block %s booked", block.ID())
 	// }))
 	//
-	// deps.Protocol.Events.Engine.Tangle.VirtualVoting.BlockTracked.Attach(event.NewClosure(func(block *booker.Block) {
+	// deps.Protocol.Events.Engine.Mesh.VirtualVoting.BlockTracked.Attach(event.NewClosure(func(block *booker.Block) {
 	// 	Plugin.LogDebugf("Block %s tracked", block.ID())
 	// }))
 	//
@@ -152,11 +152,11 @@ func configureLogging(plugin *node.Plugin) {
 		Plugin.LogErrorf("Error in Engine: %s", err)
 	}, event.WithWorkerPool(plugin.WorkerPool))
 
-	// deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockMissing.Attach(event.NewClosure(func(block *blockdag.Block) {
+	// deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockMissing.Attach(event.NewClosure(func(block *blockdag.Block) {
 	// 	fmt.Println(">>>>>>> BlockMissing", block.ID())
 	// }))
 	//
-	// deps.Protocol.Events.Engine.Tangle.BlockDAG.MissingBlockAttached.Attach(event.NewClosure(func(block *blockdag.Block) {
+	// deps.Protocol.Events.Engine.Mesh.BlockDAG.MissingBlockAttached.Attach(event.NewClosure(func(block *blockdag.Block) {
 	// 	fmt.Println(">>>>>>> MissingBlockAttached", block.ID())
 	// }))
 	// deps.Protocol.Events.Engine.BlockRequester.Tick.Attach(event.NewClosure(func(blockID models.BlockID) {
@@ -180,7 +180,7 @@ func run(plugin *node.Plugin) {
 		<-ctx.Done()
 		plugin.LogInfo("Gracefully shutting down the Protocol...")
 		deps.Protocol.Shutdown()
-	}, shutdown.PriorityTangle); err != nil {
+	}, shutdown.PriorityMesh); err != nil {
 		Plugin.Panicf("Error starting as daemon: %s", err)
 	}
 }

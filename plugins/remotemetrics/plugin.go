@@ -21,7 +21,7 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/plugins/remotelog"
 )
 
@@ -108,10 +108,10 @@ func configureSyncMetrics(plugin *node.Plugin) {
 		return
 	}
 
-	remotemetrics.Events.TangleTimeSyncChanged.Hook(func(event *remotemetrics.TangleTimeSyncChangedEvent) {
-		isTangleTimeSynced.Store(event.CurrentStatus)
+	remotemetrics.Events.MeshTimeSyncChanged.Hook(func(event *remotemetrics.MeshTimeSyncChangedEvent) {
+		isMeshTimeSynced.Store(event.CurrentStatus)
 	}, event.WithWorkerPool(plugin.WorkerPool))
-	remotemetrics.Events.TangleTimeSyncChanged.Hook(func(event *remotemetrics.TangleTimeSyncChangedEvent) {
+	remotemetrics.Events.MeshTimeSyncChanged.Hook(func(event *remotemetrics.MeshTimeSyncChangedEvent) {
 		sendSyncStatusChangedEvent(event)
 	}, event.WithWorkerPool(plugin.WorkerPool))
 }
@@ -183,10 +183,10 @@ func configureMissingBlockMetrics(plugin *node.Plugin) {
 		return
 	}
 
-	deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockMissing.Hook(func(block *blockdag.Block) {
+	deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockMissing.Hook(func(block *blockdag.Block) {
 		sendMissingBlockRecord(block.ModelsBlock, "missingBlock")
 	}, event.WithWorkerPool(plugin.WorkerPool))
-	deps.Protocol.Events.Engine.Tangle.BlockDAG.MissingBlockAttached.Hook(func(block *blockdag.Block) {
+	deps.Protocol.Events.Engine.Mesh.BlockDAG.MissingBlockAttached.Hook(func(block *blockdag.Block) {
 		sendMissingBlockRecord(block.ModelsBlock, "missingBlockStored")
 	}, event.WithWorkerPool(plugin.WorkerPool))
 }

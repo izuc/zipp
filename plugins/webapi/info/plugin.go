@@ -66,7 +66,7 @@ func run(plugin *node.Plugin) {
 //
 //	{
 //		"version":"v0.2.0",
-//		"tangleTime":{
+//		"meshTime":{
 //			"blockID":"24Uq4UFQ7p5oLyjuXX32jHhNreo5hY9eo8Awh36RhdTHCwFMtct3SE2rhe3ceYz6rjKDjBs3usoHS3ujFEabP5ri",
 //			"time":1595528075204868900,
 //			"synced":true
@@ -114,7 +114,7 @@ func getInfo(c echo.Context) error {
 	sort.Strings(enabledPlugins)
 	sort.Strings(disabledPlugins)
 
-	// get TangleTime
+	// get MeshTime
 	tm := deps.Protocol.Engine().Clock
 	lastAcceptedBlockID := models.EmptyBlockID
 	lastConfirmedBlockID := models.EmptyBlockID
@@ -126,7 +126,7 @@ func getInfo(c echo.Context) error {
 		lastConfirmedBlockID = lastConfirmedBlock.BlockID()
 	}
 
-	tangleTime := jsonmodels.TangleTime{
+	meshTime := jsonmodels.MeshTime{
 		Synced:           deps.Protocol.Engine().IsSynced(),
 		Bootstrapped:     deps.Protocol.Engine().IsBootstrapped(),
 		AcceptedBlockID:  lastAcceptedBlockID.Base58(),
@@ -163,7 +163,7 @@ func getInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, jsonmodels.InfoResponse{
 		Version:               banner.AppVersion,
 		NetworkVersion:        discovery.Parameters.NetworkVersion,
-		TangleTime:            tangleTime,
+		MeshTime:              meshTime,
 		TimeProvider:          timeProvider,
 		IdentityID:            base58.Encode(lo.PanicOnErr(deps.Local.Identity.ID().Bytes())),
 		IdentityIDShort:       deps.Local.Identity.ID().String(),

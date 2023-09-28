@@ -9,8 +9,8 @@ const (
 	PriorityMana
 	// PriorityNotarization defines the shutdown priority for the notarization.
 	PriorityNotarization
-	// PriorityTangle defines the shutdown priority for the tangle.
-	PriorityTangle
+	// PriorityMesh defines the shutdown priority for the mesh.
+	PriorityMesh
 	// PriorityFaucet defines the shutdown priority for the faucet.
 	PriorityFaucet
 	// PriorityRemoteLog defines the shutdown priority for remote log.

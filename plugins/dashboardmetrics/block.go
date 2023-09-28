@@ -40,7 +40,7 @@ var (
 
 // //// Exported functions to obtain metrics from outside //////
 
-// BookedTransactions returns the actual number of tips in the block tangle.
+// BookedTransactions returns the actual number of tips in the block mesh.
 func BookedTransactions() uint64 {
 	return bookedTransactions.Load()
 }

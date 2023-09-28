@@ -16,7 +16,7 @@ import (
 	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -101,7 +101,7 @@ func (t *TipManager) AddTipNonMonotonic(block *scheduler.Block) {
 	}
 
 	// Do not add a tip booked on a reject branch, we won't use it as a tip and it will otherwise remove parent tips.
-	blockConflictIDs := t.engine.Tangle.Booker().BlockConflicts(block.Block)
+	blockConflictIDs := t.engine.Mesh.Booker().BlockConflicts(block.Block)
 	if t.engine.Ledger.MemPool().ConflictDAG().ConfirmationState(blockConflictIDs).IsRejected() {
 		fmt.Println(">> adding rejected tip")
 		// return
@@ -244,7 +244,7 @@ func (t *TipManager) addTip(block *scheduler.Block) (added bool) {
 		// t.tipsConflictTracker.AddTip(block)
 		t.Events.TipAdded.Trigger(block)
 
-		// skip removing tips if a width is set -> allows to artificially create a wide Tangle.
+		// skip removing tips if a width is set -> allows to artificially create a wide Mesh.
 		if t.tips.Size() <= t.optsWidth {
 			return true
 		}
@@ -379,7 +379,7 @@ func WithTimeSinceConfirmationThreshold(timeSinceConfirmationThreshold time.Dura
 	}
 }
 
-// WithWidth returns an option that configures the TipManager to maintain a certain width of the tangle.
+// WithWidth returns an option that configures the TipManager to maintain a certain width of the mesh.
 func WithWidth(maxWidth int) options.Option[TipManager] {
 	return func(t *TipManager) {
 		t.optsWidth = maxWidth

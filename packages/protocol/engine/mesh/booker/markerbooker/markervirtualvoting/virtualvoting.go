@@ -9,8 +9,8 @@ import (
 	"github.com/izuc/zipp/packages/core/votes/conflicttracker"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
 	"github.com/izuc/zipp/packages/protocol/markers"
 )
 

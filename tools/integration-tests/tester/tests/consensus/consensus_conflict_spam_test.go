@@ -34,7 +34,7 @@ const (
 )
 
 // TestConflictSpamAndMergeToMaster spams a node with conflicts and makes sure the confirmation states are the same across the network
-// and verifies that the Tangle converged to Master
+// and verifies that the Mesh converged to Master
 func TestConflictSpamAndMergeToMaster(t *testing.T) {
 	ctx, cancel := tests.Context(context.Background(), t)
 	defer cancel()

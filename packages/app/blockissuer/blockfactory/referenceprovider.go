@@ -9,7 +9,7 @@ import (
 	"github.com/izuc/zipp.foundation/core/slot"
 	"github.com/izuc/zipp/packages/protocol"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/protocol/models/payload"
 )
@@ -102,7 +102,7 @@ func (r *ReferenceProvider) referencesToMissingConflicts(amount int) (blockIDs m
 		}
 
 		// TODO: use earliest instead? to avoid commitment monotonicity issue
-		// attachment := r.protocol.Engine().Tangle.GetLatestAttachment(it.Next())
+		// attachment := r.protocol.Engine().Mesh.GetLatestAttachment(it.Next())
 		// if attachment == nil {
 		// 	panic("attachment should not be nil")
 		// }
@@ -133,7 +133,7 @@ func (r *ReferenceProvider) referencesFromUnacceptedInputs(payload payload.Paylo
 		}
 
 		if !engineInstance.Ledger.MemPool().Utils().TransactionConfirmationState(referencedTransactionID).IsAccepted() {
-			latestAttachment := engineInstance.Tangle.Booker().GetLatestAttachment(referencedTransactionID)
+			latestAttachment := engineInstance.Mesh.Booker().GetLatestAttachment(referencedTransactionID)
 			if latestAttachment == nil {
 				continue
 			}
@@ -143,7 +143,7 @@ func (r *ReferenceProvider) referencesFromUnacceptedInputs(payload payload.Paylo
 				continue
 			}
 
-			transactionConflictIDs := engineInstance.Tangle.Booker().TransactionConflictIDs(latestAttachment)
+			transactionConflictIDs := engineInstance.Mesh.Booker().TransactionConflictIDs(latestAttachment)
 			if transactionConflictIDs.IsEmpty() {
 				weakParents.Add(latestAttachment.ID())
 				continue
@@ -177,11 +177,11 @@ func (r *ReferenceProvider) referencesFromUnacceptedInputs(payload payload.Paylo
 func (r *ReferenceProvider) addedReferencesForBlock(blockID models.BlockID, excludedConflictIDs utxo.TransactionIDs) (addedReferences models.ParentBlockIDs, success bool) {
 	engineInstance := r.protocol.Engine()
 
-	block, exists := engineInstance.Tangle.Booker().Block(blockID)
+	block, exists := engineInstance.Mesh.Booker().Block(blockID)
 	if !exists {
 		return nil, false
 	}
-	blockConflicts := engineInstance.Tangle.Booker().BlockConflicts(block)
+	blockConflicts := engineInstance.Mesh.Booker().BlockConflicts(block)
 
 	addedReferences = models.NewParentBlockIDs()
 	if blockConflicts.IsEmpty() {
@@ -199,7 +199,7 @@ func (r *ReferenceProvider) addedReferencesForBlock(blockID models.BlockID, excl
 
 	// We could not refer to any block to fix the opinion, so we add the tips' strong parents to the tip pool.
 	if addedReferences == nil {
-		if block, exists := r.protocol.Engine().Tangle.Booker().Block(blockID); exists {
+		if block, exists := r.protocol.Engine().Mesh.Booker().Block(blockID); exists {
 			block.ForEachParentByType(models.StrongParentType, func(parentBlockID models.BlockID) bool {
 				if schedulerBlock, schedulerBlockExists := r.protocol.CongestionControl.Scheduler().Block(parentBlockID); schedulerBlockExists {
 					r.protocol.TipManager.AddTipNonMonotonic(schedulerBlock)
@@ -274,7 +274,7 @@ func (r *ReferenceProvider) adjustOpinion(conflictID utxo.TransactionID, exclude
 
 // latestValidAttachment returns the first valid attachment of the given transaction.
 func (r *ReferenceProvider) latestValidAttachment(txID utxo.TransactionID) (block *booker.Block, err error) {
-	block = r.protocol.Engine().Tangle.Booker().GetLatestAttachment(txID)
+	block = r.protocol.Engine().Mesh.Booker().GetLatestAttachment(txID)
 	if block == nil {
 		return nil, errors.Errorf("could not obtain latest attachment for %s", txID)
 	}
@@ -294,11 +294,11 @@ func (r *ReferenceProvider) latestValidAttachment(txID utxo.TransactionID) (bloc
 func (r *ReferenceProvider) payloadLiked(blockID models.BlockID) (liked bool) {
 	engineInstance := r.protocol.Engine()
 
-	block, exists := engineInstance.Tangle.Booker().Block(blockID)
+	block, exists := engineInstance.Mesh.Booker().Block(blockID)
 	if !exists {
 		return false
 	}
-	conflictIDs := engineInstance.Tangle.Booker().TransactionConflictIDs(block)
+	conflictIDs := engineInstance.Mesh.Booker().TransactionConflictIDs(block)
 
 	for it := conflictIDs.Iterator(); it.HasNext(); {
 		conflict, exists := engineInstance.Ledger.MemPool().ConflictDAG().Conflict(it.Next())

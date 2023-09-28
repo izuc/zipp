@@ -156,7 +156,7 @@ func (api *ZIPPAPI) GetTransactionAttachments(base58EncodedTransactionID string)
 	return res, nil
 }
 
-// PostTransaction sends the transaction(bytes) to the Tangle and returns its transaction ID.
+// PostTransaction sends the transaction(bytes) to the Mesh and returns its transaction ID.
 func (api *ZIPPAPI) PostTransaction(transactionBytes []byte) (*jsonmodels.PostTransactionResponse, error) {
 	res := &jsonmodels.PostTransactionResponse{}
 	if err := api.do(http.MethodPost, routePostTransactions,

@@ -2,14 +2,14 @@ import { action, makeObservable, observable, ObservableMap } from 'mobx';
 import { registerHandler, unregisterHandler, WSBlkType } from 'utils/WS';
 import { MAX_VERTICES } from 'utils/constants';
 import {
-    tangleBooked,
-    tangleConfirmed,
-    tangleTxConfirmationStateChanged,
-    tangleVertex
-} from 'models/tangle';
+    meshBooked,
+    meshConfirmed,
+    meshTxConfirmationStateChanged,
+    meshVertex
+} from 'models/mesh';
 import {
     drawBlock,
-    initTangleDAG,
+    initMeshDAG,
     reloadAfterShortPause,
     selectBlock,
     unselectBlock,
@@ -18,13 +18,13 @@ import {
     vivagraphLib
 } from 'graph/vivagraph';
 
-export class TangleStore {
-    @observable maxTangleVertices = MAX_VERTICES;
-    @observable blocks = new ObservableMap<string, tangleVertex>();
-    @observable foundBlks = new ObservableMap<string, tangleVertex>();
+export class MeshStore {
+    @observable maxMeshVertices = MAX_VERTICES;
+    @observable blocks = new ObservableMap<string, meshVertex>();
+    @observable foundBlks = new ObservableMap<string, meshVertex>();
     // might still need markerMap for advanced features
     @observable markerMap = new ObservableMap<string, Array<string>>();
-    @observable selectedBlk: tangleVertex = null;
+    @observable selectedBlk: meshVertex = null;
     @observable paused = false;
     @observable search = '';
     blkOrder: Array<string> = [];
@@ -55,7 +55,7 @@ export class TangleStore {
     }
 
     @action
-    addBlock = (blk: tangleVertex) => {
+    addBlock = (blk: meshVertex) => {
         this.checkLimit();
 
         blk.isTip = true;
@@ -68,14 +68,14 @@ export class TangleStore {
     };
 
     checkLimit = () => {
-        if (this.blkOrder.length >= this.maxTangleVertices) {
+        if (this.blkOrder.length >= this.maxMeshVertices) {
             const removed = this.blkOrder.shift();
             this.removeBlock(removed);
         }
     };
 
     @action
-    addFoundBlk = (blk: tangleVertex) => {
+    addFoundBlk = (blk: meshVertex) => {
         this.foundBlks.set(blk.ID, blk);
     };
 
@@ -97,7 +97,7 @@ export class TangleStore {
     };
 
     @action
-    setBlockConflict = (conflict: tangleBooked) => {
+    setBlockConflict = (conflict: meshBooked) => {
         const blk = this.blocks.get(conflict.ID);
         if (!blk) {
             return;
@@ -113,7 +113,7 @@ export class TangleStore {
     };
 
     @action
-    updateBlockTxConfirmationState = (txConfirmationState: tangleTxConfirmationStateChanged) => {
+    updateBlockTxConfirmationState = (txConfirmationState: meshTxConfirmationStateChanged) => {
         const blk = this.blocks.get(txConfirmationState.ID);
         if (!blk) {
             return;
@@ -132,7 +132,7 @@ export class TangleStore {
     };
 
     @action
-    setBlockConfirmedTime = (info: tangleConfirmed) => {
+    setBlockConfirmedTime = (info: meshConfirmed) => {
         const blk = this.blocks.get(info.ID);
         if (!blk) {
             return;
@@ -162,8 +162,8 @@ export class TangleStore {
 
     @action
     updateVerticesLimit = (num: number) => {
-        this.maxTangleVertices = num;
-        this.trimTangleToVerticesLimit();
+        this.maxMeshVertices = num;
+        this.trimMeshToVerticesLimit();
     };
 
     @action
@@ -201,7 +201,7 @@ export class TangleStore {
         this.graph.centerVertex(blkID);
     };
 
-    drawVertex = (blk: tangleVertex) => {
+    drawVertex = (blk: meshVertex) => {
         drawBlock(blk, this.graph, this.blocks);
     };
 
@@ -218,7 +218,7 @@ export class TangleStore {
     };
 
     @action
-    tangleOnClick = (event: any) => {
+    meshOnClick = (event: any) => {
         // block is currently selected
         if (event.target.tagName === 'rect') {
             this.selectBlk(event.target.parentNode.node.id);
@@ -230,7 +230,7 @@ export class TangleStore {
     };
 
     @action
-    updateSelected = (vert: tangleVertex) => {
+    updateSelected = (vert: meshVertex) => {
         if (!vert) return;
 
         this.selectedBlk = vert;
@@ -256,7 +256,7 @@ export class TangleStore {
         this.selectedBlk = null;
     };
 
-    getTangleVertex = (blkID: string) => {
+    getMeshVertex = (blkID: string) => {
         return this.blocks.get(blkID) || this.foundBlks.get(blkID);
     };
 
@@ -296,7 +296,7 @@ export class TangleStore {
         const blks = [];
 
         if (searchedMode) {
-            this.foundBlks.forEach((blk: tangleVertex) => {
+            this.foundBlks.forEach((blk: meshVertex) => {
                 if (blk.conflictIDs.includes(conflictID)) {
                     blks.push(blk.ID);
                 }
@@ -304,7 +304,7 @@ export class TangleStore {
             return blks;
         }
 
-        this.blocks.forEach((blk: tangleVertex) => {
+        this.blocks.forEach((blk: meshVertex) => {
             if (blk.conflictIDs.includes(conflictID)) {
                 blks.push(blk.ID);
             }
@@ -314,9 +314,9 @@ export class TangleStore {
     };
 
     start = () => {
-        this.graph = new vivagraphLib(initTangleDAG);
+        this.graph = new vivagraphLib(initMeshDAG);
 
-        this.registerTangleEvents();
+        this.registerMeshEvents();
     };
 
     stop = () => {
@@ -325,9 +325,9 @@ export class TangleStore {
         this.selectedBlk = null;
     };
 
-    registerTangleEvents = () => {
-        const tangleWindowEl = document.querySelector('#tangleVisualizer');
-        tangleWindowEl.addEventListener('click', this.tangleOnClick);
+    registerMeshEvents = () => {
+        const meshWindowEl = document.querySelector('#meshVisualizer');
+        meshWindowEl.addEventListener('click', this.meshOnClick);
     };
 
     // For svg renderer, pausing is not going to stop elements from being added or remover from svg frame
@@ -345,16 +345,16 @@ export class TangleStore {
         updateGraph(this.graph, this.blkOrder.slice(idx), this.blocks);
     };
 
-    updateIfNotPaused = (blk: tangleVertex) => {
+    updateIfNotPaused = (blk: meshVertex) => {
         if (!this.paused) {
             updateNodeDataAndColor(blk.ID, blk, this.graph);
         }
     };
 
-    trimTangleToVerticesLimit() {
-        if (this.blkOrder.length >= this.maxTangleVertices) {
+    trimMeshToVerticesLimit() {
+        if (this.blkOrder.length >= this.maxMeshVertices) {
             const removeStartIndex =
-                this.blkOrder.length - this.maxTangleVertices;
+                this.blkOrder.length - this.maxMeshVertices;
             const removed = this.blkOrder.slice(0, removeStartIndex);
             this.blkOrder = this.blkOrder.slice(removeStartIndex);
             this.removeBlocks(removed);
@@ -368,4 +368,4 @@ export class TangleStore {
     }
 }
 
-export default TangleStore;
+export default MeshStore;

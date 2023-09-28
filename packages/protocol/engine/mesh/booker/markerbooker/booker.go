@@ -24,11 +24,11 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker/markermanager"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker/markerbooker/markervirtualvoting"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markermanager"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker/markerbooker/markervirtualvoting"
 	"github.com/izuc/zipp/packages/protocol/markers"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
@@ -81,7 +81,7 @@ func NewProvider(opts ...options.Option[Booker]) module.Provider[*engine.Engine,
 		} /*, event.WithWorkerPool(e.Workers.CreatePool("Eviction", 1))*/) // Using just 1 worker to avoid contention
 
 		e.HookConstructed(func() {
-			b.Initialize(e.Tangle.BlockDAG())
+			b.Initialize(e.Mesh.BlockDAG())
 		})
 
 		return b

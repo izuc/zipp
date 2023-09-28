@@ -10,8 +10,8 @@ type InfoResponse struct {
 	Version string `json:"version,omitempty"`
 	// Network Version of the autopeering
 	NetworkVersion uint32 `json:"networkVersion,omitempty"`
-	// TangleTime sync status
-	TangleTime TangleTime `json:"tangleTime,omitempty"`
+	// MeshTime sync status
+	MeshTime MeshTime `json:"meshTime,omitempty"`
 	// TimeProvider contain the details for the time provider.
 	TimeProvider TimeProvider `json:"timeProvider,omitempty"`
 	// identity ID of the node encoded in base58
@@ -42,8 +42,8 @@ type InfoResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
-// TangleTime contains the TangleTime sync detailed status.
-type TangleTime struct {
+// MeshTime contains the MeshTime sync detailed status.
+type MeshTime struct {
 	AcceptedBlockID  string `json:"blockID"`
 	ConfirmedBlockID string `json:"confirmedBlockID"`
 	ConfirmedSlot    int64  `json:"confirmedSlot"`

@@ -131,14 +131,14 @@ func Context(ctx context.Context, t *testing.T) (context.Context, context.Cancel
 func Synced(t *testing.T, node *framework.Node) bool {
 	info, err := node.Info()
 	require.NoError(t, err)
-	return info.TangleTime.Synced
+	return info.MeshTime.Synced
 }
 
 // Bootstrapped returns whether node is bootstrapped.
 func Bootstrapped(t *testing.T, node *framework.Node) bool {
 	info, err := node.Info()
 	require.NoError(t, err)
-	return info.TangleTime.Bootstrapped
+	return info.MeshTime.Bootstrapped
 }
 
 func BootstrapNetwork(t *testing.T, n *framework.Network) {

@@ -14,7 +14,7 @@ import (
 	"github.com/izuc/zipp.foundation/serializer/byteutils"
 	"github.com/izuc/zipp.foundation/serializer/serix"
 	"github.com/izuc/zipp/packages/core/commitment"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/protocol/models/payload"
 )
@@ -77,7 +77,7 @@ func (f *Factory) CreateBlockWithReferences(p payload.Payload, references models
 
 // createBlockWithPayload create a new block. If there are any supplied references, it uses them. Otherwise, uses tip selection.
 // It also triggers the BlockConstructed event once it's done, which is for example used by the plugins to listen for
-// blocks that shall be attached to the tangle.
+// blocks that shall be attached to the mesh.
 func (f *Factory) createBlockWithPayload(p payload.Payload, references models.ParentBlockIDs, strongParentsCount int) (*models.Block, error) {
 	payloadBytes, err := p.Bytes()
 	if err != nil {
@@ -193,9 +193,9 @@ func (f *Factory) tips(p payload.Payload, parentsCount int) (parents models.Bloc
 
 	// If the block is issuing a transaction and is a double spend, we add it in parallel to the earliest attachment
 	// to prevent a double spend from being issued in its past cone.
-	// if conflictingTransactions := f.tangle.Ledger.Utils.ConflictingTransactions(tx.ID()); !conflictingTransactions.IsEmpty() {
+	// if conflictingTransactions := f.mesh.Ledger.Utils.ConflictingTransactions(tx.ID()); !conflictingTransactions.IsEmpty() {
 	//	if earliestAttachment := f.EarliestAttachment(conflictingTransactions); earliestAttachment != nil {
-	//		return earliestAttachment.ParentsByType(tangle.StrongParentType)
+	//		return earliestAttachment.ParentsByType(mesh.StrongParentType)
 	//	}
 	// }
 

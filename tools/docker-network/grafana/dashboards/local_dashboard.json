@@ -364,7 +364,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "irate(tangle_blocks_per_component_total{component=\"Attached\",instance=\"$instance\"}[5m])",
+          "expr": "irate(mesh_blocks_per_component_total{component=\"Attached\",instance=\"$instance\"}[5m])",
           "interval": "",
           "legendFormat": "Total BPS",
           "range": true,
@@ -821,7 +821,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(tangle_block_per_type_total{instance=\"$instance\"}[5m])",
+              "expr": "irate(mesh_block_per_type_total{instance=\"$instance\"}[5m])",
               "hide": false,
               "interval": "",
               "legendFormat": "Block Per Second {{block_type}}",
@@ -911,7 +911,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(tangle_blocks_per_component_total{instance=\"$instance\"}[5m])",
+              "expr": "irate(mesh_blocks_per_component_total{instance=\"$instance\"}[5m])",
               "interval": "",
               "legendFormat": "{{component}} BPS",
               "refId": "A"
@@ -1000,7 +1000,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "tangle_tips_count{instance=\"$instance\"}",
+              "expr": "mesh_tips_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Block Layer Tips",
               "refId": "A"
@@ -1422,7 +1422,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(tangle_missing_block_total{instance=\"$instance\"}[5m])",
+              "expr": "irate(mesh_missing_block_total{instance=\"$instance\"}[5m])",
               "interval": "",
               "legendFormat": "Solidifier-requested blocks",
               "refId": "A"
@@ -1511,7 +1511,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tangle_missing_block_total{instance=\"$instance\"}",
+              "expr": "mesh_missing_block_total{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Solidifier-requested blocks",
               "refId": "A"
@@ -1997,7 +1997,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "tangle_missing_block_total{instance=\"$instance\"}",
+              "expr": "mesh_missing_block_total{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Missing Blocks",
               "refId": "A"
@@ -2088,21 +2088,21 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tangle_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Solid Blocks in DB",
               "refId": "A"
             },
             {
               "exemplar": true,
-              "expr": "tangle_blocks_per_component_total{component=\"Store\",instance=\"$instance\"} - tangle_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_total{component=\"Store\",instance=\"$instance\"} - mesh_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Not Solid Blocks in DB",
               "refId": "B"
             },
             {
               "exemplar": true,
-              "expr": "tangle_blocks_per_component_total{component=\"Store\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_total{component=\"Store\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Total Blocks in DB",
               "refId": "C"
@@ -2148,7 +2148,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "description": "Number of blocks currently requested by the block tangle.",
+          "description": "Number of blocks currently requested by the block mesh.",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -2192,7 +2192,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tangle_request_queue_size{instance=\"$instance\"}",
+              "expr": "mesh_request_queue_size{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Block Request Queue Size",
               "refId": "A"
@@ -2284,7 +2284,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "rate(tangle_block_total_time_since_received{component=\"Solidified\",instance=\"$instance\"}[5m])/rate(tangle_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}[5m])",
+              "expr": "rate(mesh_block_total_time_since_received{component=\"Solidified\",instance=\"$instance\"}[5m])/rate(mesh_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}[5m])",
               "interval": "",
               "legendFormat": "Avg Solidification Time",
               "refId": "A"
@@ -3798,7 +3798,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(irate(tangle_parent_per_type_total{instance=\"$instance\"}[1m])) by (type,instance) / on(instance) group_left() sum(irate(tangle_accepted_blocks_count{instance=\"$instance\"}[1m])) by (instance)",
+              "expr": "sum(irate(mesh_parent_per_type_total{instance=\"$instance\"}[1m])) by (type,instance) / on(instance) group_left() sum(irate(mesh_accepted_blocks_count{instance=\"$instance\"}[1m])) by (instance)",
               "hide": false,
               "interval": "",
               "legendFormat": "{{type}}",
@@ -4277,7 +4277,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tangle_blocks_per_component_total{component=\"Scheduled\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_total{component=\"Scheduled\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4338,7 +4338,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tangle_blocks_per_component_total{component=\"SchedulerSkipped\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_total{component=\"SchedulerSkipped\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4459,7 +4459,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "tangle_blocks_per_component_total{component=\"SchedulerDropped\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_total{component=\"SchedulerDropped\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -5102,7 +5102,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "tangle_blocks_orphaned_total{instance=\"$instance\"}",
+              "expr": "mesh_blocks_orphaned_total{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",

@@ -1,4 +1,4 @@
-export class tangleVertex {
+export class meshVertex {
     ID: string;
     strongParentIDs: Array<string>;
     weakParentIDs: Array<string>;
@@ -14,19 +14,19 @@ export class tangleVertex {
     confirmationStateTime: number;
 }
 
-export class tangleBooked {
+export class meshBooked {
     ID: string;
     isMarker: boolean;
     conflictIDs: Array<string>;
 }
 
-export class tangleConfirmed {
+export class meshConfirmed {
     ID: string;
     confirmationState: string;
     confirmationStateTime: number;
 }
 
-export class tangleTxConfirmationStateChanged {
+export class meshTxConfirmationStateChanged {
     ID: string;
     isConfirmed: boolean;
 }

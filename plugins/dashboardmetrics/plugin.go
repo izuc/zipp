@@ -23,8 +23,8 @@ import (
 	"github.com/izuc/zipp/packages/network/p2p"
 	"github.com/izuc/zipp/packages/node"
 	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 )
 
 // PluginName is the name of the metrics plugin.
@@ -80,7 +80,7 @@ func run(plugin *node.Plugin) {
 
 func registerLocalMetrics(plugin *node.Plugin) {
 	// increase received BPS counter whenever we attached a block
-	deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+	deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 		increaseReceivedBPSCounter()
 		increasePerComponentCounter(collector.Attached)
 	})
@@ -95,7 +95,7 @@ func registerLocalMetrics(plugin *node.Plugin) {
 		increaseFinalizedBlkPerTypeCounter(blockType)
 	})
 
-	deps.Protocol.Events.Engine.Tangle.Booker.BlockBooked.Hook(func(bbe *booker.BlockBookedEvent) {
+	deps.Protocol.Events.Engine.Mesh.Booker.BlockBooked.Hook(func(bbe *booker.BlockBookedEvent) {
 		if bbe.Block.Payload().Type() == devnetvm.TransactionType {
 			increaseBookedTransactionCounter()
 		}
@@ -120,7 +120,7 @@ func registerLocalMetrics(plugin *node.Plugin) {
 			return
 		}
 
-		firstAttachment := deps.Protocol.Engine().Tangle.Booker().GetEarliestAttachment(event.ID())
+		firstAttachment := deps.Protocol.Engine().Mesh.Booker().GetEarliestAttachment(event.ID())
 		event.ForEachConflictingConflict(func(conflictingConflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) bool {
 			conflictingID := conflictingConflict.ID()
 			if _, exists := activeConflicts[event.ID()]; exists && conflictingID != event.ID() {

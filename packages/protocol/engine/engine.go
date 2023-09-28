@@ -23,10 +23,10 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/eviction"
 	"github.com/izuc/zipp/packages/protocol/engine/filter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota"
 	"github.com/izuc/zipp/packages/protocol/engine/tsc"
 	"github.com/izuc/zipp/packages/protocol/markers"
@@ -46,7 +46,7 @@ type Engine struct {
 	EvictionState   *eviction.State
 	BlockRequester  *eventticker.EventTicker[models.BlockID]
 	Notarization    notarization.Notarization
-	Tangle          tangle.Tangle
+	Mesh            mesh.Mesh
 	Consensus       consensus.Consensus
 	TSCManager      *tsc.Manager
 	Clock           clock.Clock
@@ -76,7 +76,7 @@ func New(
 	sybilProtection module.Provider[*Engine, sybilprotection.SybilProtection],
 	throughputQuota module.Provider[*Engine, throughputquota.ThroughputQuota],
 	notarization module.Provider[*Engine, notarization.Notarization],
-	tangle module.Provider[*Engine, tangle.Tangle],
+	mesh module.Provider[*Engine, mesh.Mesh],
 	consensus module.Provider[*Engine, consensus.Consensus],
 	opts ...options.Option[Engine],
 ) (engine *Engine) {
@@ -95,9 +95,9 @@ func New(
 			e.SybilProtection = sybilProtection(e)
 			e.ThroughputQuota = throughputQuota(e)
 			e.Notarization = notarization(e)
-			e.Tangle = tangle(e)
+			e.Mesh = mesh(e)
 			e.Consensus = consensus(e)
-			e.TSCManager = tsc.New(e.Consensus.BlockGadget().IsBlockAccepted, e.Tangle, e.optsTSCManagerOptions...)
+			e.TSCManager = tsc.New(e.Consensus.BlockGadget().IsBlockAccepted, e.Mesh, e.optsTSCManagerOptions...)
 			e.Filter = filter(e)
 			e.BlockRequester = eventticker.New(e.optsBlockRequester...)
 
@@ -137,7 +137,7 @@ func (e *Engine) Block(id models.BlockID) (block *models.Block, exists bool) {
 		return
 	}
 
-	if cachedBlock, cachedBlockExists := e.Tangle.BlockDAG().Block(id); cachedBlockExists {
+	if cachedBlock, cachedBlockExists := e.Mesh.BlockDAG().Block(id); cachedBlockExists {
 		return cachedBlock.ModelsBlock, !cachedBlock.IsMissing()
 	}
 
@@ -269,7 +269,7 @@ func (e *Engine) setupTSCManager() {
 	// wp := e.Workers.CreatePool("TSCManager", 1) // Using just 1 worker to avoid contention
 
 	// TODO: enable TSC again
-	// e.Events.Tangle.Booker.BlockBooked.Hook(e.TSCManager.AddBlock, event.WithWorkerPool(wp))
+	// e.Events.Mesh.Booker.BlockBooked.Hook(e.TSCManager.AddBlock, event.WithWorkerPool(wp))
 	// e.Events.Clock.AcceptanceTimeUpdated.Hook(func(event *clock.TimeUpdateEvent) {
 	//	e.TSCManager.HandleTimeUpdate(event.NewTime)
 	// }, event.WithWorkerPool(wp))
@@ -283,7 +283,7 @@ func (e *Engine) setupBlockStorage() {
 			e.Events.Error.Trigger(errors.Wrapf(err, "failed to store block with %s", block.ID()))
 		}
 	} /*, event.WithWorkerPool(wp)*/)
-	e.Events.Tangle.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
+	e.Events.Mesh.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
 		if err := e.Storage.Blocks.Delete(block.ID()); err != nil {
 			e.Events.Error.Trigger(errors.Wrapf(err, "failed to delete block with %s", block.ID()))
 		}
@@ -314,7 +314,7 @@ func (e *Engine) setupEvictionState() {
 			}
 		})
 	}, event.WithWorkerPool(wp))
-	e.Events.Tangle.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
+	e.Events.Mesh.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
 		e.EvictionState.RemoveRootBlock(block.ID())
 	}, event.WithWorkerPool(wp))
 	e.Events.Notarization.SlotCommitted.Hook(func(details *notarization.SlotCommittedDetails) {
@@ -331,11 +331,11 @@ func (e *Engine) setupBlockRequester() {
 
 	// We need to hook to make sure that the request is created before the block arrives to avoid a race condition
 	// where we try to delete the request again before it is created. Thus, continuing to request forever.
-	e.Events.Tangle.BlockDAG.BlockMissing.Hook(func(block *blockdag.Block) {
+	e.Events.Mesh.BlockDAG.BlockMissing.Hook(func(block *blockdag.Block) {
 		// TODO: ONLY START REQUESTING WHEN NOT IN WARPSYNC RANGE (or just not attach outside)?
 		e.BlockRequester.StartTicker(block.ID())
 	})
-	e.Events.Tangle.BlockDAG.MissingBlockAttached.Hook(func(block *blockdag.Block) {
+	e.Events.Mesh.BlockDAG.MissingBlockAttached.Hook(func(block *blockdag.Block) {
 		e.BlockRequester.StopTicker(block.ID())
 	} /*, event.WithWorkerPool(e.Workers.CreatePool("BlockRequester", 1))*/) // Using just 1 worker to avoid contention
 }

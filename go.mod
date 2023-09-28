@@ -13,7 +13,7 @@ require (
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/izuc/zipp.foundation v0.1.3
+	github.com/izuc/zipp.foundation v0.1.4
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/libp2p/go-libp2p v0.27.1

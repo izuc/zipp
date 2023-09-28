@@ -4,7 +4,7 @@ import (
 	"github.com/izuc/zipp.foundation/runtime/event"
 )
 
-// Events is a collection of Tangle related Events.
+// Events is a collection of Mesh related Events.
 type Events struct {
 	// BlockAttached is triggered when a previously unknown Block is attached.
 	BlockAttached *event.Event1[*Block]

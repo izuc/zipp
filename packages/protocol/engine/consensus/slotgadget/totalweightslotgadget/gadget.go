@@ -10,14 +10,14 @@ import (
 	"github.com/izuc/zipp/packages/core/votes/slottracker"
 	"github.com/izuc/zipp/packages/protocol/engine"
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/slotgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
 )
 
 type Gadget struct {
 	events  *slotgadget.Events
 	workers *workerpool.Group
 
-	tangle              tangle.Tangle
+	mesh                mesh.Mesh
 	lastConfirmedSlot   slot.Index
 	totalWeightCallback func() int64
 
@@ -36,10 +36,10 @@ func NewProvider(opts ...options.Option[Gadget]) module.Provider[*engine.Engine,
 		}, opts, func(g *Gadget) {
 			e.HookConstructed(func() {
 				//g.workers = e.Workers.CreateGroup("SlotGadget")
-				g.tangle = e.Tangle
+				g.mesh = e.Mesh
 				g.totalWeightCallback = e.SybilProtection.Weights().TotalWeightWithoutZeroIdentity
 
-				e.Events.Tangle.Booker.SlotTracker.VotersUpdated.Hook(func(evt *slottracker.VoterUpdatedEvent) {
+				e.Events.Mesh.Booker.SlotTracker.VotersUpdated.Hook(func(evt *slottracker.VoterUpdatedEvent) {
 					g.refreshSlotConfirmation(evt.PrevLatestSlotIndex, evt.NewLatestSlotIndex)
 				} /*, event.WithWorkerPool(g.workers.CreatePool("Refresh", 2))*/)
 
@@ -76,7 +76,7 @@ func (g *Gadget) refreshSlotConfirmation(previousLatestSlotIndex slot.Index, new
 	totalWeight := g.totalWeightCallback()
 
 	for i := lo.Max(g.LastConfirmedSlot(), previousLatestSlotIndex) + 1; i <= newLatestSlotIndex; i++ {
-		if !IsThresholdReached(totalWeight, g.tangle.Booker().SlotVotersTotalWeight(i), g.optsSlotConfirmationThreshold) {
+		if !IsThresholdReached(totalWeight, g.mesh.Booker().SlotVotersTotalWeight(i), g.optsSlotConfirmationThreshold) {
 			break
 		}
 

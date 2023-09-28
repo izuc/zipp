@@ -14,7 +14,7 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 )
 
-func TestOnTangleVoting_LikedInstead(t *testing.T) {
+func TestOnMeshVoting_LikedInstead(t *testing.T) {
 	type ExpectedLikedConflict func(executionConflictAlias string, actualConflictID utxo.TransactionID, actualConflictMembers *advancedset.AdvancedSet[utxo.TransactionID])
 
 	mustMatch := func(s *Scenario, aliasLikedConflicts []string, aliasConflictMembers []string) ExpectedLikedConflict {

@@ -40,7 +40,7 @@ func sendBlockSchedulerRecord(block *scheduler.Block, recordType string) {
 	}
 
 	// TODO: implement when retainer plugin is ready
-	// deps.Tangle.Storage.BlockMetadata(blockID).Consume(func(blockMetadata *tangleold.BlockMetadata) {
+	// deps.Mesh.Storage.BlockMetadata(blockID).Consume(func(blockMetadata *meshold.BlockMetadata) {
 	//	record.ReceivedTimestamp = blockMetadata.ReceivedTime()
 	//	record.ScheduledTimestamp = blockMetadata.ScheduledTime()
 	//	record.DroppedTimestamp = blockMetadata.DiscardedTime()
@@ -87,7 +87,7 @@ func onTransactionAccepted(transactionEvent *mempool.TransactionEvent) {
 		return
 	}
 
-	earliestAttachment := deps.Protocol.Engine().Tangle.Booker().GetEarliestAttachment(transactionEvent.Metadata.ID())
+	earliestAttachment := deps.Protocol.Engine().Mesh.Booker().GetEarliestAttachment(transactionEvent.Metadata.ID())
 
 	onBlockFinalized(earliestAttachment.ModelsBlock)
 }
@@ -123,7 +123,7 @@ func onBlockFinalized(block *models.Block) {
 	}
 
 	// TODO: implement when retainer plugin is ready
-	// deps.Tangle.Storage.BlockMetadata(blockID).Consume(func(blockMetadata *tangleold.BlockMetadata) {
+	// deps.Mesh.Storage.BlockMetadata(blockID).Consume(func(blockMetadata *meshold.BlockMetadata) {
 	//	record.ScheduledTimestamp = blockMetadata.ScheduledTime()
 	//	record.DeltaScheduled = blockMetadata.ScheduledTime().Sub(record.IssuedTimestamp).Nanoseconds()
 	//	record.BookedTimestamp = blockMetadata.BookedTime()

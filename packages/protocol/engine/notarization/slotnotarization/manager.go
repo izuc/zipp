@@ -15,9 +15,9 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/storage"
 )
@@ -87,7 +87,7 @@ func NewProvider(opts ...options.Option[Manager]) module.Provider[*engine.Engine
 							e.Events.Error.Trigger(errors.Wrapf(err, "failed to add accepted block %s to slot", block.ID()))
 						}
 					} /*, event.WithWorkerPool(wpBlocks)*/)
-					e.Events.Tangle.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
+					e.Events.Mesh.BlockDAG.BlockOrphaned.Hook(func(block *blockdag.Block) {
 						if err := e.Notarization.NotarizeOrphanedBlock(block.ModelsBlock); err != nil {
 							e.Events.Error.Trigger(errors.Wrapf(err, "failed to remove orphaned block %s from slot", block.ID()))
 						}

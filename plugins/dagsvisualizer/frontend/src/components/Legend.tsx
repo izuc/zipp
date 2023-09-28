@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { COLOR } from '../styles/tangleStyles';
+import { COLOR } from '../styles/meshStyles';
 import { BRANCH, UTXO } from '../styles/cytoscapeStyles';
 
-export class TangleLegend extends React.Component<any, any> {
+export class MeshLegend extends React.Component<any, any> {
     render() {
         const nodeLabels = [
             'BLK Confirmed',

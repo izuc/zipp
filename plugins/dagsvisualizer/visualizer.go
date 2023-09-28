@@ -23,8 +23,8 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
 
@@ -37,7 +37,7 @@ var (
 func runVisualizer(plugin *node.Plugin) {
 	if err := daemon.BackgroundWorker("Dags Visualizer[Visualizer]", func(ctx context.Context) {
 		// register to events
-		registerTangleEvents(plugin)
+		registerMeshEvents(plugin)
 		registerUTXOEvents(plugin)
 		registerConflictEvents(plugin)
 
@@ -49,22 +49,22 @@ func runVisualizer(plugin *node.Plugin) {
 	}
 }
 
-func registerTangleEvents(plugin *node.Plugin) {
-	deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+func registerMeshEvents(plugin *node.Plugin) {
+	deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 		wsBlk := &wsBlock{
-			Type: BlkTypeTangleVertex,
-			Data: newTangleVertex(block.ModelsBlock),
+			Type: BlkTypeMeshVertex,
+			Data: newMeshVertex(block.ModelsBlock),
 		}
 		broadcastWsBlock(wsBlk)
 		storeWsBlock(wsBlk)
 	}, event.WithWorkerPool(plugin.WorkerPool))
 
-	deps.Protocol.Events.Engine.Tangle.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
-		conflictIDs := deps.Protocol.Engine().Tangle.Booker().BlockConflicts(evt.Block)
+	deps.Protocol.Events.Engine.Mesh.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
+		conflictIDs := deps.Protocol.Engine().Mesh.Booker().BlockConflicts(evt.Block)
 
 		wsBlk := &wsBlock{
-			Type: BlkTypeTangleBooked,
-			Data: &tangleBooked{
+			Type: BlkTypeMeshBooked,
+			Data: &meshBooked{
 				ID:          evt.Block.ID().Base58(),
 				IsMarker:    evt.Block.StructureDetails().IsPastMarker(),
 				ConflictIDs: lo.Map(conflictIDs.Slice(), utxo.TransactionID.Base58),
@@ -76,8 +76,8 @@ func registerTangleEvents(plugin *node.Plugin) {
 
 	deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
 		wsBlk := &wsBlock{
-			Type: BlkTypeTangleConfirmed,
-			Data: &tangleConfirmed{
+			Type: BlkTypeMeshConfirmed,
+			Data: &meshConfirmed{
 				ID:           block.ID().Base58(),
 				Accepted:     block.IsAccepted(),
 				AcceptedTime: time.Now().UnixNano(),
@@ -88,11 +88,11 @@ func registerTangleEvents(plugin *node.Plugin) {
 	}, event.WithWorkerPool(plugin.WorkerPool))
 
 	deps.Protocol.Events.Engine.Ledger.MemPool.TransactionAccepted.Hook(func(event *mempool.TransactionEvent) {
-		attachmentBlock := deps.Protocol.Engine().Tangle.Booker().GetEarliestAttachment(event.Metadata.ID())
+		attachmentBlock := deps.Protocol.Engine().Mesh.Booker().GetEarliestAttachment(event.Metadata.ID())
 
 		wsBlk := &wsBlock{
-			Type: BlkTypeTangleTxConfirmationState,
-			Data: &tangleTxConfirmationStateChanged{
+			Type: BlkTypeMeshTxConfirmationState,
+			Data: &meshTxConfirmationStateChanged{
 				ID:          attachmentBlock.ID().Base58(),
 				IsConfirmed: deps.Protocol.Engine().Ledger.MemPool().Utils().TransactionConfirmationState(event.Metadata.ID()).IsAccepted(),
 			},
@@ -103,7 +103,7 @@ func registerTangleEvents(plugin *node.Plugin) {
 }
 
 func registerUTXOEvents(plugin *node.Plugin) {
-	deps.Protocol.Events.Engine.Tangle.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
+	deps.Protocol.Events.Engine.Mesh.BlockDAG.BlockAttached.Hook(func(block *blockdag.Block) {
 		if block.Payload().Type() == devnetvm.TransactionType {
 			tx := block.Payload().(*devnetvm.Transaction)
 			wsBlk := &wsBlock{
@@ -115,7 +115,7 @@ func registerUTXOEvents(plugin *node.Plugin) {
 		}
 	}, event.WithWorkerPool(plugin.WorkerPool))
 
-	deps.Protocol.Events.Engine.Tangle.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
+	deps.Protocol.Events.Engine.Mesh.Booker.BlockBooked.Hook(func(evt *booker.BlockBookedEvent) {
 		if evt.Block.Payload().Type() == devnetvm.TransactionType {
 			tx := evt.Block.Payload().(*devnetvm.Transaction)
 			deps.Protocol.Engine().Ledger.MemPool().Storage().CachedTransactionMetadata(tx.ID()).Consume(func(txMetadata *mempool.TransactionMetadata) {
@@ -155,7 +155,7 @@ func registerConflictEvents(plugin *node.Plugin) {
 			Type: BlkTypeConflictWeightChanged,
 			Data: &conflictWeightChanged{
 				ID:                e.ConflictID.Base58(),
-				Weight:            deps.Protocol.Engine().Tangle.Booker().VirtualVoting().ConflictVotersTotalWeight(e.ConflictID),
+				Weight:            deps.Protocol.Engine().Mesh.Booker().VirtualVoting().ConflictVotersTotalWeight(e.ConflictID),
 				ConfirmationState: conflictConfirmationState.String(),
 			},
 		}
@@ -198,8 +198,8 @@ func registerConflictEvents(plugin *node.Plugin) {
 		storeWsBlock(wsBlk)
 	}, event.WithWorkerPool(plugin.WorkerPool))
 
-	deps.Protocol.Events.Engine.Tangle.Booker.VirtualVoting.ConflictTracker.VoterAdded.Hook(conflictWeightChangedFunc, event.WithWorkerPool(plugin.WorkerPool))
-	deps.Protocol.Events.Engine.Tangle.Booker.VirtualVoting.ConflictTracker.VoterRemoved.Hook(conflictWeightChangedFunc, event.WithWorkerPool(plugin.WorkerPool))
+	deps.Protocol.Events.Engine.Mesh.Booker.VirtualVoting.ConflictTracker.VoterAdded.Hook(conflictWeightChangedFunc, event.WithWorkerPool(plugin.WorkerPool))
+	deps.Protocol.Events.Engine.Mesh.Booker.VirtualVoting.ConflictTracker.VoterRemoved.Hook(conflictWeightChangedFunc, event.WithWorkerPool(plugin.WorkerPool))
 }
 
 func setupDagsVisualizerRoutes(routeGroup *echo.Group) {
@@ -232,15 +232,15 @@ func setupDagsVisualizerRoutes(routeGroup *echo.Group) {
 		startSlot := deps.Protocol.SlotTimeProvider().IndexFromTime(startTimestamp)
 		endSlot := deps.Protocol.SlotTimeProvider().IndexFromTime(endTimestamp)
 
-		var blocks []*tangleVertex
+		var blocks []*meshVertex
 		var txs []*utxoVertex
 		var conflicts []*conflictVertex
 		conflictMap := utxo.NewTransactionIDs()
 		for i := startSlot; i <= endSlot; i++ {
 			deps.Retainer.StreamBlocksMetadata(i, func(id models.BlockID, metadata *retainer.BlockMetadata) {
 				if metadata.M.Block.IssuingTime().After(startTimestamp) && metadata.M.Block.IssuingTime().Before(endTimestamp) {
-					tangleNode, utxoNode, blockConflicts := processMetadata(metadata, conflictMap)
-					blocks = append(blocks, tangleNode)
+					meshNode, utxoNode, blockConflicts := processMetadata(metadata, conflictMap)
+					blocks = append(blocks, meshNode)
 					if utxoNode != nil {
 						txs = append(txs, utxoNode)
 					}
@@ -252,12 +252,12 @@ func setupDagsVisualizerRoutes(routeGroup *echo.Group) {
 	})
 }
 
-func processMetadata(metadata *retainer.BlockMetadata, conflictMap utxo.TransactionIDs) (tangleNode *tangleVertex, utxoNode *utxoVertex, conflicts []*conflictVertex) {
+func processMetadata(metadata *retainer.BlockMetadata, conflictMap utxo.TransactionIDs) (meshNode *meshVertex, utxoNode *utxoVertex, conflicts []*conflictVertex) {
 	// add block
-	tangleNode = newTangleVertex(metadata.M.Block)
+	meshNode = newMeshVertex(metadata.M.Block)
 
 	// add tx
-	if tangleNode.IsTx {
+	if meshNode.IsTx {
 		utxoNode = newUTXOVertex(metadata.ID(), metadata.M.Block.Payload().(*devnetvm.Transaction))
 	}
 
@@ -271,7 +271,7 @@ func processMetadata(metadata *retainer.BlockMetadata, conflictMap utxo.Transact
 		}
 	}
 
-	return tangleNode, utxoNode, conflicts
+	return meshNode, utxoNode, conflicts
 }
 
 func parseStringToTimestamp(str string) (t time.Time) {
@@ -294,10 +294,10 @@ func isTimeIntervalValid(start, end time.Time) (valid bool) {
 	return true
 }
 
-func newTangleVertex(block *models.Block) (ret *tangleVertex) {
+func newMeshVertex(block *models.Block) (ret *meshVertex) {
 	confirmationState := confirmation.Pending
 
-	ret = &tangleVertex{
+	ret = &meshVertex{
 		ID:                    block.ID().Base58(),
 		StrongParentIDs:       block.ParentsByType(models.StrongParentType).Base58(),
 		WeakParentIDs:         block.ParentsByType(models.WeakParentType).Base58(),
@@ -370,7 +370,7 @@ func newConflictVertex(conflictID utxo.TransactionID) (ret *conflictVertex) {
 		Conflicts:         jsonmodels.NewGetConflictConflictsResponse(conflict.ID(), conflicts),
 		IsConfirmed:       confirmationState.IsAccepted(),
 		ConfirmationState: confirmationState.String(),
-		AW:                deps.Protocol.Engine().Tangle.Booker().VirtualVoting().ConflictVotersTotalWeight(conflictID),
+		AW:                deps.Protocol.Engine().Mesh.Booker().VirtualVoting().ConflictVotersTotalWeight(conflictID),
 	}
 	return
 }

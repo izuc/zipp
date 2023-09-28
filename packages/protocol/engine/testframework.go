@@ -19,11 +19,11 @@ import (
 	"github.com/izuc/zipp/packages/protocol/engine/filter"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/notarization"
 	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
 	"github.com/izuc/zipp/packages/protocol/engine/throughputquota"
 	"github.com/izuc/zipp/packages/protocol/models"
 	"github.com/izuc/zipp/packages/storage"
@@ -34,10 +34,10 @@ type TestFramework struct {
 
 	test *testing.T
 
-	optsStorage       *storage.Storage
-	optsTangleOptions []options.Option[tangle.Tangle]
+	optsStorage     *storage.Storage
+	optsMeshOptions []options.Option[mesh.Mesh]
 
-	Tangle        *tangle.TestFramework
+	Mesh          *mesh.TestFramework
 	Booker        *booker.TestFramework
 	BlockDAG      *blockdag.TestFramework
 	MemPool       *mempool.TestFramework
@@ -52,7 +52,7 @@ func NewTestEngine(t *testing.T, workers *workerpool.Group, storage *storage.Sto
 	sybilProtection module.Provider[*Engine, sybilprotection.SybilProtection],
 	throughputQuota module.Provider[*Engine, throughputquota.ThroughputQuota],
 	notarization module.Provider[*Engine, notarization.Notarization],
-	tangle module.Provider[*Engine, tangle.Tangle],
+	mesh module.Provider[*Engine, mesh.Mesh],
 	consensus module.Provider[*Engine, consensus.Consensus],
 	opts ...options.Option[Engine],
 ) *Engine {
@@ -64,7 +64,7 @@ func NewTestEngine(t *testing.T, workers *workerpool.Group, storage *storage.Sto
 		sybilProtection,
 		throughputQuota,
 		notarization,
-		tangle,
+		mesh,
 		consensus,
 		opts...,
 	)
@@ -76,16 +76,16 @@ func NewTestFramework(test *testing.T, workers *workerpool.Group, engine *Engine
 	t := &TestFramework{
 		test:     test,
 		Instance: engine,
-		Booker:   booker.NewTestFramework(test, workers.CreateGroup("BookerTestFramework"), engine.Tangle.Booker(), engine.Tangle.BlockDAG(), engine.Ledger.MemPool(), engine.SybilProtection.Validators(), engine.SlotTimeProvider),
+		Booker:   booker.NewTestFramework(test, workers.CreateGroup("BookerTestFramework"), engine.Mesh.Booker(), engine.Mesh.BlockDAG(), engine.Ledger.MemPool(), engine.SybilProtection.Validators(), engine.SlotTimeProvider),
 	}
-	t.Tangle = tangle.NewTestFramework(test, engine.Tangle, t.Booker)
+	t.Mesh = mesh.NewTestFramework(test, engine.Mesh, t.Booker)
 	t.Acceptance = blockgadget.NewTestFramework(test,
 		engine.Consensus.BlockGadget(),
-		t.Tangle,
+		t.Mesh,
 	)
-	t.MemPool = t.Tangle.MemPool
-	t.BlockDAG = t.Tangle.BlockDAG
-	t.VirtualVoting = t.Tangle.VirtualVoting
+	t.MemPool = t.Mesh.MemPool
+	t.BlockDAG = t.Mesh.BlockDAG
+	t.VirtualVoting = t.Mesh.VirtualVoting
 	return t
 }
 
@@ -96,7 +96,7 @@ func NewDefaultTestFramework(t *testing.T, workers *workerpool.Group,
 	sybilProtection module.Provider[*Engine, sybilprotection.SybilProtection],
 	throughputQuota module.Provider[*Engine, throughputquota.ThroughputQuota],
 	notarization module.Provider[*Engine, notarization.Notarization],
-	tangle module.Provider[*Engine, tangle.Tangle],
+	mesh module.Provider[*Engine, mesh.Mesh],
 	consensus module.Provider[*Engine, consensus.Consensus],
 	optsEngine ...options.Option[Engine],
 ) *TestFramework {
@@ -108,7 +108,7 @@ func NewDefaultTestFramework(t *testing.T, workers *workerpool.Group,
 		sybilProtection,
 		throughputQuota,
 		notarization,
-		tangle,
+		mesh,
 		consensus,
 		optsEngine...,
 	)

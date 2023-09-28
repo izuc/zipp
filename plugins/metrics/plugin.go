@@ -140,7 +140,7 @@ func createCollector() *collector.Collector {
 }
 
 func registerMetrics() {
-	deps.Collector.RegisterCollection(TangleMetrics)
+	deps.Collector.RegisterCollection(MeshMetrics)
 	deps.Collector.RegisterCollection(ConflictMetrics)
 	deps.Collector.RegisterCollection(InfoMetrics)
 	deps.Collector.RegisterCollection(DBMetrics)

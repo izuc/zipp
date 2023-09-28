@@ -13,9 +13,9 @@ import (
 	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp.foundation/runtime/workerpool"
 	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/realitiesledger"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/blockdag"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/booker"
-	"github.com/izuc/zipp/packages/protocol/engine/tangle/testtangle"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/blockdag"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/protocol/engine/mesh/testmesh"
 	"github.com/izuc/zipp/packages/protocol/engine/tsc"
 	"github.com/izuc/zipp/packages/protocol/models"
 )
@@ -25,8 +25,8 @@ func TestOrphanageManager_orphanBeforeTSC(t *testing.T) {
 
 	workers := workerpool.NewGroup(t.Name())
 	tf := NewTestFramework(t,
-		testtangle.NewDefaultTestFramework(t,
-			workers.CreateGroup("TangleTestFramework"),
+		testmesh.NewDefaultTestFramework(t,
+			workers.CreateGroup("MeshTestFramework"),
 			realitiesledger.NewTestLedger(t, workers.CreateGroup("Ledger")),
 			slot.NewTimeProvider(time.Now().Unix(), 10),
 		),
@@ -47,15 +47,15 @@ func TestOrphanageManager_orphanBeforeTSC(t *testing.T) {
 func TestOrphanageManager_HandleTimeUpdate(t *testing.T) {
 	workers := workerpool.NewGroup(t.Name())
 	tf := NewTestFramework(t,
-		testtangle.NewDefaultTestFramework(t,
-			workers.CreateGroup("TangleTestFramework"),
+		testmesh.NewDefaultTestFramework(t,
+			workers.CreateGroup("MeshTestFramework"),
 			realitiesledger.NewTestLedger(t, workers.CreateGroup("Ledger")),
 			slot.NewTimeProvider(time.Now().Add(-2*time.Hour).Unix(), 10),
 		),
 		tsc.WithTimeSinceConfirmationThreshold(30*time.Second),
 	)
 
-	createTestTangleOrphanage(tf)
+	createTestMeshOrphanage(tf)
 
 	lo.MergeMaps(tf.MockAcceptance.AcceptedBlocks, models.BlockIDs{
 		tf.BlockDAG.Block("Marker-0/1").ID():    types.Void,
@@ -169,7 +169,7 @@ func TestOrphanageManager_HandleTimeUpdate(t *testing.T) {
 	}
 }
 
-func createTestTangleOrphanage(tf *TestFramework) {
+func createTestMeshOrphanage(tf *TestFramework) {
 	// SEQUENCE 0
 	{
 		tf.BlockDAG.CreateBlock("Marker-0/1", models.WithStrongParents(tf.BlockDAG.BlockIDs("Genesis")), models.WithIssuingTime(time.Now().Add(-6*time.Minute)))

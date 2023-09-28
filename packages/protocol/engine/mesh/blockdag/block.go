@@ -15,7 +15,7 @@ import (
 
 // region Block ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Block represents a Block annotated with Tangle related metadata.
+// Block represents a Block annotated with Mesh related metadata.
 type Block struct {
 	missing              bool
 	solid                bool
