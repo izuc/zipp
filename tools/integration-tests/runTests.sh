@@ -5,7 +5,7 @@ TEST_NAMES=${1:-$DEFAULT_TEST_NAMES}
 
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
-echo "Build GoShimmer image"
+echo "Build ZIPP image"
 docker build --build-arg REMOTE_DEBUGGING=0 --build-arg DOWNLOAD_SNAPSHOT=0 -t izuc/zipp ../../.
 
 echo "Pull additional Docker images"

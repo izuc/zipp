@@ -22,7 +22,7 @@ fi
 
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
-echo "Build GoShimmer"
+echo "Build ZIPP"
 # Allow docker compose to build and cache an image
 docker compose -f $DOCKER_COMPOSE_FILE build
 
@@ -43,7 +43,7 @@ else
 fi
 
 
-echo "Run GoShimmer network with ${DOCKER_COMPOSE_FILE}"
+echo "Run ZIPP network with ${DOCKER_COMPOSE_FILE}"
 # ZIPP_PEER_REPLICAS is used in docker-compose.yml to determine how many replicas to create
 export ZIPP_PEER_REPLICAS=$REPLICAS
 # Profiles is created to set which docker profiles to run

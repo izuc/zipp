@@ -2,7 +2,7 @@
   "name": "zipp-dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "GoShimmer Dashboard",
+  "description": "ZIPP Dashboard",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

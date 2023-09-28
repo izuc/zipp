@@ -777,7 +777,7 @@ func boolToEnable(b bool) string {
 }
 
 func validateURL(url string) (ok bool) {
-	clt := client.NewGoShimmerAPI(url)
+	clt := client.NewZIPPAPI(url)
 	_, err := clt.Info()
 	if err != nil {
 		return

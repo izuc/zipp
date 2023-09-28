@@ -34,7 +34,7 @@ func TestOrphanageTSC(t *testing.T) {
 			Activity:    true,
 			Autopeering: false,
 			Snapshot:    snapshotOptions,
-		}, tests.CommonSnapshotConfigFunc(t, snapshotInfo, func(peerIndex int, isPeerMaster bool, conf config.GoShimmer) config.GoShimmer {
+		}, tests.CommonSnapshotConfigFunc(t, snapshotInfo, func(peerIndex int, isPeerMaster bool, conf config.ZIPP) config.ZIPP {
 			conf.UseNodeSeedAsWalletSeed = true
 			conf.TimeSinceConfirmationThreshold = tscThreshold
 			conf.ValidatorActivityWindow = 10 * time.Minute

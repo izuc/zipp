@@ -16,7 +16,7 @@ const PluginName = "CLI"
 var (
 	// Plugin is the plugin instance of the CLI plugin.
 	Plugin  *node.Plugin
-	version = flag.BoolP("version", "v", false, "Prints the GoShimmer version")
+	version = flag.BoolP("version", "v", false, "Prints the ZIPP version")
 )
 
 func init() {

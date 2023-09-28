@@ -1,4 +1,4 @@
-name: Test GoShimmer
+name: Test ZIPP
 
 on:
   pull_request:

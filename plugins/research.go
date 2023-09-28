@@ -7,7 +7,7 @@ import (
 	"github.com/izuc/zipp/plugins/remotemetrics"
 )
 
-// Research contains research plugins of a GoShimmer node.
+// Research contains research plugins of a ZIPP node.
 var Research = node.Plugins(
 	remotelog.Plugin,
 	remotemetrics.Plugin,

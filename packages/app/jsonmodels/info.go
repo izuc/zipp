@@ -6,7 +6,7 @@ import (
 
 // InfoResponse holds the response of the GET request.
 type InfoResponse struct {
-	// version of GoShimmer
+	// version of ZIPP
 	Version string `json:"version,omitempty"`
 	// Network Version of the autopeering
 	NetworkVersion uint32 `json:"networkVersion,omitempty"`

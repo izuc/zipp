@@ -24,7 +24,7 @@ var (
 )
 
 // BroadcastFaucetRequest requests funds from faucet nodes by sending a faucet request payload block.
-func (api *GoShimmerAPI) BroadcastFaucetRequest(base58EncodedAddr string, powTarget int, pledgeIDs ...string) (*jsonmodels.FaucetRequestResponse, error) {
+func (api *ZIPPAPI) BroadcastFaucetRequest(base58EncodedAddr string, powTarget int, pledgeIDs ...string) (*jsonmodels.FaucetRequestResponse, error) {
 	var aManaPledgeID identity.ID
 	var cManaPledgeID identity.ID
 	if len(pledgeIDs) > 1 {
@@ -63,7 +63,7 @@ func (api *GoShimmerAPI) BroadcastFaucetRequest(base58EncodedAddr string, powTar
 }
 
 // SendFaucetRequestAPI requests funds from faucet nodes by sending a faucet request directly to the faucet node.
-func (api *GoShimmerAPI) SendFaucetRequestAPI(base58EncodedAddr string, powTarget int, accessPledgeID, consensusPledgeID string) (*jsonmodels.FaucetAPIResponse, error) {
+func (api *ZIPPAPI) SendFaucetRequestAPI(base58EncodedAddr string, powTarget int, accessPledgeID, consensusPledgeID string) (*jsonmodels.FaucetAPIResponse, error) {
 	var aManaPledgeID identity.ID
 	var cManaPledgeID identity.ID
 	if accessPledgeID == "" && consensusPledgeID == "" {

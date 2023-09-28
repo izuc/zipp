@@ -13,7 +13,7 @@ const (
 
 // GetAutopeeringNeighbors gets the chosen/accepted neighbors.
 // If knownPeers is set, also all known peers to the node are returned additionally.
-func (api *GoShimmerAPI) GetAutopeeringNeighbors(knownPeers bool) (*jsonmodels.GetNeighborsResponse, error) {
+func (api *ZIPPAPI) GetAutopeeringNeighbors(knownPeers bool) (*jsonmodels.GetNeighborsResponse, error) {
 	res := &jsonmodels.GetNeighborsResponse{}
 	if err := api.do(http.MethodGet, func() string {
 		if !knownPeers {

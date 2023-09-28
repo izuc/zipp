@@ -1,5 +1,5 @@
 [Unit]
-Description=Dump Goshimmer Snapshots
+Description=Dump ZIPP Snapshots
 
 [Service]
 Type=oneshot

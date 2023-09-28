@@ -36,7 +36,7 @@ func configure(_ *node.Plugin) {
 }
 
 func run(_ *node.Plugin) {
-	api := client.NewGoShimmerAPI(Parameters.FaucetAPI)
+	api := client.NewZIPPAPI(Parameters.FaucetAPI)
 	pledgeAddress := Parameters.Address
 	if pledgeAddress == "" {
 		pledgeAddress = seed.NewSeed(lo.PanicOnErr(deps.Local.PublicKey().Bytes())).Address(0).Base58()

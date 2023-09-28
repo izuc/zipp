@@ -16,7 +16,7 @@ const (
 )
 
 // GetBlock is the handler for the /blocks/:blockID endpoint.
-func (api *GoShimmerAPI) GetBlock(base58EncodedID string) (*jsonmodels.Block, error) {
+func (api *ZIPPAPI) GetBlock(base58EncodedID string) (*jsonmodels.Block, error) {
 	res := &jsonmodels.Block{}
 
 	if err := api.do(
@@ -32,7 +32,7 @@ func (api *GoShimmerAPI) GetBlock(base58EncodedID string) (*jsonmodels.Block, er
 }
 
 // GetBlockMetadata is the handler for the /blocks/:blockID/metadata endpoint.
-func (api *GoShimmerAPI) GetBlockMetadata(base58EncodedID string) (*retainer.BlockMetadata, error) {
+func (api *ZIPPAPI) GetBlockMetadata(base58EncodedID string) (*retainer.BlockMetadata, error) {
 	res := retainer.NewBlockMetadata()
 
 	if err := api.do(
@@ -50,7 +50,7 @@ func (api *GoShimmerAPI) GetBlockMetadata(base58EncodedID string) (*retainer.Blo
 }
 
 // SendPayload send a block with the given payload.
-func (api *GoShimmerAPI) SendPayload(payload []byte) (string, error) {
+func (api *ZIPPAPI) SendPayload(payload []byte) (string, error) {
 	res := &jsonmodels.PostPayloadResponse{}
 	if err := api.do(http.MethodPost, routeSendPayload,
 		&jsonmodels.PostPayloadRequest{Payload: payload}, res); err != nil {
@@ -61,7 +61,7 @@ func (api *GoShimmerAPI) SendPayload(payload []byte) (string, error) {
 }
 
 // SendBlock sends a block provided in form of bytes.
-func (api *GoShimmerAPI) SendBlock(blockBytes []byte) (string, error) {
+func (api *ZIPPAPI) SendBlock(blockBytes []byte) (string, error) {
 	res := &jsonmodels.PostBlockResponse{}
 	if err := api.do(http.MethodPost, routeSendBlock,
 		&jsonmodels.PostBlockRequest{BlockBytes: blockBytes}, res); err != nil {
@@ -71,7 +71,7 @@ func (api *GoShimmerAPI) SendBlock(blockBytes []byte) (string, error) {
 }
 
 // GetReferences returns the parent references selected by the node for a given payload.
-func (api *GoShimmerAPI) GetReferences(payload []byte, parentsCount int) (resp *jsonmodels.GetReferencesResponse, err error) {
+func (api *ZIPPAPI) GetReferences(payload []byte, parentsCount int) (resp *jsonmodels.GetReferencesResponse, err error) {
 	res := &jsonmodels.GetReferencesResponse{}
 	if err := api.do(http.MethodGet, routeGetReferences,
 		&jsonmodels.GetReferencesRequest{

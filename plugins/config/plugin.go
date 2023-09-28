@@ -38,7 +38,7 @@ func init() {
 				// we wanted a config file but it was not present
 				// global logger instance is not initialized at this stage...
 				fmt.Println(err.Error())
-				fmt.Println("no config file present, terminating GoShimmer. please use the provided config.default.json to create a config.json.")
+				fmt.Println("no config file present, terminating ZIPP. please use the provided config.default.json to create a config.json.")
 				// daemon is not running yet, so we just exit
 				os.Exit(1)
 			}

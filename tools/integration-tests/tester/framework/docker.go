@@ -62,8 +62,8 @@ func NewDockerContainerFromExisting(ctx context.Context, c *client.Client, name 
 	return nil, errors.Errorf("could not find container with name '%s'", name)
 }
 
-// CreateNode creates a new GoShimmer container.
-func (d *DockerContainer) CreateNode(ctx context.Context, conf config.GoShimmer) error {
+// CreateNode creates a new ZIPP container.
+func (d *DockerContainer) CreateNode(ctx context.Context, conf config.ZIPP) error {
 	cmd := strslice.StrSlice{
 		"--skip-config=true",
 		"--logger.level=debug",
@@ -74,7 +74,7 @@ func (d *DockerContainer) CreateNode(ctx context.Context, conf config.GoShimmer)
 		return errors.New("docker image must be provided as part of the configuration")
 	}
 
-	// configure GoShimmer container instance
+	// configure ZIPP container instance
 	containerConfig := &container.Config{
 		Image: conf.Image,
 		ExposedPorts: nat.PortSet{
@@ -93,7 +93,7 @@ func (d *DockerContainer) CreateNode(ctx context.Context, conf config.GoShimmer)
 	})
 }
 
-func (d *DockerContainer) createSocatContainer(ctx context.Context, name string, targetContainer string, portMapping map[int]config.GoShimmerPort) error {
+func (d *DockerContainer) createSocatContainer(ctx context.Context, name string, targetContainer string, portMapping map[int]config.ZIPPPort) error {
 	// create host configs
 	portBindings := make(nat.PortMap, len(portMapping))
 	exposedPorts := make(nat.PortSet, len(portMapping))

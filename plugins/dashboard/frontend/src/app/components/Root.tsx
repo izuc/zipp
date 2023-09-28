@@ -49,7 +49,7 @@ export class Root extends React.Component<Props, any> {
         return (
             <div className="container">
                 <Navbar expand="lg" bg="light" variant="light" className={"mb-4"}>
-                    <Navbar.Brand>GoShimmer</Navbar.Brand>
+                    <Navbar.Brand>ZIPP</Navbar.Brand>
                     <Nav className="mr-auto">
                         <LinkContainer to="/dashboard">
                             <Nav.Link>Dashboard</Nav.Link>

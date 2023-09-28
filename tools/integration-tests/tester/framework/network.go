@@ -23,7 +23,7 @@ import (
 	"github.com/izuc/zipp/tools/integration-tests/tester/framework/config"
 )
 
-// Network represents a complete GoShimmer network within Docker.
+// Network represents a complete ZIPP network within Docker.
 // Including an entry node and arbitrary many peers.
 type Network struct {
 	Id   string
@@ -68,9 +68,9 @@ func (n *Network) Peers() []*Node {
 	return peersCopy
 }
 
-// CreatePeer creates and returns a new GoShimmer peer.
+// CreatePeer creates and returns a new ZIPP peer.
 // It blocks until this peer has started.
-func (n *Network) CreatePeer(ctx context.Context, conf config.GoShimmer) (*Node, error) {
+func (n *Network) CreatePeer(ctx context.Context, conf config.ZIPP) (*Node, error) {
 	name := n.namePrefix(fmt.Sprintf("%s%d", containerNameReplica, len(n.peers)))
 	peer, err := n.createNode(ctx, name, conf)
 	if err != nil {
@@ -303,7 +303,7 @@ func (n *Network) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (n *Network) createNode(ctx context.Context, name string, conf config.GoShimmer) (*Node, error) {
+func (n *Network) createNode(ctx context.Context, name string, conf config.ZIPP) (*Node, error) {
 	conf.Name = name
 
 	nodeID, err := conf.CreateIdentity()
@@ -342,8 +342,8 @@ func (n *Network) createSocatContainer(ctx context.Context, targetNode *Node, co
 
 	container := NewDockerContainer(n.docker)
 
-	portMapping := make(map[int]config.GoShimmerPort, len(config.GoShimmerPorts))
-	for _, port := range config.GoShimmerPorts {
+	portMapping := make(map[int]config.ZIPPPort, len(config.ZIPPPorts))
+	for _, port := range config.ZIPPPorts {
 		portMapping[int(port)+offset] = port
 	}
 

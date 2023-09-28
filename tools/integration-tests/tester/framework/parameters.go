@@ -55,9 +55,9 @@ type CreateNetworkConfig struct {
 	Snapshot []options.Option[snapshotcreator.Options]
 }
 
-// PeerConfig specifies the default config of a standard GoShimmer peer.
-func PeerConfig() config.GoShimmer {
-	c := config.NewGoShimmer()
+// PeerConfig specifies the default config of a standard ZIPP peer.
+func PeerConfig() config.ZIPP {
+	c := config.NewZIPP()
 
 	c.Image = "izuc/zipp"
 
@@ -103,8 +103,8 @@ func PeerConfig() config.GoShimmer {
 	return c
 }
 
-// EntryNodeConfig specifies the default config of a standard GoShimmer entry node.
-func EntryNodeConfig() config.GoShimmer {
+// EntryNodeConfig specifies the default config of a standard ZIPP entry node.
+func EntryNodeConfig() config.ZIPP {
 	c := PeerConfig()
 
 	c.DisabledPlugins = append(c.DisabledPlugins, "Metrics", "DashboardMetrics",

@@ -1,5 +1,5 @@
 [Unit]
-Description=Run Goshimmer DB dump every day at midnight
+Description=Run ZIPP DB dump every day at midnight
 
 [Timer]
 OnCalendar=*-*-* 00:00:00 UTC

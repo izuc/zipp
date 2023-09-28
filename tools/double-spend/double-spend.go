@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	clients := make([]*client.GoShimmerAPI, 2)
+	clients := make([]*client.ZIPPAPI, 2)
 
 	node1APIURL := "http://127.0.0.1:8080"
 	node2APIURL := "http://127.0.0.1:8090"
@@ -26,8 +26,8 @@ func main() {
 		return
 	}
 
-	clients[0] = client.NewGoShimmerAPI(node1APIURL, client.WithHTTPClient(http.Client{Timeout: 60 * time.Second}))
-	clients[1] = client.NewGoShimmerAPI(node2APIURL, client.WithHTTPClient(http.Client{Timeout: 60 * time.Second}))
+	clients[0] = client.NewZIPPAPI(node1APIURL, client.WithHTTPClient(http.Client{Timeout: 60 * time.Second}))
+	clients[1] = client.NewZIPPAPI(node2APIURL, client.WithHTTPClient(http.Client{Timeout: 60 * time.Second}))
 
 	mySeed := walletseed.NewSeed()
 	myAddr := mySeed.Address(0)

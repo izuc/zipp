@@ -1,7 +1,7 @@
 # Documentation at http://goreleaser.com
 
 # Project name
-project_name: GoShimmer
+project_name: ZIPP
 
 # Environment variables
 env:

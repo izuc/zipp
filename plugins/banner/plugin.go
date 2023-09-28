@@ -15,29 +15,28 @@ var (
 	Plugin = node.NewPlugin(PluginName, nil, node.Enabled, configure, run)
 
 	// AppVersion version number
-	AppVersion = "v0.9.8"
+	AppVersion = "v0.1.0"
 	// SimplifiedAppVersion is the version number without commit hash
 	SimplifiedAppVersion = simplifiedVersion(AppVersion)
 )
 
 const (
 	// AppName app code name
-	AppName = "GoShimmer"
+	AppName = "ZIPP"
 )
 
 func configure(ctx *node.Plugin) {
 	fmt.Printf(`
-   _____  ____   _____ _    _ _____ __  __ __  __ ______ _____  
-  / ____|/ __ \ / ____| |  | |_   _|  \/  |  \/  |  ____|  __ \ 
- | |  __| |  | | (___ | |__| | | | | \  / | \  / | |__  | |__) |
- | | |_ | |  | |\___ \|  __  | | | | |\/| | |\/| |  __| |  _  / 
- | |__| | |__| |____) | |  | |_| |_| |  | | |  | | |____| | \ \ 
-  \_____|\____/|_____/|_|  |_|_____|_|  |_|_|  |_|______|_|  \_\
+	____  _  ____  ____ 
+	/_   \/ \/  __\/  __\
+	 /   /| ||  \/||  \/|
+	/   /_| ||  __/|  __/
+	\____/\_/\_/   \_/   						 	
                              %s                                     
 `, AppVersion)
 	fmt.Println()
 
-	ctx.Node.Logger.Infof("GoShimmer version %s ...", AppVersion)
+	ctx.Node.Logger.Infof("ZIPP version %s ...", AppVersion)
 	ctx.Node.Logger.Info("Loading plugins ...")
 }
 

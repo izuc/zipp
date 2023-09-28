@@ -27,7 +27,7 @@ type Connector interface {
 	Clients(...bool) []Client
 	// GetClients returns the numOfClt client instances that were used the longest time ago.
 	GetClients(numOfClt int) []Client
-	// AddClient adds client to WebClients based on provided GoShimmerAPI url.
+	// AddClient adds client to WebClients based on provided ZIPPAPI url.
 	AddClient(url string, setters ...client.Option)
 	// RemoveClient removes client with the provided url from the WebClients.
 	RemoveClient(url string)
@@ -37,7 +37,7 @@ type Connector interface {
 	PledgeID() *identity.ID
 }
 
-// WebClients is responsible for handling connections via GoShimmerAPI.
+// WebClients is responsible for handling connections via ZIPPAPI.
 type WebClients struct {
 	clients []*WebClient
 	urls    []string
@@ -50,7 +50,7 @@ type WebClients struct {
 	mu sync.Mutex
 }
 
-// NewWebClients creates Connector from provided GoShimmerAPI urls.
+// NewWebClients creates Connector from provided ZIPPAPI urls.
 func NewWebClients(urls []string, setters ...client.Option) *WebClients {
 	clients := make([]*WebClient, len(urls))
 	for i, url := range urls {
@@ -127,7 +127,7 @@ func (c *WebClients) GetClient() Client {
 	return c.getClient()
 }
 
-// AddClient adds client to WebClients based on provided GoShimmerAPI url.
+// AddClient adds client to WebClients based on provided ZIPPAPI url.
 func (c *WebClients) AddClient(url string, setters ...client.Option) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -211,9 +211,9 @@ type Client interface {
 	GetTimeProvider() (time.Time, time.Duration, error)
 }
 
-// WebClient contains a GoShimmer web API to interact with a node.
+// WebClient contains a ZIPP web API to interact with a node.
 type WebClient struct {
-	api *client.GoShimmerAPI
+	api *client.ZIPPAPI
 	url string
 }
 
@@ -222,10 +222,10 @@ func (c *WebClient) URL() string {
 	return c.url
 }
 
-// NewWebClient creates Connector from provided GoShimmerAPI urls.
+// NewWebClient creates Connector from provided ZIPPAPI urls.
 func NewWebClient(url string, setters ...client.Option) *WebClient {
 	return &WebClient{
-		api: client.NewGoShimmerAPI(url, setters...),
+		api: client.NewZIPPAPI(url, setters...),
 		url: url,
 	}
 }

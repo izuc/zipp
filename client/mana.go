@@ -21,7 +21,7 @@ const (
 )
 
 // GetOwnMana returns the access and consensus mana of the issuer this api client is communicating with.
-func (api *GoShimmerAPI) GetOwnMana() (*jsonmodels.GetManaResponse, error) {
+func (api *ZIPPAPI) GetOwnMana() (*jsonmodels.GetManaResponse, error) {
 	res := &jsonmodels.GetManaResponse{}
 	if err := api.do(http.MethodGet, routeGetMana,
 		&jsonmodels.GetManaRequest{IssuerID: ""}, res); err != nil {
@@ -32,7 +32,7 @@ func (api *GoShimmerAPI) GetOwnMana() (*jsonmodels.GetManaResponse, error) {
 
 // GetManaFullIssuerID returns the access and consensus mana of the issuer specified in the argument.
 // Note, that for the issuer to understand which issuerID we are referring to, short issuer ID is not sufficient.
-func (api *GoShimmerAPI) GetManaFullIssuerID(fullIssuerID string) (*jsonmodels.GetManaResponse, error) {
+func (api *ZIPPAPI) GetManaFullIssuerID(fullIssuerID string) (*jsonmodels.GetManaResponse, error) {
 	res := &jsonmodels.GetManaResponse{}
 	if err := api.do(http.MethodGet, routeGetMana,
 		&jsonmodels.GetManaRequest{IssuerID: fullIssuerID}, res); err != nil {
@@ -42,7 +42,7 @@ func (api *GoShimmerAPI) GetManaFullIssuerID(fullIssuerID string) (*jsonmodels.G
 }
 
 // GetMana returns the access and consensus mana a issuer has based on its shortIssuerID.
-func (api *GoShimmerAPI) GetMana(shortIssuerID string) (*jsonmodels.GetManaResponse, error) {
+func (api *ZIPPAPI) GetMana(shortIssuerID string) (*jsonmodels.GetManaResponse, error) {
 	// ask the issuer about the full mana map and filter out based on shortID
 	allManaRes := &jsonmodels.GetAllManaResponse{}
 	if err := api.do(http.MethodGet, routeGetAllMana,
@@ -67,7 +67,7 @@ func (api *GoShimmerAPI) GetMana(shortIssuerID string) (*jsonmodels.GetManaRespo
 }
 
 // GetAllMana returns the mana perception of the issuer in the network.
-func (api *GoShimmerAPI) GetAllMana() (*jsonmodels.GetAllManaResponse, error) {
+func (api *ZIPPAPI) GetAllMana() (*jsonmodels.GetAllManaResponse, error) {
 	res := &jsonmodels.GetAllManaResponse{}
 	if err := api.do(http.MethodGet, routeGetAllMana,
 		nil, res); err != nil {
@@ -77,7 +77,7 @@ func (api *GoShimmerAPI) GetAllMana() (*jsonmodels.GetAllManaResponse, error) {
 }
 
 // GetManaPercentile returns the mana percentile for access and consensus mana of a issuer.
-func (api *GoShimmerAPI) GetManaPercentile(fullIssuerID string) (*jsonmodels.GetPercentileResponse, error) {
+func (api *ZIPPAPI) GetManaPercentile(fullIssuerID string) (*jsonmodels.GetPercentileResponse, error) {
 	res := &jsonmodels.GetPercentileResponse{}
 	if err := api.do(http.MethodGet, routeGetManaPercentile,
 		&jsonmodels.GetPercentileRequest{IssuerID: fullIssuerID}, res); err != nil {
@@ -87,7 +87,7 @@ func (api *GoShimmerAPI) GetManaPercentile(fullIssuerID string) (*jsonmodels.Get
 }
 
 // GetOnlineAccessMana returns the sorted list of online access mana of issuers.
-func (api *GoShimmerAPI) GetOnlineAccessMana() (*jsonmodels.GetOnlineResponse, error) {
+func (api *ZIPPAPI) GetOnlineAccessMana() (*jsonmodels.GetOnlineResponse, error) {
 	res := &jsonmodels.GetOnlineResponse{}
 	if err := api.do(http.MethodGet, routeGetOnlineAccessMana,
 		nil, res); err != nil {
@@ -97,7 +97,7 @@ func (api *GoShimmerAPI) GetOnlineAccessMana() (*jsonmodels.GetOnlineResponse, e
 }
 
 // GetOnlineConsensusMana returns the sorted list of online consensus mana of issuers.
-func (api *GoShimmerAPI) GetOnlineConsensusMana() (*jsonmodels.GetOnlineResponse, error) {
+func (api *ZIPPAPI) GetOnlineConsensusMana() (*jsonmodels.GetOnlineResponse, error) {
 	res := &jsonmodels.GetOnlineResponse{}
 	if err := api.do(http.MethodGet, routeGetOnlineConsensusMana,
 		nil, res); err != nil {
@@ -107,7 +107,7 @@ func (api *GoShimmerAPI) GetOnlineConsensusMana() (*jsonmodels.GetOnlineResponse
 }
 
 // GetNHighestAccessMana returns the N highest access mana holders in the network, sorted in descending order.
-func (api *GoShimmerAPI) GetNHighestAccessMana(n int) (*jsonmodels.GetNHighestResponse, error) {
+func (api *ZIPPAPI) GetNHighestAccessMana(n int) (*jsonmodels.GetNHighestResponse, error) {
 	res := &jsonmodels.GetNHighestResponse{}
 	if err := api.do(http.MethodGet, func() string {
 		return fmt.Sprintf("%s?number=%d", routeGetNHighestAccessMana, n)
@@ -118,7 +118,7 @@ func (api *GoShimmerAPI) GetNHighestAccessMana(n int) (*jsonmodels.GetNHighestRe
 }
 
 // GetNHighestConsensusMana returns the N highest consensus mana holders in the network, sorted in descending order.
-func (api *GoShimmerAPI) GetNHighestConsensusMana(n int) (*jsonmodels.GetNHighestResponse, error) {
+func (api *ZIPPAPI) GetNHighestConsensusMana(n int) (*jsonmodels.GetNHighestResponse, error) {
 	res := &jsonmodels.GetNHighestResponse{}
 	if err := api.do(http.MethodGet, func() string {
 		return fmt.Sprintf("%s?number=%d", routeGetNHighestConsensusMana, n)
@@ -129,7 +129,7 @@ func (api *GoShimmerAPI) GetNHighestConsensusMana(n int) (*jsonmodels.GetNHighes
 }
 
 // GetConsensusEventLogs returns the consensus event logs or the issuerIDs specified.
-func (api *GoShimmerAPI) GetConsensusEventLogs(issuerIDs []string) (*jsonmodels.GetEventLogsResponse, error) {
+func (api *ZIPPAPI) GetConsensusEventLogs(issuerIDs []string) (*jsonmodels.GetEventLogsResponse, error) {
 	res := &jsonmodels.GetEventLogsResponse{}
 	if err := api.do(http.MethodGet, routePastConsensusEventLogs,
 		&jsonmodels.GetEventLogsRequest{IssuerIDs: issuerIDs}, res); err != nil {
@@ -139,7 +139,7 @@ func (api *GoShimmerAPI) GetConsensusEventLogs(issuerIDs []string) (*jsonmodels.
 }
 
 // GetAllowedManaPledgeIssuerIDs returns the list of allowed mana pledge IDs.
-func (api *GoShimmerAPI) GetAllowedManaPledgeIssuerIDs() (*jsonmodels.AllowedManaPledgeResponse, error) {
+func (api *ZIPPAPI) GetAllowedManaPledgeIssuerIDs() (*jsonmodels.AllowedManaPledgeResponse, error) {
 	res := &jsonmodels.AllowedManaPledgeResponse{}
 	if err := api.do(http.MethodGet, routeAllowedPledgeIssuerIDs, nil, res); err != nil {
 		return nil, err

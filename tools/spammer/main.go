@@ -44,9 +44,9 @@ func main() {
 	imif := viper.GetString(cfgImif)
 	unit := viper.GetString(cfgUnit)
 
-	var apis []*client.GoShimmerAPI
+	var apis []*client.ZIPPAPI
 	for _, api := range viper.GetStringSlice(cfgNodeURI) {
-		apis = append(apis, client.NewGoShimmerAPI(api))
+		apis = append(apis, client.NewZIPPAPI(api))
 	}
 
 	for _, api := range apis {

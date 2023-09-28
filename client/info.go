@@ -11,7 +11,7 @@ const (
 )
 
 // Info gets the info of the node.
-func (api *GoShimmerAPI) Info() (*jsonmodels.InfoResponse, error) {
+func (api *ZIPPAPI) Info() (*jsonmodels.InfoResponse, error) {
 	res := &jsonmodels.InfoResponse{}
 	if err := api.do(http.MethodGet, routeInfo, nil, res); err != nil {
 		return nil, err

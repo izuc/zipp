@@ -3,7 +3,7 @@ version: '3.3'
 networks:
   outside:
     external:
-      name: shimmer
+      name: zipp
 
 services:
   zipp:

@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.2.1
 
-# If true, start Delve and attach to Goshimmer Go binary.
+# If true, start Delve and attach to ZIPP Go binary.
 # Must be defined above all build stages to work in build stage conditions.
 ARG REMOTE_DEBUGGING=0
 

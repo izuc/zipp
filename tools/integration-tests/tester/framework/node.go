@@ -18,15 +18,15 @@ import (
 // Nodes is a slice of Node(s).
 type Nodes = []*Node
 
-// Node represents a GoShimmer node inside the Docker network
+// Node represents a ZIPP node inside the Docker network
 type Node struct {
-	conf config.GoShimmer
+	conf config.ZIPP
 
-	// GoShimmer identity
+	// ZIPP identity
 	*identity.Identity
 
 	// Web API of this peer
-	*client.GoShimmerAPI
+	*client.ZIPPAPI
 
 	// the DockerContainer that this peer is running in
 	*DockerContainer
@@ -37,18 +37,18 @@ type Node struct {
 
 // NewNode creates a new instance of Node with the given information.
 // dockerContainer needs to be started in order to determine the container's (and therefore peer's) IP correctly.
-func NewNode(conf config.GoShimmer, id *identity.Identity, dockerContainer *DockerContainer, seed *walletseed.Seed) *Node {
+func NewNode(conf config.ZIPP, id *identity.Identity, dockerContainer *DockerContainer, seed *walletseed.Seed) *Node {
 	return &Node{
 		conf:            conf,
 		Identity:        id,
-		GoShimmerAPI:    client.NewGoShimmerAPI(getWebAPIBaseURL(conf.Name), client.WithHTTPClient(http.Client{Timeout: 15 * time.Second})),
+		ZIPPAPI:         client.NewZIPPAPI(getWebAPIBaseURL(conf.Name), client.WithHTTPClient(http.Client{Timeout: 15 * time.Second})),
 		DockerContainer: dockerContainer,
 		Seed:            seed,
 	}
 }
 
 func (n *Node) String() string {
-	return fmt.Sprintf("GoShimmer:{%s}", n.Name())
+	return fmt.Sprintf("ZIPP:{%s}", n.Name())
 }
 
 // Name returns the name of the node.
@@ -57,7 +57,7 @@ func (n *Node) Name() string {
 }
 
 // Config returns the configuration of the node.
-func (n *Node) Config() config.GoShimmer {
+func (n *Node) Config() config.ZIPP {
 	return n.conf
 }
 

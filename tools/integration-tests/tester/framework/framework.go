@@ -1,4 +1,4 @@
-// Package framework provides integration test functionality for GoShimmer with a Docker network.
+// Package framework provides integration test functionality for ZIPP with a Docker network.
 // It effectively abstracts away all complexity with creating a custom Docker network per test,
 // discovering peers, waiting for them to autopeer and offers easy access to the peers' web API and logs.
 package framework
@@ -65,7 +65,7 @@ func newFramework(ctx context.Context) (*Framework, error) {
 
 // CfgAlterFunc is a function that alters the configuration for a given peer. To identify the peer the function gets
 // called with the peer's index and its the master peer status. It should returned an updated config for the peer.
-type CfgAlterFunc func(peerIndex int, isPeerMaster bool, cfg config.GoShimmer) config.GoShimmer
+type CfgAlterFunc func(peerIndex int, isPeerMaster bool, cfg config.ZIPP) config.ZIPP
 
 // SnapshotInfo stores the details about snapshots created for integration tests
 type SnapshotInfo struct {
@@ -81,7 +81,7 @@ type SnapshotInfo struct {
 	PeersAmountsPledged []uint64
 }
 
-// CreateNetwork creates and returns a network that contains numPeers GoShimmer peers.
+// CreateNetwork creates and returns a network that contains numPeers ZIPP peers.
 // It blocks until all peers are connected.
 func (f *Framework) CreateNetwork(ctx context.Context, name string, numPeers int, conf CreateNetworkConfig, cfgAlterFunc ...CfgAlterFunc) (*Network, error) {
 	network, err := f.CreateNetworkNoAutomaticManualPeering(ctx, name, numPeers, conf, cfgAlterFunc...)
@@ -160,7 +160,7 @@ func createSnapshot(snapshotInfo []options.Option[snapshotcreator.Options], star
 	return nil
 }
 
-// CreateNetworkWithPartitions creates and returns a network that contains numPeers GoShimmer nodes
+// CreateNetworkWithPartitions creates and returns a network that contains numPeers ZIPP nodes
 // distributed over numPartitions partitions. It blocks until all peers are connected.
 func (f *Framework) CreateNetworkWithPartitions(ctx context.Context, name string, numPeers, numPartitions int, conf CreateNetworkConfig, cfgAlterFunc ...CfgAlterFunc) (*Network, error) {
 	network, err := NewNetwork(ctx, f.docker, name, f.tester)

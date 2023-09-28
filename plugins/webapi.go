@@ -20,7 +20,7 @@ import (
 	"github.com/izuc/zipp/plugins/webapi/weightprovider"
 )
 
-// WebAPI contains the webapi endpoint plugins of a GoShimmer node.
+// WebAPI contains the webapi endpoint plugins of a ZIPP node.
 var WebAPI = node.Plugins(
 	webapi.Plugin,
 	data.Plugin,

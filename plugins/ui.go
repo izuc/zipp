@@ -6,7 +6,7 @@ import (
 	"github.com/izuc/zipp/plugins/dashboard"
 )
 
-// UI contains the user interface plugins of a GoShimmer node.
+// UI contains the user interface plugins of a ZIPP node.
 var UI = node.Plugins(
 	dagsvisualizer.Plugin,
 	dashboard.Plugin,

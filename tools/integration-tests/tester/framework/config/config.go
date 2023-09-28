@@ -19,9 +19,9 @@ import (
 	"github.com/izuc/zipp/plugins/webapi"
 )
 
-// GoShimmer defines the config of a GoShimmer node.
-type GoShimmer struct {
-	// Name specifies the GoShimmer instance.
+// ZIPP defines the config of a ZIPP node.
+type ZIPP struct {
+	// Name specifies the ZIPP instance.
 	Name string
 	// Image specifies the docker image for the instance
 	Image string
@@ -51,9 +51,9 @@ type GoShimmer struct {
 	Notarization
 }
 
-// NewGoShimmer creates a GoShimmer config initialized with default values.
-func NewGoShimmer() (config GoShimmer) {
-	config = GoShimmer{}
+// NewZIPP creates a ZIPP config initialized with default values.
+func NewZIPP() (config ZIPP) {
+	config = ZIPP{}
 	fillStructFromDefaultTag(reflect.ValueOf(&config).Elem())
 	return
 }
@@ -156,7 +156,7 @@ type Notarization struct {
 
 // CreateIdentity returns an identity based on the config.
 // If a Seed is specified, it is used to derive the identity. Otherwise a new key pair is generated and Seed set accordingly.
-func (s *GoShimmer) CreateIdentity() (*identity.Identity, error) {
+func (s *ZIPP) CreateIdentity() (*identity.Identity, error) {
 	if s.Seed != nil {
 		publicKey := ed25519.PrivateKeyFromSeed(s.Seed).Public()
 		return identity.New(publicKey), nil

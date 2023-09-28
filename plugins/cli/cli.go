@@ -37,7 +37,7 @@ func printUsage() {
 	fmt.Fprintf(
 		os.Stderr,
 		"\n"+
-			"GoShimmer\n\n"+
+			"ZIPP\n\n"+
 			"  A lightweight modular ZIPP node.\n\n"+
 			"Usage:\n\n"+
 			"  %s [OPTIONS]\n\n"+

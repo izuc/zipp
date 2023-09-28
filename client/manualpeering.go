@@ -15,7 +15,7 @@ const (
 )
 
 // AddManualPeers adds the provided list of peers to the manual peering layer.
-func (api *GoShimmerAPI) AddManualPeers(peers []*manualpeering.KnownPeerToAdd) error {
+func (api *ZIPPAPI) AddManualPeers(peers []*manualpeering.KnownPeerToAdd) error {
 	if err := api.do(http.MethodPost, routeManualPeers, peers, nil); err != nil {
 		return errors.Wrap(err, "failed to add manual peers via the HTTP API")
 	}
@@ -23,7 +23,7 @@ func (api *GoShimmerAPI) AddManualPeers(peers []*manualpeering.KnownPeerToAdd) e
 }
 
 // RemoveManualPeers remove the provided list of peers from the manual peering layer.
-func (api *GoShimmerAPI) RemoveManualPeers(keys []ed25519.PublicKey) error {
+func (api *ZIPPAPI) RemoveManualPeers(keys []ed25519.PublicKey) error {
 	peersToRemove := make([]*jsonmodels.PeerToRemove, len(keys))
 	for i, key := range keys {
 		peersToRemove[i] = &jsonmodels.PeerToRemove{PublicKey: key}
@@ -35,7 +35,7 @@ func (api *GoShimmerAPI) RemoveManualPeers(keys []ed25519.PublicKey) error {
 }
 
 // GetManualPeers gets the list of connected neighbors from the manual peering layer.
-func (api *GoShimmerAPI) GetManualPeers(opts ...manualpeering.GetPeersOption) (
+func (api *ZIPPAPI) GetManualPeers(opts ...manualpeering.GetPeersOption) (
 	peers []*manualpeering.KnownPeer, err error,
 ) {
 	conf := manualpeering.BuildGetPeersConfig(opts)

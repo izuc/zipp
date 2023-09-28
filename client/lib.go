@@ -1,4 +1,4 @@
-// Package client implements a very simple wrapper for GoShimmer's web API.
+// Package client implements a very simple wrapper for ZIPP's web API.
 package client
 
 import (
@@ -37,7 +37,7 @@ const (
 )
 
 // Option is a function which sets the given option.
-type Option func(*GoShimmerAPI)
+type Option func(*ZIPPAPI)
 
 // BasicAuth defines the basic-auth struct.
 type BasicAuth struct {
@@ -48,7 +48,7 @@ type BasicAuth struct {
 
 // WithBasicAuth returns a new BasicAuth.
 func WithBasicAuth(username, password string) Option {
-	return func(g *GoShimmerAPI) {
+	return func(g *ZIPPAPI) {
 		g.basicAuth = BasicAuth{
 			Enabled:  true,
 			Username: username,
@@ -59,7 +59,7 @@ func WithBasicAuth(username, password string) Option {
 
 // WithHTTPClient sets the http Client.
 func WithHTTPClient(c http.Client) Option {
-	return func(g *GoShimmerAPI) {
+	return func(g *ZIPPAPI) {
 		g.httpClient = c
 	}
 }
@@ -74,9 +74,9 @@ func (b BasicAuth) Credentials() (username, password string) {
 	return b.Username, b.Password
 }
 
-// NewGoShimmerAPI returns a new *GoShimmerAPI with the given baseURL and options.
-func NewGoShimmerAPI(baseURL string, setters ...Option) *GoShimmerAPI {
-	g := &GoShimmerAPI{
+// NewZIPPAPI returns a new *ZIPPAPI with the given baseURL and options.
+func NewZIPPAPI(baseURL string, setters ...Option) *ZIPPAPI {
+	g := &ZIPPAPI{
 		baseURL: baseURL,
 	}
 	for _, setter := range setters {
@@ -85,8 +85,8 @@ func NewGoShimmerAPI(baseURL string, setters ...Option) *GoShimmerAPI {
 	return g
 }
 
-// GoShimmerAPI is an API wrapper over the web API of GoShimmer.
-type GoShimmerAPI struct {
+// ZIPPAPI is an API wrapper over the web API of ZIPP.
+type ZIPPAPI struct {
 	baseURL    string
 	httpClient http.Client
 	basicAuth  BasicAuth
@@ -135,7 +135,7 @@ func interpretBody(res *http.Response, decodeTo interface{}) error {
 	return errors.WithMessage(ErrUnknownError, errRes.Error)
 }
 
-func (api *GoShimmerAPI) do(method string, route string, reqObj interface{}, resObj interface{}) error {
+func (api *ZIPPAPI) do(method string, route string, reqObj interface{}, resObj interface{}) error {
 	// marshal request object
 	var data []byte
 	if reqObj != nil {
@@ -184,6 +184,6 @@ func (api *GoShimmerAPI) do(method string, route string, reqObj interface{}, res
 }
 
 // BaseURL returns the baseURL of the API.
-func (api *GoShimmerAPI) BaseURL() string {
+func (api *ZIPPAPI) BaseURL() string {
 	return api.baseURL
 }

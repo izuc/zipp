@@ -9,8 +9,8 @@ import (
 	"github.com/mr-tron/base58"
 )
 
-// CreateFlags converts a GoShimmer config into the corresponding command line flags.
-func (s GoShimmer) CreateFlags() []string {
+// CreateFlags converts a ZIPP config into the corresponding command line flags.
+func (s ZIPP) CreateFlags() []string {
 	var (
 		enabledPlugins  = map[string]struct{}{}
 		disabledPlugins = map[string]struct{}{}

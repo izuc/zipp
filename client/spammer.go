@@ -12,7 +12,7 @@ const (
 )
 
 // ToggleSpammer toggles the node internal spammer.
-func (api *GoShimmerAPI) ToggleSpammer(enable bool, rate int, unit, imif string) (*jsonmodels.SpammerResponse, error) {
+func (api *ZIPPAPI) ToggleSpammer(enable bool, rate int, unit, imif string) (*jsonmodels.SpammerResponse, error) {
 	// set default imif in case of incorrect imif value
 	if imif != "poisson" {
 		imif = "uniform"

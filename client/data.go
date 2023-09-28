@@ -12,7 +12,7 @@ const (
 )
 
 // Data sends the given data (payload) by creating a block in the backend.
-func (api *GoShimmerAPI) Data(data []byte, maxWait ...time.Duration) (string, error) {
+func (api *ZIPPAPI) Data(data []byte, maxWait ...time.Duration) (string, error) {
 	res := &jsonmodels.DataResponse{}
 	dataRequest := &jsonmodels.DataRequest{Data: data}
 	if len(maxWait) > 0 {

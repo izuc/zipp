@@ -9,6 +9,6 @@ const (
 )
 
 // HealthCheck checks whether the node is running and healthy.
-func (api *GoShimmerAPI) HealthCheck() error {
+func (api *ZIPPAPI) HealthCheck() error {
 	return api.do(http.MethodGet, routeHealth, nil, nil)
 }

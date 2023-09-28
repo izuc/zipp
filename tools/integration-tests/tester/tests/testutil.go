@@ -89,7 +89,7 @@ func GetIdentSeed(t *testing.T, snapshotOptions *snapshotcreator.Options, peerIn
 // CommonSnapshotConfigFunc returns a peer configuration altering function that uses the specified Snapshot information for all peers.
 // If a cfgFunc is provided, further manipulation of the base config for every peer is possible.
 func CommonSnapshotConfigFunc(t *testing.T, snapshotOptions *snapshotcreator.Options, cfgFunc ...framework.CfgAlterFunc) framework.CfgAlterFunc {
-	return func(peerIndex int, isPeerMaster bool, conf config.GoShimmer) config.GoShimmer {
+	return func(peerIndex int, isPeerMaster bool, conf config.ZIPP) config.ZIPP {
 		conf.Protocol.Snapshot.Path = snapshotOptions.FilePath
 
 		require.Lessf(t, peerIndex, len(snapshotOptions.PeersSeedBase58), "index=%d out of range for peerSeeds=%d", peerIndex, len(snapshotOptions.PeersSeedBase58))

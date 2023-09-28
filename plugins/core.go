@@ -26,7 +26,7 @@ import (
 	"github.com/izuc/zipp/plugins/warpsync"
 )
 
-// Core contains the core plugins of a GoShimmer node.
+// Core contains the core plugins of a ZIPP node.
 var Core = node.Plugins(
 	banner.Plugin,
 	config.Plugin,

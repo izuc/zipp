@@ -14,13 +14,13 @@ import (
 // WebConnector implements a connector that uses the web API to connect to a node to implement the required functions
 // for the wallet.
 type WebConnector struct {
-	client *client.GoShimmerAPI
+	client *client.ZIPPAPI
 }
 
 // NewWebConnector is the constructor for the WebConnector.
 func NewWebConnector(baseURL string, setters ...client.Option) *WebConnector {
 	return &WebConnector{
-		client: client.NewGoShimmerAPI(baseURL, setters...),
+		client: client.NewZIPPAPI(baseURL, setters...),
 	}
 }
 

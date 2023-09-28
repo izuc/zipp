@@ -27,7 +27,7 @@ func TestLowerCamelCase(t *testing.T) {
 }
 
 func TestCreateFlags(t *testing.T) {
-	var config GoShimmer
+	var config ZIPP
 	config.BlockIssuer.Enabled = true
 	config.BlockIssuer.RateSetter.Initial = 10
 	require.Contains(t, config.CreateFlags(), "--blockissuer.rateSetter.initial=10")

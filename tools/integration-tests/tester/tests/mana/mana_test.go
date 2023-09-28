@@ -218,7 +218,7 @@ func TestManaApis(t *testing.T) {
 	// Test /mana/access/online
 	t.Run("mana/*/online access", func(t *testing.T) {
 		// genesis node is not online
-		aResp, err := peers[0].GoShimmerAPI.GetOnlineAccessMana()
+		aResp, err := peers[0].ZIPPAPI.GetOnlineAccessMana()
 		require.NoError(t, err)
 		t.Logf("/mana/access/online %+v", aResp)
 		require.Len(t, aResp.Online, len(n.Peers()))
@@ -282,7 +282,7 @@ func TestManaApis(t *testing.T) {
 
 	// Test /mana/consensus/online
 	t.Run("mana/*/online consensus", func(t *testing.T) {
-		cResp, err := peers[0].GoShimmerAPI.GetOnlineConsensusMana()
+		cResp, err := peers[0].ZIPPAPI.GetOnlineConsensusMana()
 		require.NoError(t, err)
 		t.Logf("/mana/consensus/online %+v", cResp)
 		// the faucet does not have any consensus mana.

@@ -1,5 +1,5 @@
 [Unit]
-Description=Run Goshimmer Snapshot dump every 2 hours
+Description=Run ZIPP Snapshot dump every 2 hours
 
 [Timer]
 OnCalendar=00/2:30 UTC

@@ -119,7 +119,7 @@ func TestConfirmBlock(t *testing.T) {
 	n, err := f.CreateNetwork(ctx, t.Name(), 4, framework.CreateNetworkConfig{
 		StartSynced: false,
 		Snapshot:    snapshotOptions,
-	}, tests.CommonSnapshotConfigFunc(t, snapshotInfo, func(peerIndex int, isPeerMaster bool, conf config.GoShimmer) config.GoShimmer {
+	}, tests.CommonSnapshotConfigFunc(t, snapshotInfo, func(peerIndex int, isPeerMaster bool, conf config.ZIPP) config.ZIPP {
 		conf.UseNodeSeedAsWalletSeed = true
 		return conf
 	}))
@@ -137,7 +137,7 @@ func TestConfirmBlock(t *testing.T) {
 	tests.TryAcceptBlock(t, peers, blockID, 30*time.Second, 100*time.Millisecond)
 }
 
-func createNewPeerConfig(t *testing.T, snapshotOptions []options.Option[snapshotcreator.Options], peerIndex int) config.GoShimmer {
+func createNewPeerConfig(t *testing.T, snapshotOptions []options.Option[snapshotcreator.Options], peerIndex int) config.ZIPP {
 	opt := snapshotcreator.NewOptions(snapshotOptions...)
 
 	seedBytes, err := base58.Decode(opt.PeersSeedBase58[peerIndex])

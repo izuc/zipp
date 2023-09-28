@@ -14,7 +14,7 @@ const (
 	routeLatestConfirmedIndex = "latest-confirmed-index"
 )
 
-func (api *GoShimmerAPI) GetLatestCommittedSlotInfo() (*jsonmodels.SlotInfo, error) {
+func (api *ZIPPAPI) GetLatestCommittedSlotInfo() (*jsonmodels.SlotInfo, error) {
 	res := &jsonmodels.SlotInfo{}
 	if err := api.do(http.MethodGet, routeLatestSlotCommitment, nil, res); err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func (api *GoShimmerAPI) GetLatestCommittedSlotInfo() (*jsonmodels.SlotInfo, err
 	return res, nil
 }
 
-func (api *GoShimmerAPI) GetSlotInfo(epochIndex int) (*jsonmodels.SlotInfo, error) {
+func (api *ZIPPAPI) GetSlotInfo(epochIndex int) (*jsonmodels.SlotInfo, error) {
 	res := &jsonmodels.SlotInfo{}
 	if err := api.do(
 		http.MethodGet,
@@ -35,7 +35,7 @@ func (api *GoShimmerAPI) GetSlotInfo(epochIndex int) (*jsonmodels.SlotInfo, erro
 	return res, nil
 }
 
-func (api *GoShimmerAPI) GetLatestConfirmedIndex() (slot.Index, error) {
+func (api *ZIPPAPI) GetLatestConfirmedIndex() (slot.Index, error) {
 	res := &jsonmodels.LatestConfirmedIndexResponse{}
 	if err := api.do(http.MethodGet, routeLatestConfirmedIndex, nil, res); err != nil {
 		return 0, err
