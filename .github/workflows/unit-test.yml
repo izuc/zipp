@@ -36,7 +36,7 @@ jobs:
         run: go version
 
       - name: Run Tests
-        run: go test ./... -tags rocksdb -count=1 -timeout 10m
+        run: go test ./... -tags badger -count=1 -timeout 10m
 
 
   unit-tests-race:
@@ -68,4 +68,4 @@ jobs:
         run: go version
 
       - name: Run Tests with -race
-        run: go test ./... -tags rocksdb -count=1 -race -short -timeout 20m
+        run: go test ./... -tags badger -count=1 -race -short -timeout 20m

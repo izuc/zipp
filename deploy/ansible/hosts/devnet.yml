@@ -43,7 +43,7 @@ zipps:
     entryNodePubKey: "2PV5487xMw5rasGBXXWeqSi4hLz7r19YBt8Y1TGAsQbj"
     bootstrapNodePubKey: "Gm7W191NDnqyF7KJycZqK7V6ENLwqxTwoKQN4SmpkB24"
     remoteLoggerHost: "metrics-01.zipp.org"
-    communityEntryNode: "5EDH4uY78EA6wrBkHHAVBWBMDt7EcksRq6pjzipoW15B@entry-0.devnet.meshbay.com:14646,CAB87iQZR6BjBrCgEBupQJ4gpEBgvGKKv3uuGVRBKb4n@entry-1.devnet.meshbay.com:14646"
+    communityEntryNode: ""
     logLevel: "debug"
     remoteLogs: true
 

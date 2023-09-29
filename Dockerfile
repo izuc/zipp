@@ -9,7 +9,7 @@ ARG REMOTE_DEBUGGING=0
 FROM golang:1.20-bullseye AS build
 
 ARG RUN_TEST=0
-ARG BUILD_TAGS=rocksdb
+ARG BUILD_TAGS=badger
 
 # Define second time inside the build stage to work in bash conditions.
 ARG REMOTE_DEBUGGING=0
@@ -44,7 +44,7 @@ RUN go mod verify
 RUN --mount=target=. \
     --mount=type=cache,target=/root/.cache/go-build \
     if [ $RUN_TEST -gt 0 ]; then \
-    go test ./... -tags rocksdb -count=1; \
+    go test ./... -tags badger -count=1; \
     fi
 
 # 1. Mount everything from the current directory to the PWD(Present Working Directory) inside the container
