@@ -49,6 +49,7 @@ func parseEntryNodes() (result []*peer.Peer, err error) {
 
 		parts := strings.Split(entryNodeDefinition, "@")
 		if len(parts) != entryNodeParts {
+			logger.NewLogger("AutoPeering").Debugf("Failed parsing entry node: %s", entryNodeDefinition) // ADDED
 			return nil, errors.WithMessagef(ErrParsingEntryNode, "entry node information must contains %d parts, is %d", entryNodeParts, len(parts))
 		}
 		pubKey, err := base58.Decode(parts[0])
@@ -69,6 +70,8 @@ func parseEntryNodes() (result []*peer.Peer, err error) {
 
 		result = append(result, peer.NewPeer(identity.New(publicKey), addr.IP, services))
 	}
+
+	logger.NewLogger("AutoPeering").Debugf("Parsed entry nodes: %v", result) // ADDED
 
 	return result, nil
 }

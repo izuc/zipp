@@ -28,10 +28,12 @@ func isValidNeighbor(p *peer.Peer) bool {
 	// gossip must be supported
 	gossipService := p.Services().Get(service.P2PKey)
 	if gossipService == nil {
+		logger.NewLogger(PluginName).Debugf("Peer %s rejected: gossip service not supported.", p.ID())
 		return false
 	}
 	// gossip service must be valid
 	if gossipService.Network() != "tcp4" || gossipService.Port() < 0 || gossipService.Port() > 65535 {
+		logger.NewLogger(PluginName).Debugf("Peer %s rejected: invalid gossip service.", p.ID())
 		return false
 	}
 	return true

@@ -181,7 +181,7 @@ func start(ctx context.Context) {
 	if err != nil {
 		Plugin.Logger().Fatalf("Error listening: %v", err)
 	} else {
-		Plugin.Logger().Debugf("Listening on: %s", localAddr.String())
+		Plugin.Logger().Debugf("Started UDP listener on: %s", localAddr.String()) // ADDED
 	}
 	defer conn.Close()
 
