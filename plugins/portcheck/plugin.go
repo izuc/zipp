@@ -57,12 +57,13 @@ func checkAutopeeringConnection() {
 	peering := deps.Local.Services().Get(service.PeeringKey)
 
 	// resolve the bind address
-	localAddr, err := net.ResolveUDPAddr(peering.Network(), autopeering.Parameters.BindAddress)
+	localAddr, err := net.ResolveUDPAddr("udp4", autopeering.Parameters.BindAddress)
 	if err != nil {
 		log.Fatalf("Error resolving %s: %v", autopeering.Parameters.BindAddress, err)
 	}
-	// open a connection
-	conn, err := net.ListenUDP(peering.Network(), localAddr)
+
+	// open a connection using udp4 explicitly
+	conn, err := net.ListenUDP("udp4", localAddr)
 	if err != nil {
 		log.Fatalf("Error listening: %v", err)
 	}
@@ -86,7 +87,7 @@ func checkAutopeeringConnection() {
 	}
 
 	if err != nil {
-		log.Fatalf("Please check that %s is publicly reachable at port %d/%s",
-			banner.AppName, peering.Port(), peering.Network())
+		log.Fatalf("Please check that %s is publicly reachable at port %d/udp4",
+			banner.AppName, peering.Port())
 	}
 }
