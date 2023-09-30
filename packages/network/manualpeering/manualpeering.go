@@ -212,14 +212,14 @@ type knownPeer struct {
 }
 
 func newKnownPeer(p *KnownPeerToAdd, connDirection ConnectionDirection) (*knownPeer, error) {
-	tcpAddress, err := net.ResolveTCPAddr("tcp", p.Address)
+	tcpAddress, err := net.ResolveTCPAddr("tcp4", p.Address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse peer address")
 	}
 	services := service.New()
 	// Peering key is required in order to initialize a peer,
 	// but it's not used in both manual peering and gossip layers so we just specify the default one.
-	services.Update(service.PeeringKey, "tcp", 14626)
+	services.Update(service.PeeringKey, "tcp4", 14626)
 	services.Update(service.P2PKey, tcpAddress.Network(), tcpAddress.Port)
 	kp := &knownPeer{
 		peer:          peer.NewPeer(identity.New(p.PublicKey), tcpAddress.IP, services),

@@ -17,7 +17,7 @@ type RemoteLoggerConn struct {
 }
 
 func newRemoteLoggerConn(address string) (*RemoteLoggerConn, error) {
-	c, err := net.Dial("udp", address)
+	c, err := net.Dial("udp4", address)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not create UDP socket to '%s'.", address)
 	}

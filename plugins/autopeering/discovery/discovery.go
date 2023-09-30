@@ -55,7 +55,7 @@ func parseEntryNodes() (result []*peer.Peer, err error) {
 		if err != nil {
 			return nil, errors.WithMessagef(ErrParsingEntryNode, "invalid public key: %s", err.Error())
 		}
-		addr, err := net.ResolveUDPAddr("udp", parts[1])
+		addr, err := net.ResolveUDPAddr("udp4", parts[1])
 		if err != nil {
 			return nil, errors.WithMessagef(ErrParsingEntryNode, "host cannot be resolved: %s", err.Error())
 		}

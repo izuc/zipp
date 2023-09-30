@@ -73,7 +73,7 @@ func configure(plugin *node.Plugin) {
 	var err error
 
 	// resolve the bind address
-	localAddr, err = net.ResolveUDPAddr("udp", Parameters.BindAddress)
+	localAddr, err = net.ResolveUDPAddr("udp4", Parameters.BindAddress)
 	if err != nil {
 		Plugin.LogFatalfAndExitf("bind address '%s' is invalid: %s", Parameters.BindAddress, err)
 	}

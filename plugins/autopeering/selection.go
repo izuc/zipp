@@ -31,7 +31,7 @@ func isValidNeighbor(p *peer.Peer) bool {
 		return false
 	}
 	// gossip service must be valid
-	if gossipService.Network() != "tcp" || gossipService.Port() < 0 || gossipService.Port() > 65535 {
+	if gossipService.Network() != "tcp4" || gossipService.Port() < 0 || gossipService.Port() > 65535 {
 		return false
 	}
 	return true

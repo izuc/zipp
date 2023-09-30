@@ -19,7 +19,7 @@ func createManager(lPeer *peer.Local) *p2p.Manager {
 	var err error
 
 	// resolve the bind address
-	localAddr, err = net.ResolveTCPAddr("tcp", Parameters.BindAddress)
+	localAddr, err = net.ResolveTCPAddr("tcp4", Parameters.BindAddress)
 	if err != nil {
 		Plugin.LogFatalfAndExitf("bind address '%s' is invalid: %s", Parameters.BindAddress, err)
 	}
