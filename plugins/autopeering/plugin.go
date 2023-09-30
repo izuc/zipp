@@ -72,10 +72,20 @@ func init() {
 func configure(plugin *node.Plugin) {
 	var err error
 
-	// resolve the bind address
-	localAddr, err = net.ResolveUDPAddr("udp4", Parameters.BindAddress)
+	_, port, err := net.SplitHostPort(Parameters.BindAddress)
 	if err != nil {
-		Plugin.LogFatalfAndExitf("bind address '%s' is invalid: %s", Parameters.BindAddress, err)
+		Plugin.LogFatalfAndExitf("failed to parse bind address: %s", err)
+	}
+
+	// Construct the new bind address with 0.0.0.0
+	bindAddress := "0.0.0.0:" + port
+
+	// Resolve the new bind address
+	localAddr, err = net.ResolveUDPAddr("udp4", bindAddress)
+	if err != nil {
+		Plugin.LogFatalfAndExitf("bind address '%s' is invalid: %s", bindAddress, err)
+	} else {
+		Plugin.Logger().Infof("Binding to address: %s", bindAddress)
 	}
 
 	// announce the peering service
