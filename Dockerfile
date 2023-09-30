@@ -95,7 +95,7 @@ FROM debian:bullseye-slim as prepare-runtime
 
 # Install basic utilities
 RUN apt-get update && \
-    apt-get install -y net-tools curl && \
+    apt-get install -y net-tools curl iputils-ping && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
