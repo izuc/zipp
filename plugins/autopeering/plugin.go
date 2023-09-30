@@ -172,7 +172,7 @@ func configureEvents(plugin *node.Plugin) {
 func start(ctx context.Context) {
 	defer Plugin.Logger().Info("Stopping " + PluginName + " ... done")
 
-	conn, err := net.ListenUDP(localAddr.Network(), localAddr)
+	conn, err := net.ListenUDP("udp4", localAddr)
 	if err != nil {
 		Plugin.Logger().Fatalf("Error listening: %v", err)
 	}
