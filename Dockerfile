@@ -85,12 +85,19 @@ RUN if [ "$DOWNLOAD_SNAPSHOT" -gt 0 ] && [ "$CUSTOM_SNAPSHOT_URL" = "" ] ; then 
       touch /tmp/snapshot.bin ; \
     fi
 
+
+# ... [The rest of the build stages remain unchanged]
+
 ############################
 # Image
 ############################
-# https://github.com/GoogleContainerTools/distroless/tree/master/cc
-# using distroless cc image, which includes everything in the base image (glibc, libssl and openssl)
-FROM gcr.io/distroless/cc-debian11:nonroot as prepare-runtime
+FROM debian:bullseye-slim as prepare-runtime
+
+# Install basic utilities
+RUN apt-get update && \
+    apt-get install -y net-tools curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Gossip
 EXPOSE 14666/tcp
@@ -107,31 +114,17 @@ EXPOSE 8081/tcp
 # DAGs Visualizer
 EXPOSE 8061/tcp
 
-# Default directory and drop privileges
+# Default directory
 WORKDIR /app
-USER nonroot
 
 # Copy the Pre-built binary file from the previous stage
-COPY --chown=nonroot:nonroot --from=build /go/bin/zipp /app/zipp
+COPY --from=build /go/bin/zipp /app/zipp
 
 # Copy configuration and snapshot from the previous stage
 COPY config.default.json /app/config.json
 
-COPY --chown=nonroot:nonroot --from=build /tmp/snapshot.bin /app/snapshot.bin
+COPY --from=build /tmp/snapshot.bin /app/snapshot.bin
 
-
-# We execute this stage only if debugging is disabled, i.e REMOTE_DEBUGGIN==0
-FROM prepare-runtime as debugger-enabled-0
-
+# If you have debugging enabled, adjust accordingly
+FROM prepare-runtime as runtime
 ENTRYPOINT ["/app/zipp", "--config=/app/config.json"]
-
-# We execute this stage only if debugging is enabled, i.e REMOTE_DEBUGGING==1
-FROM prepare-runtime as debugger-enabled-1
-EXPOSE 40000
-
-# Copy the Delve binary
-COPY --chown=nonroot:nonroot --from=build /go/bin/dlv /app/dlv
-ENTRYPOINT ["/app/dlv", "--listen=:40000", "--headless", "--api-version=2", "--accept-multiclient", "exec", "--continue", "/app/zipp", "--", "--config=/app/config.json"]
-
-# Execute corresponding build stage depending on the REMOTE_DEBUGGING build arg.
-FROM debugger-enabled-${REMOTE_DEBUGGING} as runtime
