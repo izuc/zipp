@@ -145,6 +145,7 @@ func configureEvents(plugin *node.Plugin) {
 	// log the peer discovery events
 	deps.Discovery.Events().PeerDiscovered.Hook(func(ev *discover.PeerDiscoveredEvent) {
 		Plugin.Logger().Infof("Discovered: %s / %s", ev.Peer.Address(), ev.Peer.ID())
+		Plugin.Logger().Debugf("Discovered details: %v", ev.Peer)
 	}, event.WithWorkerPool(plugin.WorkerPool))
 	deps.Discovery.Events().PeerDeleted.Hook(func(ev *discover.PeerDeletedEvent) {
 		Plugin.Logger().Infof("Removed offline: %s / %s", ev.Peer.Address(), ev.Peer.ID())
@@ -157,11 +158,15 @@ func configureEvents(plugin *node.Plugin) {
 	deps.Selection.Events().OutgoingPeering.Hook(func(ev *selection.PeeringEvent) {
 		if ev.Status {
 			Plugin.Logger().Infof("Peering chosen: %s / %s", ev.Peer.Address(), ev.Peer.ID())
+		} else {
+			Plugin.Logger().Warnf("Peering attempt failed: %s / %s", ev.Peer.Address(), ev.Peer.ID())
 		}
 	}, event.WithWorkerPool(plugin.WorkerPool))
 	deps.Selection.Events().IncomingPeering.Hook(func(ev *selection.PeeringEvent) {
 		if ev.Status {
 			Plugin.Logger().Infof("Peering accepted: %s / %s", ev.Peer.Address(), ev.Peer.ID())
+		} else {
+			Plugin.Logger().Warnf("Peering rejected: %s / %s", ev.Peer.Address(), ev.Peer.ID())
 		}
 	}, event.WithWorkerPool(plugin.WorkerPool))
 	deps.Selection.Events().Dropped.Hook(func(ev *selection.DroppedEvent) {
@@ -175,6 +180,8 @@ func start(ctx context.Context) {
 	conn, err := net.ListenUDP("udp4", localAddr)
 	if err != nil {
 		Plugin.Logger().Fatalf("Error listening: %v", err)
+	} else {
+		Plugin.Logger().Debugf("Listening on: %s", localAddr.String())
 	}
 	defer conn.Close()
 
@@ -187,11 +194,14 @@ func start(ctx context.Context) {
 	srv := server.Serve(lPeer, deps.AutopeeringConnMetric, Plugin.Logger().Named("srv"), deps.Discovery, deps.Selection)
 	defer srv.Close()
 
-	// start the peer discovery on that connection
+	// log before starting the protocols
+	Plugin.Logger().Debug("Starting Discovery protocol...")
 	deps.Discovery.Start(srv)
+	Plugin.Logger().Debug("Discovery protocol started.")
 
-	// start the neighbor selection process.
+	Plugin.Logger().Debug("Starting Selection protocol...")
 	deps.Selection.Start(srv)
+	Plugin.Logger().Debug("Selection protocol started.")
 
 	Plugin.Logger().Infof("%s started: ID=%s Address=%s/%s", PluginName, lPeer.ID(), localAddr.String(), localAddr.Network())
 
