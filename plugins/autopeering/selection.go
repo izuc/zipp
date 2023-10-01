@@ -13,6 +13,8 @@ func createPeerSel(localID *peer.Local, nbrDiscover *discover.Protocol) *selecti
 	// assure that the logger is available
 	log := logger.NewLogger(PluginName).Named("sel")
 
+	log.Infof("createPeerSel function called with localID: %s", localID.ID())
+
 	return selection.New(localID, nbrDiscover,
 		selection.Logger(log),
 		selection.NeighborValidator(selection.ValidatorFunc(isValidNeighbor)),

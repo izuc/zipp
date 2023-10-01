@@ -13,6 +13,7 @@ import (
 	"github.com/izuc/zipp.foundation/autopeering/peer/service"
 	"github.com/izuc/zipp.foundation/autopeering/selection"
 	"github.com/izuc/zipp.foundation/autopeering/server"
+	"github.com/izuc/zipp.foundation/logger"
 	"github.com/izuc/zipp.foundation/runtime/event"
 	"github.com/izuc/zipp/packages/core/shutdown"
 	"github.com/izuc/zipp/packages/network/p2p"
@@ -44,28 +45,37 @@ type dependencies struct {
 }
 
 func init() {
+	log := logger.NewLogger(PluginName)
+	log.Infof("Initializing %s plugin...", PluginName)
+
 	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, configure, run)
 
 	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
+		log.Info("Hooking into Plugin.Events.Init...")
+
 		if err := event.Container.Provide(discovery.CreatePeerDisc); err != nil {
 			Plugin.Panic(err)
 		}
+		log.Info("Provided discovery.CreatePeerDisc to container")
 
 		if err := event.Container.Provide(createPeerSel); err != nil {
 			Plugin.Panic(err)
 		}
+		log.Info("Provided createPeerSel to container")
 
 		if err := event.Container.Provide(func() *node.Plugin {
 			return Plugin
 		}, dig.Name("autopeering")); err != nil {
 			Plugin.Panic(err)
 		}
+		log.Info("Provided Plugin to container with name 'autopeering'")
 
 		if err := event.Container.Provide(func() *UDPConnTraffic {
 			return &UDPConnTraffic{}
 		}); err != nil {
 			Plugin.Panic(err)
 		}
+		log.Info("Provided UDPConnTraffic to container")
 	})
 }
 
