@@ -45,12 +45,13 @@ type dependencies struct {
 }
 
 func init() {
-	log := logger.NewLogger(PluginName)
-	log.Infof("Initializing %s plugin...", PluginName)
-
 	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, configure, run)
 
 	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
+		log := logger.NewLogger(PluginName)
+
+		log.Infof("Initializing %s plugin...", PluginName)
+
 		log.Info("Hooking into Plugin.Events.Init...")
 
 		if err := event.Container.Provide(discovery.CreatePeerDisc); err != nil {
