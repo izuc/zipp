@@ -34,7 +34,7 @@ func isValidNeighbor(p *peer.Peer) bool {
 		return false
 	}
 	// gossip service must be valid
-	if gossipService.Network() != "tcp4" || gossipService.Port() < 0 || gossipService.Port() > 65535 {
+	if gossipService.Network() != "tcp" || gossipService.Port() < 0 || gossipService.Port() > 65535 {
 		logger.NewLogger(PluginName).Debugf("Peer %s rejected: invalid gossip service.", p.ID())
 		return false
 	}
