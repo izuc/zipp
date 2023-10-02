@@ -68,7 +68,13 @@ func newServer() *echo.Echo {
 	}
 
 	server.HTTPErrorHandler = func(err error, c echo.Context) {
-		log.Warnf("Request failed: %s", err)
+		req := c.Request()
+		// Log request details
+		log.Warnf("Error in request: method=%s, url=%s, clientIP=%s, error=%s",
+			req.Method, req.URL, c.RealIP(), err)
+
+		// Log stack trace for deeper context
+		log.Warnf("Stack trace: %+v", err)
 
 		var statusCode int
 		var block string
