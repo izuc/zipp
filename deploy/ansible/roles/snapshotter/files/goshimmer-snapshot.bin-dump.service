@@ -1,9 +1,0 @@
-[Unit]
-Description=Dump ZIPP Snapshots
-
-[Service]
-Type=oneshot
-ExecStart=/opt/zipp_snapshot.bin_dump.sh
-
-[Install]
-WantedBy=timers.target

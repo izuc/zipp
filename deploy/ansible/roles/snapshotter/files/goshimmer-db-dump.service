@@ -1,9 +1,0 @@
-[Unit]
-Description=Dump ZIPP DB
-
-[Service]
-Type=oneshot
-ExecStart=/opt/zipp_db_dump.sh
-
-[Install]
-WantedBy=timers.target

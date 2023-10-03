@@ -1,8 +1,8 @@
 {
-  "name": "goshimmer-analysis-dashboard",
+  "name": "zipp-analysis-dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "GoShimmer Analysis Dashboard",
+  "description": "ZIPP Analysis Dashboard",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --mode development --hot --progress --colors --host 127.0.0.1 --port 9090 --open",
