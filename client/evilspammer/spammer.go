@@ -3,15 +3,16 @@ package evilspammer
 import (
 	"time"
 
-	"github.com/pkg/errors"
-	"go.uber.org/atomic"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp.foundation/app/configuration"
-	appLogger "github.com/izuc/zipp.foundation/app/logger"
-	"github.com/izuc/zipp.foundation/ds/types"
-	"github.com/izuc/zipp.foundation/logger"
 	"github.com/izuc/zipp/client/evilwallet"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+
+	"github.com/izuc/zipp.foundation/core/configuration"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/types"
+	"go.uber.org/atomic"
 )
 
 // region Spammer //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,30 +30,20 @@ type State struct {
 	spamDuration time.Duration
 }
 
-type SpamType int
-
-const (
-	SpamEvilWallet SpamType = iota
-	SpamCommitments
-)
-
 // Spammer is a utility object for new spammer creations, can be modified by passing options.
 // Mandatory options: WithClients, WithSpammingFunc
 // Not mandatory options, if not provided spammer will use default settings:
-// WithSpamDetails, WithEvilWallet, WithErrorCounter, WithLogTickerInterval.
+// WithSpamDetails, WithEvilWallet, WithErrorCounter, WithLogTickerInterval
 type Spammer struct {
-	SpamDetails       *SpamDetails
-	State             *State
-	UseRateSetter     bool
-	SpamType          SpamType
-	Clients           evilwallet.Connector
-	EvilWallet        *evilwallet.EvilWallet
-	EvilScenario      *evilwallet.EvilScenario
-	IdentityManager   *IdentityManager
-	CommitmentManager *CommitmentManager
-	ErrCounter        *ErrorCounter
+	SpamDetails   *SpamDetails
+	State         *State
+	UseRateSetter bool
+	Clients       evilwallet.Connector
+	EvilWallet    *evilwallet.EvilWallet
+	EvilScenario  *evilwallet.EvilScenario
+	ErrCounter    *ErrorCounter
+	log           Logger
 
-	log Logger
 	// accessed from spamming functions
 	done     chan bool
 	shutdown chan types.Empty
@@ -70,21 +61,22 @@ func NewSpammer(options ...Options) *Spammer {
 		logTickTime:   time.Second * 30,
 	}
 	s := &Spammer{
-		SpamDetails:       &SpamDetails{},
-		spamFunc:          CustomConflictSpammingFunc,
-		State:             state,
-		SpamType:          SpamEvilWallet,
-		EvilScenario:      evilwallet.NewEvilScenario(),
-		IdentityManager:   NewIdentityManager(),
-		CommitmentManager: NewCommitmentManager(),
-		UseRateSetter:     true,
-		done:              make(chan bool),
-		shutdown:          make(chan types.Empty),
-		NumberOfSpends:    2,
+		SpamDetails:    &SpamDetails{},
+		spamFunc:       CustomConflictSpammingFunc,
+		State:          state,
+		EvilScenario:   evilwallet.NewEvilScenario(),
+		UseRateSetter:  true,
+		done:           make(chan bool),
+		shutdown:       make(chan types.Empty),
+		NumberOfSpends: 2,
 	}
 
 	for _, opt := range options {
 		opt(s)
+	}
+
+	if s.EvilWallet == nil {
+		s.EvilWallet = evilwallet.NewEvilWallet()
 	}
 
 	s.setup()
@@ -100,24 +92,16 @@ func (s *Spammer) BatchesPrepared() uint64 {
 }
 
 func (s *Spammer) setup() {
-	if s.log == nil {
-		s.initLogger()
-		s.IdentityManager.SetLogger(s.log)
-	}
+	s.Clients = s.EvilWallet.Connector()
 
-	switch s.SpamType {
-	case SpamEvilWallet:
-		if s.EvilWallet == nil {
-			s.EvilWallet = evilwallet.NewEvilWallet()
-		}
-		s.Clients = s.EvilWallet.Connector()
-	case SpamCommitments:
-		s.CommitmentManager.Setup(s.log)
-	}
 	s.setupSpamDetails()
 
 	s.State.spamTicker = s.initSpamTicker()
 	s.State.logTicker = s.initLogTicker()
+
+	if s.log == nil {
+		s.initLogger()
+	}
 
 	if s.ErrCounter == nil {
 		s.ErrCounter = NewErrorCount()
@@ -143,7 +127,7 @@ func (s *Spammer) setupSpamDetails() {
 
 func (s *Spammer) initLogger() {
 	config := configuration.New()
-	_ = appLogger.InitGlobalLogger(config)
+	_ = logger.InitGlobalLogger(config)
 	logger.SetLevel(logger.LevelDebug)
 	s.log = logger.NewLogger("Spammer")
 }
@@ -157,7 +141,7 @@ func (s *Spammer) initLogTicker() *time.Ticker {
 	return time.NewTicker(s.State.logTickTime)
 }
 
-// Spam runs the spammer. Function will stop after maxDuration time will pass or when maxBlkSent will be exceeded.
+// Spam runs the spammer. Function will stop after maxDuration time will pass or when maxBlkSent will be exceeded
 func (s *Spammer) Spam() {
 	s.log.Infof("Start spamming transactions with %d rate", s.SpamDetails.Rate)
 
@@ -201,12 +185,11 @@ func (s *Spammer) CheckIfAllSent() {
 	}
 }
 
-// StopSpamming finishes tasks before shutting down the spammer.
+// StopSpamming finishes tasks before shutting down the spammer
 func (s *Spammer) StopSpamming() {
 	s.State.spamDuration = time.Since(s.State.spamStartTime)
 	s.State.spamTicker.Stop()
 	s.State.logTicker.Stop()
-	s.CommitmentManager.Shutdown()
 	s.shutdown <- types.Void
 }
 
@@ -220,28 +203,32 @@ func (s *Spammer) PostTransaction(tx *devnetvm.Transaction, clt evilwallet.Clien
 	allSolid := s.handleSolidityForReuseOutputs(clt, tx)
 	if !allSolid {
 		s.log.Debug(ErrInputsNotSolid)
-		s.ErrCounter.CountError(errors.WithMessagef(ErrInputsNotSolid, "txID: %s", tx.ID().Base58()))
+		s.ErrCounter.CountError(errors.Errorf("%v, txID: %s", ErrInputsNotSolid, tx.ID().Base58()))
 		return
 	}
 
-	if err := evilwallet.RateSetterSleep(clt, s.UseRateSetter); err != nil {
+	var err error
+	var txID utxo.TransactionID
+	if err = evilwallet.RateSetterSleep(clt, s.UseRateSetter); err != nil {
 		return
 	}
-	txID, blockID, err := clt.PostTransaction(tx)
+	txID, err = clt.PostTransaction(tx)
 	if err != nil {
 		s.log.Debug(ErrFailPostTransaction)
-		s.ErrCounter.CountError(errors.WithMessage(ErrFailPostTransaction, err.Error()))
+		s.ErrCounter.CountError(errors.Newf("%s: %w", ErrFailPostTransaction, err))
 		return
 	}
 	if s.EvilScenario.OutputWallet.Type() == evilwallet.Reuse {
-		s.EvilWallet.SetTxOutputsSolid(tx.Essence().Outputs(), clt.URL())
+		s.EvilWallet.SetTxOutputsSolid(tx.Essence().Outputs(), clt.Url())
 	}
 
 	count := s.State.txSent.Add(1)
-	s.log.Debugf("%s: Last transaction sent, ID: %s, txCount: %d", blockID.Base58(), txID.Base58(), count)
+	s.log.Debugf("Last transaction sent, ID: %s, txCount: %d", txID.String(), count)
+	return
 }
 
 func (s *Spammer) handleSolidityForReuseOutputs(clt evilwallet.Client, tx *devnetvm.Transaction) (ok bool) {
+	ok = true
 	ok = s.EvilWallet.AwaitInputsSolidity(tx.Essence().Inputs(), clt)
 	if s.EvilScenario.OutputWallet.Type() == evilwallet.Reuse {
 		s.EvilWallet.AddReuseOutputsToThePool(tx.Essence().Outputs())

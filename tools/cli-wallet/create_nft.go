@@ -3,14 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/mr-tron/base58"
 
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/client/wallet/packages/createnftoptions"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 func execCreateNFTCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
@@ -20,7 +20,7 @@ func execCreateNFTCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
 
 	helpPtr := command.Bool("help", false, "show this help screen")
 	initialAmountPtr := command.Int64("initial-amount", 0, "the amount of tokens that should be deposited into the nft upon creation (on top of the minimum required)")
-	colorPtr := command.String("color", "ZIPP", "color of the tokens that should be deposited into the nft upon creation (on top of the minimum required)")
+	colorPtr := command.String("color", "IOTA", "color of the tokens that should be deposited into the nft upon creation (on top of the minimum required)")
 	immutableDataFile := command.String("immutable-data", "", "path to the file containing the immutable data that shall be attached to the nft")
 	accessManaPledgeIDPtr := command.String("access-mana-id", "", "node ID to pledge access mana to")
 	consensusManaPledgeIDPtr := command.String("consensus-mana-id", "", "node ID to pledge consensus mana to")
@@ -48,19 +48,19 @@ func execCreateNFTCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
 		}
 		defer file.Close()
 
-		data, err = io.ReadAll(file)
+		data, err = ioutil.ReadAll(file)
 		if err != nil {
 			printUsage(command, err.Error())
 		}
 	}
 
-	initialBalance := map[devnetvm.Color]uint64{devnetvm.ColorZIPP: devnetvm.DustThresholdAliasOutputZIPP}
+	initialBalance := map[devnetvm.Color]uint64{devnetvm.ColorIOTA: devnetvm.DustThresholdAliasOutputIOTA}
 	if *initialAmountPtr > 0 {
 		var initColor devnetvm.Color
 		// get color
 		switch *colorPtr {
-		case "ZIPP":
-			initColor = devnetvm.ColorZIPP
+		case "IOTA":
+			initColor = devnetvm.ColorIOTA
 		case "NEW":
 			initColor = devnetvm.ColorMint
 		default:

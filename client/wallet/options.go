@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/capossele/asset-registry/pkg/registryservice"
+	"github.com/izuc/zipp.foundation/core/bitmask"
 
-	"github.com/izuc/zipp.foundation/ds/bitmask"
 	"github.com/izuc/zipp/client"
 	"github.com/izuc/zipp/client/wallet/packages/seed"
 )

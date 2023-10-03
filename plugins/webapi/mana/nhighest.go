@@ -4,46 +4,39 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1/manamodels"
+	"github.com/izuc/zipp/packages/core/mana"
+	manaPlugin "github.com/izuc/zipp/plugins/blocklayer"
 )
 
 // getNHighestAccessHandler handles a /mana/access/nhighest request.
 func getNHighestAccessHandler(c echo.Context) error {
-	return nHighestHandler(c, manamodels.AccessMana)
+	return nHighestHandler(c, mana.AccessMana)
 }
 
 // getNHighestConsensusHandler handles a /mana/consensus/nhighest request.
 func getNHighestConsensusHandler(c echo.Context) error {
-	return nHighestHandler(c, manamodels.ConsensusMana)
+	return nHighestHandler(c, mana.ConsensusMana)
 }
 
 // nHighestHandler handles the request.
-func nHighestHandler(c echo.Context, manaType manamodels.Type) error {
+func nHighestHandler(c echo.Context, manaType mana.Type) error {
 	number, err := strconv.ParseUint(c.QueryParam("number"), 10, 32)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, jsonmodels.GetNHighestResponse{Error: err.Error()})
 	}
-	var manaMap map[identity.ID]int64
-	if manaType == manamodels.AccessMana {
-		manaMap = deps.Protocol.Engine().ThroughputQuota.BalanceByIDs()
-	} else {
-		manaMap = lo.PanicOnErr(deps.Protocol.Engine().SybilProtection.Weights().Map())
-	}
-	highestNodes, t, err := manamodels.GetHighestManaIssuers(uint(number), manaMap)
+	highestNodes, t, err := manaPlugin.GetHighestManaNodes(manaType, uint(number))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, jsonmodels.GetNHighestResponse{Error: err.Error()})
 	}
-	var res []manamodels.IssuerStr
+	var res []mana.NodeStr
 	for _, n := range highestNodes {
-		res = append(res, n.ToIssuerStr())
+		res = append(res, n.ToNodeStr())
 	}
 	return c.JSON(http.StatusOK, jsonmodels.GetNHighestResponse{
-		Issuers:   res,
+		Nodes:     res,
 		Timestamp: t.Unix(),
 	})
 }

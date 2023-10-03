@@ -19,7 +19,7 @@ export class SigLockedSingleOutputComponent extends React.Component<Props, any> 
                     <ListGroup.Item>
                         Balances:
                         <div>
-                            <div><Badge variant="success">{new Intl.NumberFormat().format(o.balance)} ZIPP</Badge></div>
+                            <div><Badge variant="success">{new Intl.NumberFormat().format(o.balance)} IOTA</Badge></div>
                         </div>
                     </ListGroup.Item>
                     <ListGroup.Item>OutputID: <a href={`/explorer/output/${id.base58}`}>{id.base58}</a></ListGroup.Item>

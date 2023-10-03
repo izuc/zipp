@@ -1,18 +1,18 @@
 package discovery
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/autopeering/discover"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/logger"
 	"github.com/mr-tron/base58"
-	"github.com/pkg/errors"
-
-	"github.com/izuc/zipp.foundation/autopeering/discover"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/autopeering/peer/service"
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/logger"
 )
 
 // autopeering constants.
@@ -49,16 +49,15 @@ func parseEntryNodes() (result []*peer.Peer, err error) {
 
 		parts := strings.Split(entryNodeDefinition, "@")
 		if len(parts) != entryNodeParts {
-			logger.NewLogger("AutoPeering").Debugf("Failed parsing entry node: %s", entryNodeDefinition) // ADDED
-			return nil, errors.WithMessagef(ErrParsingEntryNode, "entry node information must contains %d parts, is %d", entryNodeParts, len(parts))
+			return nil, fmt.Errorf("%w: entry node information must contains %d parts, is %d", ErrParsingEntryNode, entryNodeParts, len(parts))
 		}
 		pubKey, err := base58.Decode(parts[0])
 		if err != nil {
-			return nil, errors.WithMessagef(ErrParsingEntryNode, "invalid public key: %s", err.Error())
+			return nil, fmt.Errorf("%w: invalid public key: %s", ErrParsingEntryNode, err)
 		}
-		addr, err := net.ResolveUDPAddr("udp4", parts[1])
+		addr, err := net.ResolveUDPAddr("udp", parts[1])
 		if err != nil {
-			return nil, errors.WithMessagef(ErrParsingEntryNode, "host cannot be resolved: %s", err.Error())
+			return nil, fmt.Errorf("%w: host cannot be resolved: %s", ErrParsingEntryNode, err)
 		}
 		publicKey, _, err := ed25519.PublicKeyFromBytes(pubKey)
 		if err != nil {
@@ -70,8 +69,6 @@ func parseEntryNodes() (result []*peer.Peer, err error) {
 
 		result = append(result, peer.NewPeer(identity.New(publicKey), addr.IP, services))
 	}
-
-	logger.NewLogger("AutoPeering").Debugf("Parsed entry nodes: %v", result) // ADDED
 
 	return result, nil
 }

@@ -1,15 +1,15 @@
 package dagsvisualizer
 
 import (
-	"context"
-	"embed"
 	"fmt"
 	"io"
-	"io/fs"
+	"io/ioutil"
 	"net/http"
+	"os"
 
-	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/labstack/echo"
+	"github.com/markbates/pkger"
 )
 
 // ErrInvalidParameter defines the invalid parameter error.
@@ -24,19 +24,16 @@ var ErrNotFound = errors.New("not found")
 // ErrForbidden defines the forbidden error.
 var ErrForbidden = errors.New("forbidden")
 
-//go:embed frontend/build frontend/build/static
-var staticFS embed.FS
-
 const (
-	app         = "frontend/build"
-	staticJS    = "frontend/build/static/js"
-	staticCSS   = "frontend/build/static/css"
-	staticMedia = "frontend/build/static/media"
+	app         = "/plugins/dagsvisualizer/frontend/build"
+	staticJS    = "/plugins/dagsvisualizer/frontend/build/static/js"
+	staticCSS   = "/plugins/dagsvisualizer/frontend/build/static/css"
+	staticMedia = "/plugins/dagsvisualizer/frontend/build/static/media"
 )
 
 func indexRoute(e echo.Context) error {
 	if Parameters.Dev {
-		req, err := http.NewRequestWithContext(e.Request().Context(), "GET", "http://"+Parameters.DevBindAddress, http.NoBody)
+		req, err := http.NewRequestWithContext(e.Request().Context(), "GET", "http://"+Parameters.DevBindAddress, nil)
 		if err != nil {
 			return err
 		}
@@ -52,7 +49,7 @@ func indexRoute(e echo.Context) error {
 		return e.HTMLBlob(http.StatusOK, devIndexHTML)
 	}
 
-	index, err := staticFS.Open(app + "/index.html")
+	index, err := pkger.Open(app + "/index.html")
 	if err != nil {
 		return err
 	}
@@ -66,7 +63,9 @@ func indexRoute(e echo.Context) error {
 }
 
 func setupRoutes(e *echo.Echo) {
-	prepareSources(e)
+	if err := prepareSources(e); err != nil {
+		return
+	}
 
 	e.GET("/ws", websocketRoute)
 	e.GET("/", indexRoute)
@@ -86,8 +85,8 @@ func setupRoutes(e *echo.Echo) {
 
 		switch errors.Unwrap(err) {
 		case echo.ErrNotFound:
-			if redirectErr := c.Redirect(http.StatusSeeOther, "/"); redirectErr != nil {
-				log.Warnf("failed to redirect request: %s", redirectErr.Error())
+			if e := c.Redirect(http.StatusSeeOther, "/"); e != nil {
+				log.Warn("failed to redirect request")
 			}
 			return
 
@@ -123,51 +122,70 @@ func setupRoutes(e *echo.Echo) {
 	}
 }
 
-func prepareSources(e *echo.Echo) {
+func prepareSources(e *echo.Echo) error {
 	if Parameters.Dev {
 		e.GET("/static/*", func(e echo.Context) error {
-			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://"+Parameters.DevBindAddress+e.Request().URL.Path, http.NoBody)
-			if err != nil {
-				return err
-			}
-
-			res, err := http.DefaultClient.Do(req)
+			res, err := http.Get("http://" + Parameters.DevBindAddress + e.Request().URL.Path)
 			if err != nil {
 				return err
 			}
 			defer res.Body.Close()
 
-			devIndexHTML, err := io.ReadAll(res.Body)
+			devIndexHTML, err := ioutil.ReadAll(res.Body)
 			if err != nil {
 				return err
 			}
 			return e.HTMLBlob(http.StatusOK, devIndexHTML)
 		})
 	} else {
-		staticfsys := fs.FS(staticFS)
-
-		appfs, _ := fs.Sub(staticfsys, app)
-		dirEntries, _ := staticFS.ReadDir(app)
-		for _, de := range dirEntries {
-			e.GET("/app/"+de.Name(), echo.WrapHandler(http.StripPrefix("/app", http.FileServer(http.FS(appfs)))))
+		// load assets from pkger: either from within the binary or actual disk
+		err := pkger.Walk(app, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			e.GET("/app/"+info.Name(), echo.WrapHandler(http.StripPrefix("/app", http.FileServer(pkger.Dir(app)))))
+			return nil
+		})
+		if err != nil {
+			log.Warnf("Failed to load files in pkger: %s", err)
+			return err
 		}
 
-		jsfs, _ := fs.Sub(staticfsys, staticJS)
-		dirEntries, _ = staticFS.ReadDir(staticJS)
-		for _, de := range dirEntries {
-			e.GET("/static/js/"+de.Name(), echo.WrapHandler(http.StripPrefix("/static/js/", http.FileServer(http.FS(jsfs)))))
+		err = pkger.Walk(staticJS, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			e.GET("/static/js/"+info.Name(), echo.WrapHandler(http.StripPrefix("/static/js/", http.FileServer(pkger.Dir(staticJS)))))
+			return nil
+		})
+		if err != nil {
+			log.Warnf("Failed to load js files in pkger: %s", err)
+			return err
 		}
 
-		cssfs, _ := fs.Sub(staticfsys, staticCSS)
-		dirEntries, _ = staticFS.ReadDir(staticCSS)
-		for _, de := range dirEntries {
-			e.GET("/static/css/"+de.Name(), echo.WrapHandler(http.StripPrefix("/static/css/", http.FileServer(http.FS(cssfs)))))
+		err = pkger.Walk(staticCSS, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			e.GET("/static/css/"+info.Name(), echo.WrapHandler(http.StripPrefix("/static/css/", http.FileServer(pkger.Dir(staticCSS)))))
+			return nil
+		})
+		if err != nil {
+			log.Warnf("Failed to load css files in pkger: %s", err)
+			return err
 		}
 
-		mediafs, _ := fs.Sub(staticfsys, staticMedia)
-		dirEntries, _ = staticFS.ReadDir(staticMedia)
-		for _, de := range dirEntries {
-			e.GET("/static/media/"+de.Name(), echo.WrapHandler(http.StripPrefix("/static/media/", http.FileServer(http.FS(mediafs)))))
+		err = pkger.Walk(staticMedia, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			e.GET("/static/media/"+info.Name(), echo.WrapHandler(http.StripPrefix("/static/media/", http.FileServer(pkger.Dir(staticMedia)))))
+			return nil
+		})
+		if err != nil {
+			log.Warnf("Failed to load media files in pkger: %s", err)
+			return err
 		}
 	}
+	return nil
 }

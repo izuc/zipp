@@ -1,21 +1,21 @@
 package ratelimiter
 
 import (
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/generics/event"
 )
 
 type Events struct {
-	Hit *event.Event1[*HitEvent]
+	Hit *event.Event[*HitEvent]
 }
 
-func newEvents() *Events {
+func newEvents() (new *Events) {
 	return &Events{
-		Hit: event.New1[*HitEvent](),
+		Hit: event.New[*HitEvent](),
 	}
 }
 
 type HitEvent struct {
-	Source    identity.ID
+	Peer      *peer.Peer
 	RateLimit *RateLimit
 }

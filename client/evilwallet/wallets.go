@@ -3,28 +3,27 @@ package evilwallet
 import (
 	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/generics/lo"
+
+	"github.com/izuc/zipp.foundation/core/types"
 	"go.uber.org/atomic"
 
-	"github.com/izuc/zipp.foundation/ds/types"
-	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/client/wallet/packages/address"
 	"github.com/izuc/zipp/client/wallet/packages/seed"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 type walletID int
 
-type (
-	// WalletType is the type of the wallet.
-	WalletType   int8
-	WalletStatus int8
-)
+// WalletType is the type of the wallet.
+type WalletType int8
+type WalletStatus int8
 
 const (
 	Other WalletType = iota
-	// Fresh is used for automatic Faucet Requests, outputs are returned one by one.
+	// Fresh is used for automatic Faucet Requests, outputs are returned one by one
 	Fresh
 	// Reuse stores resulting outputs of double spends or transactions issued by the evilWallet,
 	// outputs from this wallet are reused in spamming scenario with flag reuse set to true and no RestrictedReuse wallet provided.
@@ -146,7 +145,7 @@ func (w *Wallets) addReuseWallet(wallet *Wallet) {
 	w.reuseWallets[wallet.ID] = false
 }
 
-// GetUnspentOutput gets first found unspent output for a given walletType.
+// GetUnspentOutput gets first found unspent output for a given walletType
 func (w *Wallets) GetUnspentOutput(wallet *Wallet) *Output {
 	if wallet == nil {
 		return nil
@@ -193,6 +192,7 @@ func (w *Wallets) removeFreshWallet() {
 		w.faucetWallets = w.faucetWallets[1:]
 		delete(w.wallets, removedID)
 	}
+	return
 }
 
 // removeWallet removes wallet, for Fresh wallet it will be the first wallet in a queue.
@@ -201,6 +201,7 @@ func (w *Wallets) removeReuseWallet(walletID walletID) {
 		delete(w.reuseWallets, walletID)
 		delete(w.wallets, walletID)
 	}
+	return
 }
 
 // SetWalletReady makes wallet ready to use, Fresh wallet is added to freshWallets queue.
@@ -426,7 +427,7 @@ func (w *Wallet) UpdateUnspentOutputID(addr string, outputID utxo.OutputID) erro
 	walletOutput, ok := w.unspentOutputs[addr]
 	w.RUnlock()
 	if !ok {
-		return errors.Errorf("could not find unspent output under provided address in the wallet, outID:%s, addr: %s", outputID.Base58(), addr)
+		return errors.Newf("could not find unspent output under provided address in the wallet, outID:%s, addr: %s", outputID.Base58(), addr)
 	}
 	w.Lock()
 	walletOutput.OutputID = outputID

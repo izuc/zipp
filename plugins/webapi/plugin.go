@@ -6,15 +6,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 // PluginName is the name of the web API plugin.
@@ -37,14 +39,14 @@ type dependencies struct {
 func init() {
 	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, configure, run)
 
-	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
+	Plugin.Events.Init.Hook(event.NewClosure(func(event *node.InitEvent) {
 		if err := event.Container.Provide(func() *echo.Echo {
 			server := newServer()
 			return server
 		}); err != nil {
 			Plugin.Panic(err)
 		}
-	})
+	}))
 }
 
 // newServer creates a server instance.
@@ -68,13 +70,7 @@ func newServer() *echo.Echo {
 	}
 
 	server.HTTPErrorHandler = func(err error, c echo.Context) {
-		req := c.Request()
-		// Log request details
-		log.Warnf("Error in request: method=%s, url=%s, clientIP=%s, error=%s",
-			req.Method, req.URL, c.RealIP(), err)
-
-		// Log stack trace for deeper context
-		log.Warnf("Stack trace: %+v", err)
+		log.Warnf("Request failed: %s", err)
 
 		var statusCode int
 		var block string

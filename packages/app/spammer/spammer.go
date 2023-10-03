@@ -5,14 +5,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/typeutils"
 	"go.uber.org/atomic"
 
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/app/blockissuer"
-	"github.com/izuc/zipp/packages/protocol/models"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/core/mesh_old/payload"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 )
 
 // IssuePayloadFunc is a function which issues a payload.
-type IssuePayloadFunc = func(payload payload.Payload, parentsCount ...int) (*models.Block, error)
+type IssuePayloadFunc = func(payload payload.Payload, parentsCount ...int) (*mesh_old.Block, error)
 
 // EstimateFunc returns the time estimate required for the block to be issued by the rate setter.
 type EstimateFunc = func() time.Duration
@@ -31,7 +30,7 @@ type Spammer struct {
 	issuePayloadFunc IssuePayloadFunc
 	estimateFunc     EstimateFunc
 	log              *logger.Logger
-	running          atomic.Bool
+	running          typeutils.AtomicBool
 	shutdown         chan struct{}
 	wg               sync.WaitGroup
 	goroutinesCount  *atomic.Int32
@@ -48,12 +47,12 @@ func New(issuePayloadFunc IssuePayloadFunc, log *logger.Logger, estimateFunc Est
 }
 
 // Start starts the spammer to spam with the given blocks per time unit,
-// according to a inter block issuing function (IMIF).
-func (s *Spammer) Start(rate int, payloadSize uint64, timeUnit time.Duration, imif string) {
+// according to a inter block issuing function (IMIF)
+func (s *Spammer) Start(rate int, timeUnit time.Duration, imif string) {
 	// only start if not yet running
-	if s.running.CompareAndSwap(false, true) {
+	if s.running.SetToIf(false, true) {
 		s.wg.Add(1)
-		go s.run(rate, payloadSize, timeUnit, imif)
+		go s.run(rate, timeUnit, imif)
 	}
 }
 
@@ -64,16 +63,13 @@ func (s *Spammer) Shutdown() {
 }
 
 func (s *Spammer) signalShutdown() {
-	if s.running.CompareAndSwap(true, false) {
+	if s.running.SetToIf(true, false) {
 		s.shutdown <- struct{}{}
 	}
 }
 
-func (s *Spammer) run(rate int, payloadSize uint64, timeUnit time.Duration, imif string) {
+func (s *Spammer) run(rate int, timeUnit time.Duration, imif string) {
 	defer s.wg.Done()
-
-	dataPayload := payload.NewGenericDataPayload(make([]byte, payloadSize))
-
 	// create ticker with interval for default imif
 	ticker := time.NewTicker(timeUnit / time.Duration(rate))
 	defer ticker.Stop()
@@ -83,10 +79,9 @@ func (s *Spammer) run(rate int, payloadSize uint64, timeUnit time.Duration, imif
 		case <-s.shutdown:
 			return
 		case <-ticker.C:
+			estimatedDuration := s.estimateFunc()
 			// TODO: only sleep if estimate > some threshold.
-			for estimatedDuration := s.estimateFunc(); estimatedDuration > 0; estimatedDuration = s.estimateFunc() {
-				time.Sleep(lo.Min(estimatedDuration, time.Duration(rate)))
-			}
+			time.Sleep(estimatedDuration)
 
 			// adjust the ticker interval for the poisson imif
 			if imif == "poisson" {
@@ -100,8 +95,8 @@ func (s *Spammer) run(rate int, payloadSize uint64, timeUnit time.Duration, imif
 				s.goroutinesCount.Add(1)
 				defer s.goroutinesCount.Add(-1)
 				// we don't care about errors or the actual issued block
-				_, err := s.issuePayloadFunc(dataPayload)
-				if errors.Is(err, blockissuer.ErrNotBootstraped) {
+				_, err := s.issuePayloadFunc(payload.NewGenericDataPayload([]byte("SPAM")))
+				if errors.Is(err, mesh_old.ErrNotBootstrapped) {
 					s.log.Info("Stopped spamming blocks because node lost sync")
 					s.signalShutdown()
 					return

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/logger"
 	"github.com/jellydator/ttlcache/v2"
 	"github.com/paulbellamy/ratecounter"
-	"github.com/pkg/errors"
 	"go.uber.org/atomic"
-
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/logger"
 )
 
 // RateLimit contains information about rate limit values such as time interval and the limit.
@@ -65,18 +64,18 @@ type limiterRecord struct {
 }
 
 // Count counts a new activity of the peer towards its rate limit.
-func (prl *PeerRateLimiter) Count(id identity.ID) {
-	if err := prl.doCount(id); err != nil {
+func (prl *PeerRateLimiter) Count(p *peer.Peer) {
+	if err := prl.doCount(p); err != nil {
 		prl.log.Warnw("Rate limiter failed to count peer activity",
-			"peerId", id)
+			"peerId", p.ID())
 	}
 }
 
 // ExtendLimit extends the activity limit of the peer.
-func (prl *PeerRateLimiter) ExtendLimit(id identity.ID, val int) {
-	if err := prl.doExtendLimit(id, val); err != nil {
+func (prl *PeerRateLimiter) ExtendLimit(p *peer.Peer, val int) {
+	if err := prl.doExtendLimit(p, val); err != nil {
 		prl.log.Warnw("Rate limiter failed to extend peer activity limit",
-			"peerId", id)
+			"peerId", p.ID())
 	}
 }
 
@@ -92,8 +91,8 @@ func (prl *PeerRateLimiter) Close() {
 	}
 }
 
-func (prl *PeerRateLimiter) doCount(id identity.ID) error {
-	peerRecord, err := prl.getPeerRecord(id)
+func (prl *PeerRateLimiter) doCount(p *peer.Peer) error {
+	peerRecord, err := prl.getPeerRecord(p)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -102,8 +101,8 @@ func (prl *PeerRateLimiter) doCount(id identity.ID) error {
 	if int(peerRecord.activityCounter.Rate()) > limit {
 		if !peerRecord.limitHitReported.Swap(true) {
 			prl.log.Infow("Peer hit the activity limit, notifying subscribers to take action",
-				"limit", limit, "interval", prl.interval, "peerId", id)
-			prl.Events.Hit.Trigger(&HitEvent{id, &RateLimit{Limit: limit, Interval: prl.interval}})
+				"limit", limit, "interval", prl.interval, "peerId", p.ID())
+			prl.Events.Hit.Trigger(&HitEvent{p, &RateLimit{Limit: limit, Interval: prl.interval}})
 		}
 	} else {
 		peerRecord.limitHitReported.Store(false)
@@ -111,8 +110,8 @@ func (prl *PeerRateLimiter) doCount(id identity.ID) error {
 	return nil
 }
 
-func (prl *PeerRateLimiter) doExtendLimit(id identity.ID, val int) error {
-	peerRecord, err := prl.getPeerRecord(id)
+func (prl *PeerRateLimiter) doExtendLimit(p *peer.Peer, val int) error {
+	peerRecord, err := prl.getPeerRecord(p)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -120,8 +119,8 @@ func (prl *PeerRateLimiter) doExtendLimit(id identity.ID, val int) error {
 	return nil
 }
 
-func (prl *PeerRateLimiter) getPeerRecord(id identity.ID) (*limiterRecord, error) {
-	peerKey := id.EncodeBase58()
+func (prl *PeerRateLimiter) getPeerRecord(p *peer.Peer) (*limiterRecord, error) {
+	peerKey := p.ID().EncodeBase58()
 	nbrRecordI, err := prl.peersRecords.Get(peerKey)
 	if err != nil {
 		return nil, errors.WithStack(err)

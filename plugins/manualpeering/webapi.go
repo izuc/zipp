@@ -3,12 +3,12 @@ package manualpeering
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/labstack/echo"
 
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/network/manualpeering"
+	"github.com/izuc/zipp/packages/node/manualpeering"
 	"github.com/izuc/zipp/plugins/webapi"
 )
 
@@ -24,12 +24,10 @@ func configureWebAPI() {
 /*
 An example of the HTTP JSON request:
 [
-
-	{
-	    "publicKey": "EYsaGXnUVA9aTYL9FwYEvoQ8d1HCJveQVL7vogu6pqCP",
-	    "address": "172.19.0.3:14666"
-	}
-
+    {
+        "publicKey": "EYsaGXnUVA9aTYL9FwYEvoQ8d1HCJveQVL7vogu6pqCP",
+        "address": "172.19.0.3:14666"
+    }
 ].
 */
 func addPeersHandler(c echo.Context) error {
@@ -54,11 +52,9 @@ func addPeersHandler(c echo.Context) error {
 /*
 An example of the HTTP JSON request:
 [
-
-	{
-	    "publicKey": "8qN1yD95fhbfDZtKX49RYFEXqej5fvsXJ2NPmF1LCqbd"
-	}
-
+    {
+        "publicKey": "8qN1yD95fhbfDZtKX49RYFEXqej5fvsXJ2NPmF1LCqbd"
+    }
 ].
 */
 func removePeersHandler(c echo.Context) error {

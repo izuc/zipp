@@ -6,13 +6,13 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/bitmask"
+	"github.com/izuc/zipp.foundation/core/generics/lo"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/marshalutil"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/bitmask"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp.foundation/serializer/marshalutil"
 	"github.com/izuc/zipp/client/wallet/packages/address"
 	"github.com/izuc/zipp/client/wallet/packages/claimconditionaloptions"
 	"github.com/izuc/zipp/client/wallet/packages/consolidateoptions"
@@ -25,8 +25,9 @@ import (
 	"github.com/izuc/zipp/client/wallet/packages/sweepnftownedoptions"
 	"github.com/izuc/zipp/client/wallet/packages/transfernftoptions"
 	"github.com/izuc/zipp/client/wallet/packages/withdrawfromnftoptions"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mana"
 )
 
 // region Wallet ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +120,7 @@ func (wallet *Wallet) SendFunds(options ...sendoptions.SendFundsOption) (tx *dev
 	consumedOutputs, err := wallet.collectOutputsForFunding(requiredFunds, sendOptions.UsePendingOutputs, sendOptions.SourceAddresses...)
 	if err != nil {
 		if errors.Is(err, ErrTooManyOutputs) {
-			err = errors.Wrap(err, "consolidate funds and try again")
+			err = errors.Errorf("consolidate funds and try again: %w", err)
 		}
 		return
 	}
@@ -192,7 +193,7 @@ func (wallet *Wallet) ConsolidateFunds(options ...consolidateoptions.Consolidate
 		return
 	}
 	if len(confirmedAvailableBalance) == 0 {
-		err = errors.New("no available balance to be consolidated in wallet")
+		err = errors.Errorf("no available balance to be consolidated in wallet")
 		return
 	}
 	// collect outputs
@@ -201,7 +202,7 @@ func (wallet *Wallet) ConsolidateFunds(options ...consolidateoptions.Consolidate
 		return
 	}
 	if allOutputs.OutputCount() == 1 {
-		err = errors.New("can't consolidate funds, there is only one value output in wallet")
+		err = errors.Errorf("can't consolidate funds, there is only one value output in wallet")
 		return
 	}
 	consumedOutputsSlice := allOutputs.SplitIntoChunksOfMaxInputCount()
@@ -229,15 +230,15 @@ func (wallet *Wallet) ConsolidateFunds(options ...consolidateoptions.Consolidate
 
 		tx := devnetvm.NewTransaction(txEssence, unlockBlocks)
 
-		txBytes, bytesErr := tx.Bytes()
-		if bytesErr != nil {
-			return nil, bytesErr
+		txBytes, err := tx.Bytes()
+		if err != nil {
+			return nil, err
 		}
-
 		// check syntactical validity by marshaling an unmarshalling
 		tx = new(devnetvm.Transaction)
-		if fromBytesErr := tx.FromBytes(txBytes); fromBytesErr != nil {
-			return nil, fromBytesErr
+		err = tx.FromBytes(txBytes)
+		if err != nil {
+			return nil, err
 		}
 		// check tx validity (balances, unlock blocks)
 		ok, cErr := checkBalancesAndUnlocks(inputsAsOutputsInOrder, tx)
@@ -249,19 +250,20 @@ func (wallet *Wallet) ConsolidateFunds(options ...consolidateoptions.Consolidate
 		}
 
 		wallet.markOutputsAndAddressesSpent(consumedOutputs)
-		if sendErr := wallet.connector.SendTransaction(tx); sendErr != nil {
-			return nil, sendErr
+		err = wallet.connector.SendTransaction(tx)
+		if err != nil {
+			return nil, err
 		}
-
 		txs = append(txs, tx)
 		if consolidateOptions.WaitForConfirmation {
-			if acceptanceErr := wallet.WaitForTxAcceptance(tx.ID()); acceptanceErr != nil {
-				return txs, acceptanceErr
+			err = wallet.WaitForTxAcceptance(tx.ID())
+			if err != nil {
+				return txs, err
 			}
 		}
 	}
 
-	return txs, nil
+	return txs, err
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -279,13 +281,13 @@ func (wallet *Wallet) ClaimConditionalFunds(options ...claimconditionaloptions.C
 		return
 	}
 	if len(confirmedConditionalBalance) == 0 {
-		err = errors.New("no conditional balance found in the wallet")
+		err = errors.Errorf("no conditional balance found in the wallet")
 		return
 	}
 	addresses := wallet.addressManager.Addresses()
 	consumedOutputs := wallet.outputManager.UnspentConditionalOutputs(false, addresses...)
 	if len(consumedOutputs) == 0 {
-		err = errors.New("failed to find conditionally owned outputs in wallet")
+		err = errors.Errorf("failed to find conditionally owned outputs in wallet")
 		return
 	}
 
@@ -360,10 +362,10 @@ func (wallet *Wallet) CreateAsset(asset Asset, waitForConfirmation ...bool) (ass
 	}
 
 	// where will we spend from?
-	consumedOutputs, err := wallet.collectOutputsForFunding(map[devnetvm.Color]uint64{devnetvm.ColorZIPP: asset.Supply}, false)
+	consumedOutputs, err := wallet.collectOutputsForFunding(map[devnetvm.Color]uint64{devnetvm.ColorIOTA: asset.Supply}, false)
 	if err != nil {
 		if errors.Is(err, ErrTooManyOutputs) {
-			err = errors.Wrap(err, "consolidate funds and try again")
+			err = errors.Errorf("consolidate funds and try again: %w", err)
 		}
 		return
 	}
@@ -384,11 +386,11 @@ func (wallet *Wallet) CreateAsset(asset Asset, waitForConfirmation ...bool) (ass
 	}
 
 	// this only works if there is only one MINT output in the transaction
-	assetColor = devnetvm.ColorZIPP
+	assetColor = devnetvm.ColorIOTA
 	for _, output := range tx.Essence().Outputs() {
 		output.Balances().ForEach(func(color devnetvm.Color, balance uint64) bool {
 			if color == devnetvm.ColorMint {
-				digest := blake2b.Sum256(lo.PanicOnErr(output.ID().Bytes()))
+				digest := blake2b.Sum256(output.ID().Bytes())
 				assetColor, _, err = devnetvm.ColorFromBytes(digest[:])
 			}
 			return true
@@ -399,7 +401,7 @@ func (wallet *Wallet) CreateAsset(asset Asset, waitForConfirmation ...bool) (ass
 		return
 	}
 
-	if assetColor != devnetvm.ColorZIPP {
+	if assetColor != devnetvm.ColorIOTA {
 		asset.Color = assetColor
 		asset.TransactionID = tx.ID()
 		wallet.assetRegistry.RegisterAsset(assetColor, asset)
@@ -428,7 +430,7 @@ func (wallet *Wallet) CreateNFT(options ...createnftoptions.CreateNFTOption) (tx
 	consumedOutputs, err := wallet.collectOutputsForFunding(createNFTOptions.InitialBalance, false)
 	if err != nil {
 		if errors.Is(err, ErrTooManyOutputs) {
-			err = errors.Wrap(err, "consolidate funds and try again")
+			err = errors.Errorf("consolidate funds and try again: %w", err)
 		}
 		return nil, nil, err
 	}
@@ -554,7 +556,7 @@ func (wallet *Wallet) TransferNFT(options ...transfernftoptions.TransferNFTOptio
 		var otherAlias *devnetvm.AliasOutput
 		otherAlias, err = wallet.connector.GetUnspentAliasOutput(transferOptions.ToAddress.(*devnetvm.AliasAddress))
 		if err != nil {
-			err = errors.Wrap(err, "failed to check that transfer wouldn't result in deadlocked outputs")
+			err = errors.Errorf("failed to check that transfer wouldn't result in deadlocked outputs: %w", err)
 			return
 		}
 		if otherAlias.GetGoverningAddress().Equals(alias.GetAliasAddress()) {
@@ -663,7 +665,7 @@ func (wallet *Wallet) DestroyNFT(options ...destroynftoptions.DestroyNFTOption) 
 	// can only be destroyed when minimal funds are present (unless it is delegated)
 	if !alias.IsDelegated() && !devnetvm.IsExactDustMinimum(alias.Balances()) {
 		withdrawAmount := alias.Balances().Map()
-		withdrawAmount[devnetvm.ColorZIPP] -= devnetvm.DustThresholdAliasOutputZIPP
+		withdrawAmount[devnetvm.ColorIOTA] -= devnetvm.DustThresholdAliasOutputIOTA
 		_, err = wallet.WithdrawFundsFromNFT(
 			withdrawfromnftoptions.Alias(destroyOptions.Alias.Base58()),
 			withdrawfromnftoptions.Amount(withdrawAmount),
@@ -765,9 +767,9 @@ func (wallet *Wallet) WithdrawFundsFromNFT(options ...withdrawfromnftoptions.Wit
 		if newAliasBalance[color] == 0 {
 			delete(newAliasBalance, color)
 		}
-		if color == devnetvm.ColorZIPP && newAliasBalance[color] < devnetvm.DustThresholdAliasOutputZIPP {
-			err = errors.Errorf("%d ZIPP tokens would remain after withdrawal, which is less, then the minimum required %d",
-				newAliasBalance[color], devnetvm.DustThresholdAliasOutputZIPP)
+		if color == devnetvm.ColorIOTA && newAliasBalance[color] < devnetvm.DustThresholdAliasOutputIOTA {
+			err = errors.Errorf("%d IOTA tokens would remain after withdrawal, which is less, then the minimum required %d",
+				newAliasBalance[color], devnetvm.DustThresholdAliasOutputIOTA)
 			return false
 		}
 		return true
@@ -881,12 +883,14 @@ func (wallet *Wallet) DepositFundsToNFT(options ...deposittonftoptions.DepositFu
 	consumedOutputs, err := wallet.collectOutputsForFunding(depositBalances, false)
 	if err != nil {
 		if errors.Is(err, ErrTooManyOutputs) {
-			err = errors.Wrap(err, "consolidate funds and try again")
+			err = errors.Errorf("consolidate funds and try again: %w", err)
 		}
 		return nil, err
 	}
-	// build inputs from consumed outputs annd add the alias
-	unsortedInputs := append(wallet.buildInputs(consumedOutputs), alias.Input())
+	// build inputs from consumed outputs
+	inputsFromConsumedOutputs := wallet.buildInputs(consumedOutputs)
+	// add the alias
+	unsortedInputs := append(inputsFromConsumedOutputs, alias.Input())
 	// sort all inputs
 	inputs := devnetvm.NewInputs(unsortedInputs...)
 	// aggregate all the funds we consume from inputs used to fund the deposit (there is the alias input as well)
@@ -903,7 +907,7 @@ func (wallet *Wallet) DepositFundsToNFT(options ...deposittonftoptions.DepositFu
 	// remainder balance = totalConsumed - deposit
 	for color, balance := range depositBalances {
 		if totalConsumed[color] < balance {
-			return nil, errors.New("deposit funds are greater than consumed funds")
+			return nil, errors.Errorf("deposit funds are greater than consumed funds")
 		}
 		totalConsumed[color] -= balance
 		if totalConsumed[color] <= 0 {
@@ -985,7 +989,6 @@ func (wallet Wallet) SweepNFTOwnedFunds(options ...sweepnftownedoptions.SweepNFT
 	}
 	if _, has := stateControlled[*sweepOptions.Alias]; !has {
 		err = errors.Errorf("nft %s is not state controlled by the wallet", sweepOptions.Alias.Base58())
-		return
 	}
 	// look up if we have the alias output. Only the state controller can modify balances in aliases.
 	walletAlias, err := wallet.findStateControlledAliasOutputByAliasID(sweepOptions.Alias)
@@ -1132,7 +1135,6 @@ func (wallet *Wallet) SweepNFTOwnedNFTs(options ...sweepnftownednftsoptions.Swee
 	}
 	if _, has := stateControlled[*sweepOptions.Alias]; !has {
 		err = errors.Errorf("nft %s is not state controlled by the wallet", sweepOptions.Alias.Base58())
-		return
 	}
 	// look up if we have the alias output. Only the state controller can modify balances in aliases.
 	walletAlias, err := wallet.findStateControlledAliasOutputByAliasID(sweepOptions.Alias)
@@ -1146,7 +1148,6 @@ func (wallet *Wallet) SweepNFTOwnedNFTs(options ...sweepnftownednftsoptions.Swee
 	}
 	if len(owned) == 0 {
 		err = errors.Errorf("no owned outputs with funds are found on nft %s", sweepOptions.Alias.Base58())
-		return
 	}
 	toBeConsumed := devnetvm.Outputs{}
 	// owned contains all outputs that are owned by nft. we want to filter out non alias outputs
@@ -1274,6 +1275,15 @@ func (wallet *Wallet) SweepNFTOwnedNFTs(options ...sweepnftownednftsoptions.Swee
 // ServerStatus retrieves the connected server status.
 func (wallet *Wallet) ServerStatus() (status ServerStatus, err error) {
 	return wallet.connector.(*WebConnector).ServerStatus()
+}
+
+// endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// region AllowedPledgeNodeIDs /////////////////////////////////////////////////////////////////////////////////////////
+
+// AllowedPledgeNodeIDs retrieves the allowed pledge node IDs.
+func (wallet *Wallet) AllowedPledgeNodeIDs() (res map[mana.Type][]string, err error) {
+	return wallet.connector.(*WebConnector).GetAllowedPledgeIDs()
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1443,13 +1453,13 @@ func (wallet *Wallet) Balance(refresh ...bool) (confirmedBalance, pendingBalance
 				if casted.GetStateAddress().Equals(addy.Address()) {
 					// we are state controller
 					casted.Balances().ForEach(func(color devnetvm.Color, balance uint64) bool {
-						if color == devnetvm.ColorZIPP {
+						if color == devnetvm.ColorIOTA {
 							// the minimum amount can only be moved by the governor
-							surplusZIPP := balance - devnetvm.DustThresholdAliasOutputZIPP
-							if surplusZIPP == 0 {
+							surplusIOTA := balance - devnetvm.DustThresholdAliasOutputIOTA
+							if surplusIOTA == 0 {
 								return true
 							}
-							targetMap[color] += surplusZIPP
+							targetMap[color] += surplusIOTA
 						} else {
 							targetMap[color] += balance
 						}
@@ -1459,7 +1469,7 @@ func (wallet *Wallet) Balance(refresh ...bool) (confirmedBalance, pendingBalance
 				}
 				if casted.GetGoverningAddress().Equals(addy.Address()) {
 					// we are the governor, so we only own the minimum dust amount that cannot be withdrawn by the state controller
-					targetMap[devnetvm.ColorZIPP] += devnetvm.DustThresholdAliasOutputZIPP
+					targetMap[devnetvm.ColorIOTA] += devnetvm.DustThresholdAliasOutputIOTA
 					continue
 				}
 			}
@@ -1818,7 +1828,7 @@ func (wallet *Wallet) WaitForTxAcceptance(txID utxo.TransactionID, optionalCtx .
 	for {
 		select {
 		case <-ctx.Done():
-			return errors.New("context canceled")
+			return errors.Errorf("context cancelled")
 		case <-ticker.C:
 			timeoutCounter += wallet.ConfirmationPollInterval
 			confirmationState, fetchErr := wallet.connector.GetTransactionConfirmationState(txID)
@@ -1907,17 +1917,24 @@ func (wallet *Wallet) waitForStateAliasBalanceConfirmation(preStateAliasBalance 
 // derivePledgeIDs returns the mana pledge IDs from the provided options.
 func (wallet *Wallet) derivePledgeIDs(aIDFromOptions, cIDFromOptions string) (aID, cID identity.ID, err error) {
 	// determine pledge IDs
-	if aIDFromOptions != "" {
-		aID, err = identity.DecodeIDBase58(aIDFromOptions)
-		if err != nil {
-			return
-		}
+	allowedPledgeNodeIDs, err := wallet.connector.GetAllowedPledgeIDs()
+	if err != nil {
+		return
+	}
+	if aIDFromOptions == "" {
+		aID, err = mana.IDFromStr(allowedPledgeNodeIDs[mana.AccessMana][0])
+	} else {
+		aID, err = mana.IDFromStr(aIDFromOptions)
+	}
+	if err != nil {
+		return
 	}
 
-	if cIDFromOptions != "" {
-		cID, err = identity.DecodeIDBase58(cIDFromOptions)
+	if cIDFromOptions == "" {
+		cID, err = mana.IDFromStr(allowedPledgeNodeIDs[mana.ConsensusMana][0])
+	} else {
+		cID, err = mana.IDFromStr(cIDFromOptions)
 	}
-
 	return
 }
 
@@ -1965,7 +1982,7 @@ func (wallet *Wallet) findStateControlledAliasOutputByAliasID(id *devnetvm.Alias
 // It may collect pending outputs according to flag.
 func (wallet *Wallet) collectOutputsForFunding(fundingBalance map[devnetvm.Color]uint64, includePending bool, addresses ...address.Address) (OutputsByAddressAndOutputID, error) {
 	if fundingBalance == nil {
-		return nil, errors.New("can't collect fund: empty fundingBalance provided")
+		return nil, errors.Errorf("can't collect fund: empty fundingBalance provided")
 	}
 
 	_ = wallet.outputManager.Refresh()
@@ -2011,7 +2028,7 @@ func (wallet *Wallet) collectOutputsForFunding(fundingBalance map[devnetvm.Color
 	}
 
 	if enoughCollected(collected, fundingBalance) && numOfCollectedOutputs > devnetvm.MaxOutputCount {
-		return outputsToConsume, errors.WithMessage(ErrTooManyOutputs, "failed to collect outputs")
+		return outputsToConsume, errors.Errorf("failed to collect outputs: %w", ErrTooManyOutputs)
 	}
 
 	return nil, errors.Errorf("failed to gather initial funds \n %s, there are only \n %s funds available",
@@ -2057,10 +2074,10 @@ func (wallet *Wallet) buildOutputs(
 		for color, amount := range coloredBalances {
 			outputsByColor[walletAddress][color] += amount
 			if color == devnetvm.ColorMint {
-				consumedFunds[devnetvm.ColorZIPP] -= amount
+				consumedFunds[devnetvm.ColorIOTA] -= amount
 
-				if consumedFunds[devnetvm.ColorZIPP] == 0 {
-					delete(consumedFunds, devnetvm.ColorZIPP)
+				if consumedFunds[devnetvm.ColorIOTA] == 0 {
+					delete(consumedFunds, devnetvm.ColorIOTA)
 				}
 			} else {
 				consumedFunds[color] -= amount

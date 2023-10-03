@@ -4,16 +4,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/izuc/zipp.foundation/core/slot"
-	"github.com/izuc/zipp.foundation/crypto/identity"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
 	"github.com/izuc/zipp/client"
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/core/commitment"
-	"github.com/izuc/zipp/packages/core/confirmation"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/models"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 type ServersStatus []*wallet.ServerStatus
@@ -167,18 +164,16 @@ func (c *WebClients) SetPledgeID(id *identity.ID) {
 }
 
 type Client interface {
-	// URL returns a client API url.
-	URL() (cltID string)
+	// Url returns a client API url.
+	Url() (cltID string)
 	// GetRateSetterEstimate returns a rate setter estimate.
 	GetRateSetterEstimate() (estimate time.Duration, err error)
 	// SleepRateSetterEstimate sleeps for rate setter estimate.
 	SleepRateSetterEstimate() (err error)
 	// PostTransaction sends a transaction to the Mesh via a given client.
-	PostTransaction(tx *devnetvm.Transaction) (utxo.TransactionID, models.BlockID, error)
+	PostTransaction(tx *devnetvm.Transaction) (utxo.TransactionID, error)
 	// PostData sends the given data (payload) by creating a block in the backend.
 	PostData(data []byte) (blkID string, err error)
-	// PostBlock sends the given block bytes.
-	PostBlock(data []byte) (blkID string, err error)
 	// GetUnspentOutputForAddress gets the first unspent outputs of a given address.
 	GetUnspentOutputForAddress(addr devnetvm.Address) *jsonmodels.WalletOutput
 	// GetAddressUnspentOutputs gets the unspent outputs of an address.
@@ -190,25 +185,13 @@ type Client interface {
 	// GetOutputConfirmationState gets the first unspent outputs of a given address.
 	GetOutputConfirmationState(outputID utxo.OutputID) confirmation.State
 	// BroadcastFaucetRequest requests funds from the faucet and returns the faucet request block ID.
-	BroadcastFaucetRequest(address string, powTarget int) error
+	BroadcastFaucetRequest(address string) error
 	// GetTransactionOutputs returns the outputs the transaction created.
 	GetTransactionOutputs(txID string) (outputs devnetvm.Outputs, err error)
 	// GetTransaction gets the transaction.
 	GetTransaction(txID string) (resp *jsonmodels.Transaction, err error)
 	// GetOutputSolidity checks if the transaction is solid.
 	GetOutputSolidity(outID string) (solid bool, err error)
-	// GetLatestCommitment returns the latest commitment and data needed to create a new block.
-	GetLatestCommitment() (commitment *commitment.Commitment, err error)
-	// GetCommitment returns the commitment for a given epoch and data needed to create a new block.
-	GetCommitment(epochIndex int) (commitment *commitment.Commitment, err error)
-	// GetLatestConfirmedIndex returns the latest confirmed index.
-	GetLatestConfirmedIndex() (index slot.Index, err error)
-	// GetReferences returns the references selected for a given payload.
-	GetReferences(payload []byte, parentsCount int) (refs models.ParentBlockIDs, err error)
-	// GetLatestCommittedSlot returns the latest committed slot.
-	GetLatestCommittedSlot() (slot.Index, error)
-	// GetTimeProvider returns the time provider info such as genesis time and slot duration.
-	GetTimeProvider() (time.Time, time.Duration, error)
 }
 
 // WebClient contains a ZIPP web API to interact with a node.
@@ -217,8 +200,8 @@ type WebClient struct {
 	url string
 }
 
-// URL returns a client API Url.
-func (c *WebClient) URL() string {
+// Url returns a client API Url.
+func (c *WebClient) Url() string {
 	return c.url
 }
 
@@ -249,13 +232,13 @@ func (c *WebClient) SleepRateSetterEstimate() (err error) {
 }
 
 // BroadcastFaucetRequest requests funds from the faucet and returns the faucet request block ID.
-func (c *WebClient) BroadcastFaucetRequest(address string, powTarget int) (err error) {
-	_, err = c.api.BroadcastFaucetRequest(address, powTarget)
+func (c *WebClient) BroadcastFaucetRequest(address string) (err error) {
+	_, err = c.api.BroadcastFaucetRequest(address, -1)
 	return
 }
 
 // PostTransaction sends a transaction to the Mesh via a given client.
-func (c *WebClient) PostTransaction(tx *devnetvm.Transaction) (txID utxo.TransactionID, blockID models.BlockID, err error) {
+func (c *WebClient) PostTransaction(tx *devnetvm.Transaction) (txID utxo.TransactionID, err error) {
 	txBytes, err := tx.Bytes()
 	if err != nil {
 		return
@@ -266,10 +249,6 @@ func (c *WebClient) PostTransaction(tx *devnetvm.Transaction) (txID utxo.Transac
 		return
 	}
 	err = txID.FromBase58(resp.TransactionID)
-	if err != nil {
-		return
-	}
-	err = blockID.FromBase58(resp.BlockID)
 	if err != nil {
 		return
 	}
@@ -286,22 +265,12 @@ func (c *WebClient) PostData(data []byte) (blkID string, err error) {
 	return resp, nil
 }
 
-// PostBlock sends the given block bytes.
-func (c *WebClient) PostBlock(data []byte) (blkID string, err error) {
-	resp, err := c.api.SendBlock(data)
-	if err != nil {
-		return
-	}
-
-	return resp, nil
-}
-
 func (c *WebClient) GetAddressUnspentOutputs(address string) (outputIDs []utxo.OutputID, err error) {
-	res, err := c.api.GetAddressOutputs(address)
+	res, err := c.api.GetAddressUnspentOutputs(address)
 	if err != nil {
 		return
 	}
-	outputIDs = getOutputIDsByJSON(res.UnspentOutputs)
+	outputIDs = getOutputIDsByJSON(res.Outputs)
 	return
 }
 
@@ -378,65 +347,6 @@ func (c *WebClient) GetOutputSolidity(outID string) (solid bool, err error) {
 		return
 	}
 	solid = resp.OutputID.Base58 != ""
-	return
-}
-
-func (c *WebClient) GetLatestCommitment() (comm *commitment.Commitment, err error) {
-	resp, err := c.api.GetLatestCommittedSlotInfo()
-	if err != nil {
-		return
-	}
-	comm, err = jsonmodels.CommitmentFromSlotInfo(resp)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func (c *WebClient) GetCommitment(epochIndex int) (comm *commitment.Commitment, err error) {
-	resp, err := c.api.GetSlotInfo(epochIndex)
-	if err != nil {
-		return
-	}
-	comm, err = jsonmodels.CommitmentFromSlotInfo(resp)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func (c *WebClient) GetLatestConfirmedIndex() (index slot.Index, err error) {
-	index, err = c.api.GetLatestConfirmedIndex()
-	if err != nil {
-		return
-	}
-	return
-}
-
-func (c *WebClient) GetReferences(payload []byte, parentsCount int) (blockIDs models.ParentBlockIDs, err error) {
-	resp, err := c.api.GetReferences(payload, parentsCount)
-	if err != nil {
-		return
-	}
-	blockIDs = resp.References()
-	return blockIDs, nil
-}
-
-func (c *WebClient) GetLatestCommittedSlot() (slotIndex slot.Index, err error) {
-	resp, err := c.api.GetLatestCommittedSlotInfo()
-	if err != nil {
-		return
-	}
-	return slot.Index(resp.Index), nil
-}
-
-func (c *WebClient) GetTimeProvider() (genesisTime time.Time, slotDuration time.Duration, err error) {
-	resp, err := c.api.Info()
-	if err != nil {
-		return
-	}
-	genesisTime = resp.TimeProvider.GenesisTime
-	slotDuration = resp.TimeProvider.SlotDuration
 	return
 }
 

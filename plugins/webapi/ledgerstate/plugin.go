@@ -7,26 +7,26 @@ import (
 	"sync"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/app/blockissuer"
+	"github.com/izuc/zipp/packages/core/conflictdag"
+	"github.com/izuc/zipp/packages/core/ledger"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/mana"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/node/clock"
+
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
-	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
-	"github.com/izuc/zipp/packages/protocol/models"
+	"github.com/izuc/zipp/packages/node/shutdown"
+	"github.com/izuc/zipp/plugins/blocklayer"
 	"github.com/izuc/zipp/plugins/webapi"
 )
 
@@ -41,10 +41,9 @@ const (
 type dependencies struct {
 	dig.In
 
-	Server      *echo.Echo
-	Protocol    *protocol.Protocol
-	BlockIssuer *blockissuer.BlockIssuer
-	Indexer     *indexer.Indexer
+	Server  *echo.Echo
+	Mesh  *mesh_old.Mesh
+	Indexer *indexer.Indexer
 }
 
 var (
@@ -62,8 +61,8 @@ var (
 	// doubleSpendFilterOnce ensures that doubleSpendFilter is a singleton.
 	doubleSpendFilterOnce sync.Once
 
-	// Hook to the transaction confirmation event.
-	onTransactionAccepted *event.Hook[func(*mempool.TransactionEvent)]
+	// closure to be executed on transaction confirmation.
+	onTransactionAccepted *event.Closure[*ledger.TransactionAcceptedEvent]
 
 	log *logger.Logger
 )
@@ -103,14 +102,15 @@ func FilterRemove(txID utxo.TransactionID) {
 	}
 }
 
-func configure(plugin *node.Plugin) {
-	if webapi.Parameters.EnableDSFilter {
+func configure(_ *node.Plugin) {
+	filterEnabled = webapi.Parameters.EnableDSFilter
+	if filterEnabled {
 		doubleSpendFilter = Filter()
-		deps.Protocol.Events.Engine.Ledger.MemPool.TransactionAccepted.Hook(func(event *mempool.TransactionEvent) {
-			doubleSpendFilter.Remove(event.Metadata.ID())
-		}, event.WithWorkerPool(plugin.WorkerPool))
+		onTransactionAccepted = event.NewClosure(func(event *ledger.TransactionAcceptedEvent) {
+			doubleSpendFilter.Remove(event.TransactionID)
+		})
 	}
-
+	deps.Mesh.Ledger.Events.TransactionAccepted.Attach(onTransactionAccepted)
 	log = logger.NewLogger(PluginName)
 }
 
@@ -123,6 +123,7 @@ func run(*node.Plugin) {
 
 	// register endpoints
 	deps.Server.GET("ledgerstate/addresses/:address", GetAddress)
+	deps.Server.GET("ledgerstate/addresses/:address/unspentOutputs", GetAddressUnspentOutputs)
 	deps.Server.POST("ledgerstate/addresses/unspentOutputs", PostAddressUnspentOutputs)
 	deps.Server.GET("ledgerstate/conflicts/:conflictID", GetConflict)
 	deps.Server.GET("ledgerstate/conflicts/:conflictID/children", GetConflictChildren)
@@ -153,15 +154,12 @@ func worker(ctx context.Context) {
 		}
 	}()
 	log.Infof("Stopping %s ...", PluginName)
-	if onTransactionAccepted != nil {
-		onTransactionAccepted.Unhook()
-		onTransactionAccepted = nil
-	}
+	deps.Mesh.Ledger.Events.TransactionAccepted.Detach(onTransactionAccepted)
 }
 
 func outputsOnAddress(address devnetvm.Address) (outputs devnetvm.Outputs) {
 	deps.Indexer.CachedAddressOutputMappings(address).Consume(func(mapping *indexer.AddressOutputMapping) {
-		deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutput(mapping.OutputID()).Consume(func(output utxo.Output) {
+		deps.Mesh.Ledger.Storage.CachedOutput(mapping.OutputID()).Consume(func(output utxo.Output) {
 			if typedOutput, ok := output.(devnetvm.Output); ok {
 				outputs = append(outputs, typedOutput)
 			}
@@ -182,18 +180,30 @@ func GetAddress(c echo.Context) error {
 	}
 
 	outputs := outputsOnAddress(address)
-	spentOutputs, unspentOutputs := devnetvm.Outputs{}, devnetvm.Outputs{}
-	for _, output := range outputs {
-		deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutputMetadata(output.ID()).Consume(func(outputMetadata *mempool.OutputMetadata) {
-			if outputMetadata.IsSpent() {
-				spentOutputs = append(spentOutputs, output)
-				return
-			}
-			unspentOutputs = append(unspentOutputs, output)
-		})
+
+	return c.JSON(http.StatusOK, jsonmodels.NewGetAddressResponse(address, outputs))
+}
+
+// endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// region GetAddressUnspentOutputs /////////////////////////////////////////////////////////////////////////////////////
+
+// GetAddressUnspentOutputs is the handler for the /ledgerstate/addresses/:address/unspentOutputs endpoint.
+func GetAddressUnspentOutputs(c echo.Context) error {
+	address, err := devnetvm.AddressFromBase58EncodedString(c.Param("address"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	return c.JSON(http.StatusOK, jsonmodels.NewGetAddressResponse(address, spentOutputs, unspentOutputs))
+	outputs := outputsOnAddress(address)
+
+	return c.JSON(http.StatusOK, jsonmodels.NewGetAddressResponse(address, outputs.Filter(func(output devnetvm.Output) (isUnspent bool) {
+		deps.Mesh.Ledger.Storage.CachedOutputMetadata(output.ID()).Consume(func(outputMetadata *ledger.OutputMetadata) {
+			isUnspent = !outputMetadata.IsSpent()
+		})
+
+		return
+	})))
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,16 +238,16 @@ func PostAddressUnspentOutputs(c echo.Context) error {
 		res.UnspentOutputs[i].Outputs = make([]jsonmodels.WalletOutput, 0)
 
 		for _, output := range outputs.Filter(func(output devnetvm.Output) (isUnspent bool) {
-			deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutputMetadata(output.ID()).Consume(func(outputMetadata *mempool.OutputMetadata) {
+			deps.Mesh.Ledger.Storage.CachedOutputMetadata(output.ID()).Consume(func(outputMetadata *ledger.OutputMetadata) {
 				isUnspent = !outputMetadata.IsSpent()
 			})
 			return
 		}) {
-			deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutputMetadata(output.ID()).Consume(func(outputMetadata *mempool.OutputMetadata) {
+			deps.Mesh.Ledger.Storage.CachedOutputMetadata(output.ID()).Consume(func(outputMetadata *ledger.OutputMetadata) {
 				if !outputMetadata.IsSpent() {
-					deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutput(output.ID()).Consume(func(ledgerOutput utxo.Output) {
+					deps.Mesh.Ledger.Storage.CachedOutput(output.ID()).Consume(func(ledgerOutput utxo.Output) {
 						var timestamp time.Time
-						deps.Protocol.Engine().Ledger.MemPool().Storage().CachedTransaction(ledgerOutput.ID().TransactionID).Consume(func(tx utxo.Transaction) {
+						deps.Mesh.Ledger.Storage.CachedTransaction(ledgerOutput.ID().TransactionID).Consume(func(tx utxo.Transaction) {
 							timestamp = tx.(*devnetvm.Transaction).Essence().Timestamp()
 						})
 						res.UnspentOutputs[i].Outputs = append(res.UnspentOutputs[i].Outputs, jsonmodels.WalletOutput{
@@ -265,12 +275,13 @@ func GetConflict(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	conflict, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().Conflict(conflictID)
-	if !exists {
-		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load Conflict with %s", conflictID)))
+	if deps.Mesh.Ledger.ConflictDAG.Storage.CachedConflict(conflictID).Consume(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+		err = c.JSON(http.StatusOK, jsonmodels.NewConflictWeight(conflict, conflict.ConfirmationState(), deps.Mesh.ApprovalWeightManager.WeightOfConflict(conflictID)))
+	}) {
+		return
 	}
 
-	return c.JSON(http.StatusOK, jsonmodels.NewConflictWeight(conflict, conflict.ConfirmationState(), deps.Protocol.Engine().Mesh.Booker().VirtualVoting().ConflictVotersTotalWeight(conflictID)))
+	return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(fmt.Errorf("failed to load Conflict with %s", conflictID)))
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -284,12 +295,10 @@ func GetConflictChildren(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	conflict, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().Conflict(conflictID)
-	if !exists {
-		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(fmt.Errorf("failed to load Conflict with %s", conflictID)))
-	}
+	cachedChildConflicts := deps.Mesh.Ledger.ConflictDAG.Storage.CachedChildConflicts(conflictID)
+	defer cachedChildConflicts.Release()
 
-	return c.JSON(http.StatusOK, jsonmodels.NewGetConflictChildrenResponse(conflictID, conflict.Children()))
+	return c.JSON(http.StatusOK, jsonmodels.NewGetConflictChildrenResponse(conflictID, cachedChildConflicts.Unwrap()))
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,19 +312,22 @@ func GetConflictConflicts(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	conflict, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().Conflict(conflictID)
-	if !exists {
-		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load Conflict with %s", conflictID)))
-	}
-	conflictIDsPerConflictSet := make(map[utxo.OutputID][]utxo.TransactionID)
-	for it := conflict.ConflictSets().Iterator(); it.HasNext(); {
-		conflictSet := it.Next()
-		conflictIDsPerConflictSet[conflictSet.ID()] = lo.Map(conflictSet.Conflicts().Slice(), func(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) utxo.TransactionID {
-			return c.ID()
-		})
+	if deps.Mesh.Ledger.ConflictDAG.Storage.CachedConflict(conflictID).Consume(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+		conflictIDsPerConflictID := make(map[utxo.OutputID][]utxo.TransactionID)
+		for it := conflict.ConflictSetIDs().Iterator(); it.HasNext(); {
+			conflictID := it.Next()
+			conflictIDsPerConflictID[conflictID] = make([]utxo.TransactionID, 0)
+			deps.Mesh.Ledger.ConflictDAG.Storage.CachedConflictMembers(conflictID).Consume(func(conflictMember *conflictdag.ConflictMember[utxo.OutputID, utxo.TransactionID]) {
+				conflictIDsPerConflictID[conflictID] = append(conflictIDsPerConflictID[conflictID], conflictMember.ConflictID())
+			})
+		}
+
+		err = c.JSON(http.StatusOK, jsonmodels.NewGetConflictConflictsResponse(conflictID, conflictIDsPerConflictID))
+	}) {
+		return
 	}
 
-	return c.JSON(http.StatusOK, jsonmodels.NewGetConflictConflictsResponse(conflictID, conflictIDsPerConflictSet))
+	return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(fmt.Errorf("failed to load Conflict with %s", conflictID)))
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -329,8 +341,8 @@ func GetConflictVoters(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	voters := deps.Protocol.Engine().Mesh.Booker().VirtualVoting().ConflictVoters(conflictID)
-	defer voters.Detach()
+	voters := mesh_old.NewVoters()
+	voters.AddAll(deps.Mesh.ApprovalWeightManager.VotersOfConflict(conflictID))
 
 	return c.JSON(http.StatusOK, jsonmodels.NewGetConflictVotersResponse(conflictID, voters))
 }
@@ -368,7 +380,7 @@ func GetOutput(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	if !deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutput(outputID).Consume(func(output utxo.Output) {
+	if !deps.Mesh.Ledger.Storage.CachedOutput(outputID).Consume(func(output utxo.Output) {
 		err = c.JSON(http.StatusOK, jsonmodels.NewOutput(output.(devnetvm.Output)))
 	}) {
 		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load Output with %s", outputID)))
@@ -388,7 +400,7 @@ func GetOutputConsumers(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	cachedConsumers := deps.Protocol.Engine().Ledger.MemPool().Storage().CachedConsumers(outputID)
+	cachedConsumers := deps.Mesh.Ledger.Storage.CachedConsumers(outputID)
 	defer cachedConsumers.Release()
 
 	return c.JSON(http.StatusOK, jsonmodels.NewGetOutputConsumersResponse(outputID, cachedConsumers.Unwrap()))
@@ -405,8 +417,8 @@ func GetOutputMetadata(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	if !deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutputMetadata(outputID).Consume(func(outputMetadata *mempool.OutputMetadata) {
-		confirmedConsumerID := deps.Protocol.Engine().Ledger.MemPool().Utils().ConfirmedConsumer(outputID)
+	if !deps.Mesh.Ledger.Storage.CachedOutputMetadata(outputID).Consume(func(outputMetadata *ledger.OutputMetadata) {
+		confirmedConsumerID := deps.Mesh.Utils.ConfirmedConsumer(outputID)
 
 		jsonOutputMetadata := jsonmodels.NewOutputMetadata(outputMetadata, confirmedConsumerID)
 
@@ -430,7 +442,7 @@ func GetTransaction(c echo.Context) (err error) {
 
 	var tx *devnetvm.Transaction
 	// retrieve transaction
-	if !deps.Protocol.Engine().Ledger.MemPool().Storage().CachedTransaction(transactionID).Consume(func(transaction utxo.Transaction) {
+	if !deps.Mesh.Ledger.Storage.CachedTransaction(transactionID).Consume(func(transaction utxo.Transaction) {
 		tx = transaction.(*devnetvm.Transaction)
 	}) {
 		err = c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load Transaction with %s", transactionID)))
@@ -450,7 +462,7 @@ func GetTransactionMetadata(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	if !deps.Protocol.Engine().Ledger.MemPool().Storage().CachedTransactionMetadata(transactionID).Consume(func(transactionMetadata *mempool.TransactionMetadata) {
+	if !deps.Mesh.Ledger.Storage.CachedTransactionMetadata(transactionID).Consume(func(transactionMetadata *ledger.TransactionMetadata) {
 		err = c.JSON(http.StatusOK, jsonmodels.NewTransactionMetadata(transactionMetadata))
 	}) {
 		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load TransactionMetadata of Transaction with %s", transactionID)))
@@ -470,11 +482,12 @@ func GetTransactionAttachments(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
 	}
 
-	blockIDs := models.NewBlockIDs()
-	_ = deps.Protocol.Engine().Mesh.Booker().GetAllAttachments(transactionID).ForEach(func(attachment *booker.Block) error {
-		blockIDs.Add(attachment.ID())
-		return nil
-	})
+	blockIDs := mesh_old.NewBlockIDs()
+	if !deps.Mesh.Storage.Attachments(transactionID).Consume(func(attachment *mesh_old.Attachment) {
+		blockIDs.Add(attachment.BlockID())
+	}) {
+		return c.JSON(http.StatusNotFound, jsonmodels.NewErrorResponse(errors.Errorf("failed to load GetTransactionAttachmentsResponse of Transaction with %s", transactionID)))
+	}
 
 	return c.JSON(http.StatusOK, jsonmodels.NewGetTransactionAttachmentsResponse(transactionID, blockIDs))
 }
@@ -485,7 +498,7 @@ func GetTransactionAttachments(c echo.Context) (err error) {
 
 // conflictIDFromContext determines the ConflictID from the conflictID parameter in an echo.Context. It expects it to either
 // be a base58 encoded string or one of the builtin aliases (MasterConflictID, LazyBookedConflictsConflictID or
-// InvalidConflictID).
+// InvalidConflictID)
 func conflictIDFromContext(c echo.Context) (conflictID utxo.TransactionID, err error) {
 	switch conflictIDString := c.Param("conflictID"); conflictIDString {
 	case "MasterConflictID":
@@ -527,37 +540,54 @@ func PostTransaction(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: err.Error()})
 	}
 
+	// validate allowed mana pledge nodes.
+	allowedAccessMana := blocklayer.GetAllowedPledgeNodes(mana.AccessMana)
+	if allowedAccessMana.IsFilterEnabled {
+		if !allowedAccessMana.Allowed.Has(tx.Essence().AccessPledgeID()) {
+			return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{
+				Error: fmt.Errorf("not allowed to pledge access mana to %s: %w", tx.Essence().AccessPledgeID().String(), ErrNotAllowedToPledgeManaToNode).Error(),
+			})
+		}
+	}
+	allowedConsensusMana := blocklayer.GetAllowedPledgeNodes(mana.ConsensusMana)
+	if allowedConsensusMana.IsFilterEnabled {
+		if !allowedConsensusMana.Allowed.Has(tx.Essence().ConsensusPledgeID()) {
+			return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{
+				Error: fmt.Errorf("not allowed to pledge consensus mana to %s: %w", tx.Essence().ConsensusPledgeID().String(), ErrNotAllowedToPledgeManaToNode).Error(),
+			})
+		}
+	}
+
 	// check transaction validity
-	if transactionErr := deps.Protocol.Engine().Ledger.MemPool().CheckTransaction(context.Background(), tx); transactionErr != nil {
+	if transactionErr := deps.Mesh.Ledger.CheckTransaction(context.Background(), tx); transactionErr != nil {
 		return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: transactionErr.Error()})
 	}
 
-	// TODO: check if transaction is too old
-	// if tx.Essence().Timestamp().Before(time.Now().Add(-models.MaxReattachmentTimeMin)) {
-	//	return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: fmt.Sprintf("transaction timestamp is older than MaxReattachmentTime (%s) and cannot be issued", meshold.MaxReattachmentTimeMin)})
-	// }
+	// check if transaction is too old
+	if tx.Essence().Timestamp().Before(clock.SyncedTime().Add(-mesh_old.MaxReattachmentTimeMin)) {
+		return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: fmt.Sprintf("transaction timestamp is older than MaxReattachmentTime (%s) and cannot be issued", mesh_old.MaxReattachmentTimeMin)})
+	}
 
 	// if transaction is in the future we wait until the time arrives
-	if tx.Essence().Timestamp().After(time.Now()) {
-		if time.Until(tx.Essence().Timestamp()) > time.Minute {
+	if tx.Essence().Timestamp().After(clock.SyncedTime()) {
+		if tx.Essence().Timestamp().Sub(clock.SyncedTime()) > time.Minute {
 			return c.JSON(http.StatusBadRequest, &jsonmodels.PostTransactionResponse{Error: "transaction timestamp is in the future and cannot be issued; please readjust local clock"})
 		}
-		time.Sleep(time.Until(tx.Essence().Timestamp()) + 1*time.Nanosecond)
+		time.Sleep(tx.Essence().Timestamp().Sub(clock.SyncedTime()) + 1*time.Nanosecond)
 	}
 
-	block, err := deps.BlockIssuer.CreateBlock(tx)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, jsonmodels.PostTransactionResponse{Error: err.Error()})
+	issueTransaction := func() (*mesh_old.Block, error) {
+		return deps.Mesh.IssuePayload(tx)
 	}
+
 	// add tx to double spend doubleSpendFilter
 	FilterAdd(tx)
-	if err = deps.BlockIssuer.IssueBlockAndAwaitBlockToBeBooked(block, maxBookedAwaitTime); err != nil {
+	if _, err := blocklayer.AwaitBlockToBeBooked(issueTransaction, tx.ID(), maxBookedAwaitTime); err != nil {
 		// if we failed to issue the transaction, we remove it
 		FilterRemove(tx.ID())
 		return c.JSON(http.StatusBadRequest, jsonmodels.PostTransactionResponse{Error: err.Error()})
 	}
-
-	return c.JSON(http.StatusOK, &jsonmodels.PostTransactionResponse{TransactionID: tx.ID().Base58(), BlockID: block.ID().Base58()})
+	return c.JSON(http.StatusOK, &jsonmodels.PostTransactionResponse{TransactionID: tx.ID().Base58()})
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////

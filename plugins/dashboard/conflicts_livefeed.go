@@ -6,22 +6,28 @@ import (
 	"sync"
 	"time"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/advancedset"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/core/confirmation"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/generics/set"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
+	"github.com/izuc/zipp.foundation/core/workerpool"
+
+	"github.com/izuc/zipp/packages/core/conflictdag"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/node/clock"
+
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 var (
-	mu        sync.RWMutex
-	conflicts *boundedConflictMap
+	mu                               sync.RWMutex
+	conflicts                        *boundedConflictMap
+	conflictsLiveFeedWorkerPool      *workerpool.NonBlockingQueuedWorkerPool
+	conflictsLiveFeedWorkerCount     = 1
+	conflictsLiveFeedWorkerQueueSize = 50
 )
 
 type conflictSet struct {
@@ -49,12 +55,12 @@ func (c *conflictSet) ToJSON() *conflictSetJSON {
 }
 
 type conflict struct {
-	ConflictID        utxo.TransactionID                      `json:"conflictID"`
-	ConflictSetIDs    *advancedset.AdvancedSet[utxo.OutputID] `json:"conflictSetIDs"`
-	ConfirmationState confirmation.State                      `json:"confirmationState"`
-	IssuingTime       time.Time                               `json:"issuingTime"`
-	IssuerNodeID      identity.ID                             `json:"issuerNodeID"`
-	UpdatedTime       time.Time                               `json:"updatedTime"`
+	ConflictID        utxo.TransactionID              `json:"conflictID"`
+	ConflictSetIDs    *set.AdvancedSet[utxo.OutputID] `json:"conflictSetIDs"`
+	ConfirmationState confirmation.State              `json:"confirmationState"`
+	IssuingTime       time.Time                       `json:"issuingTime"`
+	IssuerNodeID      identity.ID                     `json:"issuerNodeID"`
+	UpdatedTime       time.Time                       `json:"updatedTime"`
 }
 
 type conflictJSON struct {
@@ -82,45 +88,57 @@ func (c *conflict) ToJSON() *conflictJSON {
 }
 
 func sendConflictSetUpdate(c *conflictSet) {
-	broadcastWsBlock(&wsblk{MsgTypeConflictsConflictSet, c.ToJSON()})
+	conflictsLiveFeedWorkerPool.TrySubmit(MsgTypeConflictsConflictSet, c.ToJSON())
 }
 
 func sendConflictUpdate(b *conflict) {
-	broadcastWsBlock(&wsblk{MsgTypeConflictsConflict, b.ToJSON()})
+	conflictsLiveFeedWorkerPool.TrySubmit(MsgTypeConflictsConflict, b.ToJSON())
 }
 
-func runConflictLiveFeed(plugin *node.Plugin) {
+func configureConflictLiveFeed() {
+	conflictsLiveFeedWorkerPool = workerpool.NewNonBlockingQueuedWorkerPool(func(task workerpool.Task) {
+		broadcastWsBlock(&wsblk{task.Param(0).(byte), task.Param(1)})
+		task.Return(nil)
+	}, workerpool.WorkerCount(conflictsLiveFeedWorkerCount), workerpool.QueueSize(conflictsLiveFeedWorkerQueueSize))
+}
+
+func runConflictLiveFeed() {
 	if err := daemon.BackgroundWorker("Dashboard[ConflictsLiveFeed]", func(ctx context.Context) {
+		defer conflictsLiveFeedWorkerPool.Stop()
+
 		conflicts = &boundedConflictMap{
 			conflictSets: make(map[utxo.OutputID]*conflictSet),
 			conflicts:    make(map[utxo.TransactionID]*conflict),
 			conflictHeap: &timeHeap{},
 		}
 
-		unhook := lo.Batch(
-			deps.Protocol.Events.Engine.Ledger.MemPool.ConflictDAG.ConflictCreated.Hook(onConflictCreated, event.WithWorkerPool(plugin.WorkerPool)).Unhook,
-			deps.Protocol.Events.Engine.Ledger.MemPool.ConflictDAG.ConflictAccepted.Hook(onConflictAccepted, event.WithWorkerPool(plugin.WorkerPool)).Unhook,
-			deps.Protocol.Events.Engine.Ledger.MemPool.ConflictDAG.ConflictRejected.Hook(onConflictRejected, event.WithWorkerPool(plugin.WorkerPool)).Unhook,
-		)
+		onConflictCreatedClosure := event.NewClosure(onConflictCreated)
+		onConflictAcceptedClosure := event.NewClosure(onConflictAccepted)
+		onConflictRejectedClosure := event.NewClosure(onConflictRejected)
+		deps.Mesh.Ledger.ConflictDAG.Events.ConflictCreated.Attach(onConflictCreatedClosure)
+		deps.Mesh.Ledger.ConflictDAG.Events.ConflictAccepted.Attach(onConflictAcceptedClosure)
+		deps.Mesh.Ledger.ConflictDAG.Events.ConflictRejected.Attach(onConflictRejectedClosure)
 
 		<-ctx.Done()
 
 		log.Info("Stopping Dashboard[ConflictsLiveFeed] ...")
-		unhook()
+		deps.Mesh.Ledger.ConflictDAG.Events.ConflictCreated.Detach(onConflictCreatedClosure)
+		deps.Mesh.Ledger.ConflictDAG.Events.ConflictAccepted.Detach(onConflictAcceptedClosure)
+		deps.Mesh.Ledger.ConflictDAG.Events.ConflictRejected.Detach(onConflictRejectedClosure)
 		log.Info("Stopping Dashboard[ConflictsLiveFeed] ... done")
 	}, shutdown.PriorityDashboard); err != nil {
 		log.Panicf("Failed to start as daemon: %s", err)
 	}
 }
 
-func onConflictCreated(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
-	conflictID := c.ID()
+func onConflictCreated(event *conflictdag.ConflictCreatedEvent[utxo.TransactionID, utxo.OutputID]) {
+	conflictID := event.ID
 	b := &conflict{
 		ConflictID:  conflictID,
-		UpdatedTime: time.Now(),
+		UpdatedTime: clock.SyncedTime(),
 	}
 
-	deps.Protocol.Engine().Ledger.MemPool().Storage().CachedTransaction(conflictID).Consume(func(transaction utxo.Transaction) {
+	deps.Mesh.Ledger.Storage.CachedTransaction(conflictID).Consume(func(transaction utxo.Transaction) {
 		if tx, ok := transaction.(*devnetvm.Transaction); ok {
 			b.IssuingTime = tx.Essence().Timestamp()
 		}
@@ -133,44 +151,39 @@ func onConflictCreated(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID
 	mu.Lock()
 	defer mu.Unlock()
 
-	b.ConflictSetIDs = utxo.NewOutputIDs(lo.Map(c.ConflictSets().Slice(), func(cs *conflictdag.ConflictSet[utxo.TransactionID, utxo.OutputID]) utxo.OutputID {
-		return cs.ID()
-	})...)
+	deps.Mesh.Ledger.ConflictDAG.Storage.CachedConflict(conflictID).Consume(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+		b.ConflictSetIDs = conflict.ConflictSetIDs()
+	})
 
 	for it := b.ConflictSetIDs.Iterator(); it.HasNext(); {
-		conflictSetID := it.Next()
-		_, exists := conflicts.conflictset(conflictSetID)
+		conflictID := it.Next()
+		_, exists := conflicts.conflictset(conflictID)
 		// if this is the first conflictSet of this conflictSet set we add it to the map
 		if !exists {
 			c := &conflictSet{
-				ConflictSetID: conflictSetID,
-				ArrivalTime:   time.Now(),
-				UpdatedTime:   time.Now(),
+				ConflictSetID: conflictID,
+				ArrivalTime:   clock.SyncedTime(),
+				UpdatedTime:   clock.SyncedTime(),
 			}
 			conflicts.addConflictSet(c)
 		}
 
 		// update all existing conflicts with a possible new conflictSet membership
-		cs, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().ConflictSet(conflictSetID)
-		if !exists {
-			continue
-		}
-		_ = cs.Conflicts().ForEach(func(element *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) (err error) {
-			conflicts.addConflictMember(element.ID(), conflictSetID)
-			return nil
+		deps.Mesh.Ledger.ConflictDAG.Storage.CachedConflictMembers(conflictID).Consume(func(conflictMember *conflictdag.ConflictMember[utxo.OutputID, utxo.TransactionID]) {
+			conflicts.addConflictMember(conflictMember.ConflictID(), conflictID)
 		})
 	}
 
 	conflicts.addConflict(b)
 }
 
-func onConflictAccepted(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+func onConflictAccepted(event *conflictdag.ConflictAcceptedEvent[utxo.TransactionID]) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	b, exists := conflicts.conflict(c.ID())
+	b, exists := conflicts.conflict(event.ID)
 	if !exists {
-		// log.Warnf("conflict %s did not yet exist", c.ID())
+		log.Warnf("conflict %s did not yet exist", event.ID)
 		return
 	}
 
@@ -181,7 +194,7 @@ func onConflictAccepted(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputI
 	}
 
 	b.ConfirmationState = confirmation.Accepted
-	b.UpdatedTime = time.Now()
+	b.UpdatedTime = clock.SyncedTime()
 	conflicts.addConflict(b)
 
 	for it := b.ConflictSetIDs.Iterator(); it.HasNext(); {
@@ -190,13 +203,13 @@ func onConflictAccepted(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputI
 	}
 }
 
-func onConflictRejected(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+func onConflictRejected(event *conflictdag.ConflictRejectedEvent[utxo.TransactionID]) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	b, exists := conflicts.conflict(c.ID())
+	b, exists := conflicts.conflict(event.ID)
 	if !exists {
-		// log.Warnf("conflict %s did not yet exist", c.ID())
+		log.Warnf("conflict %s did not yet exist", event.ID)
 		return
 	}
 
@@ -207,7 +220,7 @@ func onConflictRejected(c *conflictdag.Conflict[utxo.TransactionID, utxo.OutputI
 	}
 
 	b.ConfirmationState = confirmation.Rejected
-	b.UpdatedTime = time.Now()
+	b.UpdatedTime = clock.SyncedTime()
 	conflicts.addConflict(b)
 }
 
@@ -219,10 +232,15 @@ func sendAllConflicts() {
 }
 
 func issuerOfOldestAttachment(conflictID utxo.TransactionID) (id identity.ID) {
-	block := deps.Protocol.Engine().Mesh.Booker().GetEarliestAttachment(conflictID)
-	if block != nil {
-		return block.IssuerID()
-	}
+	var oldestAttachmentTime time.Time
+	deps.Mesh.Storage.Attachments(utxo.TransactionID(conflictID)).Consume(func(attachment *mesh_old.Attachment) {
+		deps.Mesh.Storage.Block(attachment.BlockID()).Consume(func(block *mesh_old.Block) {
+			if oldestAttachmentTime.IsZero() || block.IssuingTime().Before(oldestAttachmentTime) {
+				oldestAttachmentTime = block.IssuingTime()
+				id = identity.New(block.IssuerPublicKey()).ID()
+			}
+		})
+	})
 	return
 }
 
@@ -294,8 +312,8 @@ func (b *boundedConflictMap) addConflictSet(c *conflictSet) {
 func (b *boundedConflictMap) resolveConflict(conflictID utxo.OutputID) {
 	if c, exists := b.conflictSets[conflictID]; exists && !c.Resolved {
 		c.Resolved = true
-		c.TimeToResolve = time.Since(c.ArrivalTime)
-		c.UpdatedTime = time.Now()
+		c.TimeToResolve = clock.Since(c.ArrivalTime)
+		c.UpdatedTime = clock.SyncedTime()
 		b.conflictSets[conflictID] = c
 		sendConflictSetUpdate(c)
 	}
@@ -318,7 +336,7 @@ func (b *boundedConflictMap) addConflict(br *conflict) {
 func (b *boundedConflictMap) addConflictMember(conflictID utxo.TransactionID, resourceID utxo.OutputID) {
 	if _, exists := b.conflicts[conflictID]; exists {
 		b.conflicts[conflictID].ConflictSetIDs.Add(resourceID)
-		b.conflicts[conflictID].UpdatedTime = time.Now()
+		b.conflicts[conflictID].UpdatedTime = clock.SyncedTime()
 		sendConflictUpdate(b.conflicts[conflictID])
 	}
 }

@@ -3,15 +3,16 @@ package spammer
 import (
 	"context"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/app/blockissuer"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+
 	"github.com/izuc/zipp/packages/app/spammer"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 var blockSpammer *spammer.Spammer
@@ -29,8 +30,8 @@ var (
 type dependencies struct {
 	dig.In
 
-	BlockIssuer *blockissuer.BlockIssuer
-	Server      *echo.Echo
+	Mesh *mesh_old.Mesh
+	Server *echo.Echo
 }
 
 func init() {
@@ -40,7 +41,7 @@ func init() {
 func configure(_ *node.Plugin) {
 	log = logger.NewLogger(PluginName)
 
-	blockSpammer = spammer.New(deps.BlockIssuer.IssuePayload, log, deps.BlockIssuer.Estimate)
+	blockSpammer = spammer.New(deps.Mesh.IssuePayload, log, deps.Mesh.RateSetter.Estimate)
 	deps.Server.GET("spammer", handleRequest)
 }
 

@@ -1,9 +1,9 @@
 package transfernftoptions
 
 import (
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // TransferNFTOption is a function that provides an option.
@@ -97,10 +97,10 @@ func Build(options ...TransferNFTOption) (result *TransferNFTOptions, err error)
 	}
 
 	if result.Alias == nil {
-		return nil, errors.New("an alias identifier must be specified for transfer")
+		return nil, errors.Errorf("an alias identifier must be specified for transfer")
 	}
 	if result.ToAddress == nil {
-		return nil, errors.New("no receiving address specified for nft transfer")
+		return nil, errors.Errorf("no receiving address specified for nft transfer")
 	}
 
 	return

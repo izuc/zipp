@@ -5,12 +5,12 @@ import (
 	"strconv"
 
 	"github.com/capossele/asset-registry/pkg/registryclient"
+	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"
-	"github.com/pkg/errors"
+	"github.com/izuc/zipp.foundation/core/marshalutil"
+	"github.com/izuc/zipp.foundation/core/serix"
 
-	"github.com/izuc/zipp.foundation/serializer/marshalutil"
-	"github.com/izuc/zipp.foundation/serializer/serix"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 const (
@@ -51,7 +51,7 @@ func ParseAssetRegistry(marshalUtil *marshalutil.MarshalUtil) (assetRegistry *As
 	assetRegistry = new(AssetRegistry)
 	consumedBytes, err = serix.DefaultAPI.Decode(context.Background(), marshalUtil.Bytes()[marshalUtil.ReadOffset():], &assetRegistry, serix.WithValidation())
 	if err != nil {
-		err = errors.Wrap(err, "failed to parse AssetRegistry")
+		err = errors.Errorf("failed to parse AssetRegistry: %w", err)
 		return
 	}
 	marshalUtil.ReadSeek(marshalUtil.ReadOffset() + consumedBytes)
@@ -97,8 +97,8 @@ func (a *AssetRegistry) Name(color devnetvm.Color) string {
 		return asset.Name
 	}
 
-	if color == devnetvm.ColorZIPP {
-		return "ZIPP"
+	if color == devnetvm.ColorIOTA {
+		return "IOTA"
 	}
 	// not in local
 	// fetch from central, update local
@@ -115,7 +115,7 @@ func (a *AssetRegistry) Symbol(color devnetvm.Color) string {
 		return asset.Symbol
 	}
 
-	if color == devnetvm.ColorZIPP {
+	if color == devnetvm.ColorIOTA {
 		return "I"
 	}
 
@@ -134,7 +134,7 @@ func (a *AssetRegistry) Supply(color devnetvm.Color) string {
 		return strconv.FormatUint(asset.Supply, 10)
 	}
 
-	if color == devnetvm.ColorZIPP {
+	if color == devnetvm.ColorIOTA {
 		return ""
 	}
 
@@ -153,7 +153,7 @@ func (a *AssetRegistry) TransactionID(color devnetvm.Color) string {
 		return asset.TransactionID.Base58()
 	}
 
-	if color == devnetvm.ColorZIPP {
+	if color == devnetvm.ColorIOTA {
 		return ""
 	}
 

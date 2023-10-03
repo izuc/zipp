@@ -8,11 +8,11 @@ import (
 	"unsafe"
 
 	"github.com/capossele/asset-registry/pkg/registryservice"
+	"github.com/izuc/zipp.foundation/core/bitmask"
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/core/marshalutil"
 	"github.com/mr-tron/base58"
 
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
-	"github.com/izuc/zipp.foundation/ds/bitmask"
-	"github.com/izuc/zipp.foundation/serializer/marshalutil"
 	"github.com/izuc/zipp/client"
 	"github.com/izuc/zipp/client/wallet"
 	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
@@ -22,7 +22,7 @@ import (
 type Exit struct{ Code int }
 
 func printBanner() {
-	fmt.Println("ZIPP 2.0 DevNet CLI-Wallet 0.2")
+	fmt.Println("IOTA 2.0 DevNet CLI-Wallet 0.2")
 }
 
 func loadWallet() *wallet.Wallet {
@@ -137,7 +137,6 @@ func writeWalletStateFile(wallet *wallet.Wallet, filename string) {
 		}
 	}
 
-	//nolint:gosec // users should be able to read the file
 	err = os.WriteFile(filename, wallet.ExportState(), 0o644)
 	if err != nil {
 		panic(err)

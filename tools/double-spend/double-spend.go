@@ -7,12 +7,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp.foundation/core/generics/lo"
+	"github.com/izuc/zipp.foundation/core/identity"
+
 	"github.com/izuc/zipp/client"
 	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 func main() {
@@ -92,7 +93,7 @@ func main() {
 			destAddr := receiverSeeds[i].Address(0)
 
 			output := devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-				devnetvm.ColorZIPP: uint64(1000000),
+				devnetvm.ColorIOTA: uint64(1000000),
 			}), destAddr.Address())
 			txEssence := devnetvm.NewTransactionEssence(0, time.Now(), identity.ID{}, identity.ID{}, devnetvm.NewInputs(devnetvm.NewUTXOInput(out)), devnetvm.NewOutputs(output))
 			kp := *mySeed.KeyPair(0)

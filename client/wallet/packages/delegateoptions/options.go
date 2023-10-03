@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // DelegateFundsOptions is a struct that is used to aggregate the optional parameters provided in the DelegateFunds call.
@@ -23,9 +23,9 @@ func (s *DelegateFundsOptions) RequiredFunds() map[devnetvm.Color]uint64 {
 	requiredFunds := make(map[devnetvm.Color]uint64)
 	for _, coloredBalances := range s.Destinations {
 		for color, amount := range coloredBalances {
-			// if we want to color sth then we need fresh ZIPP
+			// if we want to color sth then we need fresh IOTA
 			if color == devnetvm.ColorMint {
-				color = devnetvm.ColorZIPP
+				color = devnetvm.ColorIOTA
 			}
 
 			requiredFunds[color] += amount

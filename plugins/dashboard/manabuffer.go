@@ -3,10 +3,10 @@ package dashboard
 import (
 	"sync"
 
+	"github.com/cockroachdb/errors"
 	"github.com/gorilla/websocket"
-	"github.com/pkg/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1/manamodels"
+	"github.com/izuc/zipp/packages/core/mana"
 )
 
 const (
@@ -20,22 +20,66 @@ const (
 // ManaBuffer holds recent data related to mana in the dashboard. Used to fill frontend on page load/reload.
 type ManaBuffer struct {
 	// Events store PledgedEvent and RevokedEvent structs in chronological order.
+	Events          []mana.Event
 	eventsMutex     sync.RWMutex
 	ValueBlks       []*ManaValueBlkData
 	valueBlksMutex  sync.RWMutex
-	MapOverall      map[manamodels.Type]*ManaNetworkListBlkData
+	MapOverall      map[mana.Type]*ManaNetworkListBlkData
 	mapOverallMutex sync.RWMutex
-	MapOnline       map[manamodels.Type]*ManaNetworkListBlkData
+	MapOnline       map[mana.Type]*ManaNetworkListBlkData
 	mapOnlineMutex  sync.RWMutex
 }
 
 // NewManaBuffer creates and initializes a new, empty buffer.
 func NewManaBuffer() *ManaBuffer {
 	return &ManaBuffer{
+		Events:     make([]mana.Event, 0),
 		ValueBlks:  make([]*ManaValueBlkData, 0),
-		MapOverall: make(map[manamodels.Type]*ManaNetworkListBlkData),
-		MapOnline:  make(map[manamodels.Type]*ManaNetworkListBlkData),
+		MapOverall: make(map[mana.Type]*ManaNetworkListBlkData),
+		MapOnline:  make(map[mana.Type]*ManaNetworkListBlkData),
 	}
+}
+
+// StoreEvent stores an event in the buffer. If it is full, drops the oldest event.
+func (m *ManaBuffer) StoreEvent(event mana.Event) {
+	m.eventsMutex.Lock()
+	defer m.eventsMutex.Unlock()
+	if len(m.Events) >= maxManaEventsBufferSize {
+		// drop oldest event if buffer is full
+		m.Events = m.Events[1:]
+	}
+	m.Events = append(m.Events, event)
+}
+
+// SendEvents send all events in the buffer through the provided websocket connection.
+func (m *ManaBuffer) SendEvents(ws *websocket.Conn) error {
+	m.eventsMutex.RLock()
+	defer m.eventsMutex.RUnlock()
+	for _, ev := range m.Events {
+		var blk *wsblk
+		switch ev.Type() {
+		case mana.EventTypePledge:
+			blk = &wsblk{
+				Type: MsgTypeManaInitPledge,
+				Data: ev.ToJSONSerializable(),
+			}
+		case mana.EventTypeRevoke:
+			blk = &wsblk{
+				Type: MsgTypeManaInitRevoke,
+				Data: ev.ToJSONSerializable(),
+			}
+		default:
+			return errors.Errorf("unexpected mana event type")
+		}
+		if err := sendJSON(ws, blk); err != nil {
+			return errors.Errorf("failed to send mana event to client: %w", err)
+		}
+	}
+	// signal to frontend that all initial values are sent
+	if err := sendJSON(ws, &wsblk{MsgTypeManaInitDone, nil}); err != nil {
+		return errors.Errorf("failed to send mana event to client: %w", err)
+	}
+	return nil
 }
 
 // StoreValueBlk stores a value blk in the buffer. If it is full, drops the oldest blk.
@@ -59,7 +103,7 @@ func (m *ManaBuffer) SendValueBlks(ws *websocket.Conn) error {
 			Data: valueBlk,
 		}
 		if err := sendJSON(ws, blk); err != nil {
-			return errors.Wrap(err, "failed to send mana value to client")
+			return errors.Errorf("failed to send mana value to client: %w", err)
 		}
 	}
 	return nil
@@ -70,7 +114,7 @@ func (m *ManaBuffer) StoreMapOverall(blks ...*ManaNetworkListBlkData) {
 	m.mapOverallMutex.Lock()
 	defer m.mapOverallMutex.Unlock()
 	for _, blk := range blks {
-		manaType, err := manamodels.TypeFromString(blk.ManaType)
+		manaType, err := mana.TypeFromString(blk.ManaType)
 		if err != nil {
 			log.Errorf("couldn't parse type of mana: %w", err)
 			continue
@@ -89,7 +133,7 @@ func (m *ManaBuffer) SendMapOverall(ws *websocket.Conn) error {
 			Data: blkData,
 		}
 		if err := sendJSON(ws, blk); err != nil {
-			return errors.Wrap(err, "failed to send overall mana map to client")
+			return errors.Errorf("failed to send overall mana map to client: %w", err)
 		}
 	}
 	return nil
@@ -100,7 +144,7 @@ func (m *ManaBuffer) StoreMapOnline(blks ...*ManaNetworkListBlkData) {
 	m.mapOnlineMutex.Lock()
 	defer m.mapOnlineMutex.Unlock()
 	for _, blk := range blks {
-		manaType, err := manamodels.TypeFromString(blk.ManaType)
+		manaType, err := mana.TypeFromString(blk.ManaType)
 		if err != nil {
 			log.Errorf("couldn't parse type of mana: %w", err)
 			continue
@@ -119,7 +163,7 @@ func (m *ManaBuffer) SendMapOnline(ws *websocket.Conn) error {
 			Data: blkData,
 		}
 		if err := sendJSON(ws, blk); err != nil {
-			return errors.Wrap(err, "failed to send online mana map to client")
+			return errors.Errorf("failed to send online mana map to client: %w", err)
 		}
 	}
 	return nil

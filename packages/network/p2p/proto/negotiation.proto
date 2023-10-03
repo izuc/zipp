@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-option go_package = "github.com/izuc/zipp/packages/network/p2p/proto";
-
-package p2p;
-
-message Negotiation {}

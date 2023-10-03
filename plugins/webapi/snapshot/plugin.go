@@ -2,25 +2,27 @@ package snapshot
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
 
-	"github.com/labstack/echo/v4"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/core/slot"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
+
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/core/snapshot"
 )
 
 // region Plugin ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const (
+	snapshotFileName = "/tmp/snapshot.bin"
+)
+
 type dependencies struct {
 	dig.In
 
-	Server   *echo.Echo
-	Protocol *protocol.Protocol
+	Server      *echo.Echo
+	SnapshotMgr *snapshot.Manager
 }
 
 var (
@@ -35,32 +37,27 @@ func init() {
 }
 
 func configure(_ *node.Plugin) {
-	deps.Server.GET("snapshot", GetSnapshot)
+	deps.Server.GET("snapshot", DumpCurrentLedger)
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // region DumpCurrentLedger ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// GetSnapshot dumps a snapshot (all unspent UTXO and all of the access mana) from now.
-func GetSnapshot(c echo.Context) (err error) {
-	var request jsonmodels.GetSnapshotRequest
-	if err = c.Bind(&request); err != nil {
-		Plugin.LogInfo(err.Error())
-		return c.JSON(http.StatusBadRequest, jsonmodels.NewErrorResponse(err))
-	}
-	snapshotFilePath := filepath.Join(os.TempDir(), "snapshot.bin")
-	if c.QueryParam("index") == "" {
-		err = deps.Protocol.Engine().WriteSnapshot(snapshotFilePath)
-	} else {
-		err = deps.Protocol.Engine().WriteSnapshot(snapshotFilePath, slot.Index(request.SlotIndex))
-	}
+// DumpCurrentLedger dumps a snapshot (all unspent UTXO and all of the access mana) from now.
+func DumpCurrentLedger(c echo.Context) (err error) {
+	header, err := deps.SnapshotMgr.CreateSnapshot(snapshotFileName)
 	if err != nil {
 		Plugin.LogErrorf("unable to get snapshot bytes %s", err)
 		return c.JSON(http.StatusInternalServerError, jsonmodels.NewErrorResponse(err))
 	}
+	Plugin.LogInfo("Snapshot information: ")
+	Plugin.LogInfo("     Number of outputs: ", header.OutputWithMetadataCount)
+	Plugin.LogInfo("     FullEpochIndex: ", header.FullEpochIndex)
+	Plugin.LogInfo("     DiffEpochIndex: ", header.DiffEpochIndex)
+	Plugin.LogInfo("     LatestECRecord: ", header.LatestECRecord)
 
-	return c.Attachment(snapshotFilePath, snapshotFilePath)
+	return c.Attachment(snapshotFileName, snapshotFileName)
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////

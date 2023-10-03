@@ -3,12 +3,13 @@ package p2p
 import (
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/network/p2p"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/node"
+
+	"github.com/izuc/zipp/packages/node/p2p"
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 // PluginName is the name of the p2p plugin.
@@ -31,28 +32,31 @@ type dependencies struct {
 func init() {
 	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, configure, run)
 
-	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
+	Plugin.Events.Init.Hook(event.NewClosure(func(event *node.InitEvent) {
 		if err := event.Container.Provide(createManager); err != nil {
 			Plugin.Panic(err)
 		}
-	})
+	}))
 }
 
-func configure(plugin *node.Plugin) {
-	// log the p2p events
-	deps.P2PMgr.NeighborGroupEvents(p2p.NeighborsGroupAuto).NeighborAdded.Hook(func(event *p2p.NeighborAddedEvent) {
-		n := event.Neighbor
-		Plugin.LogInfof("Neighbor added: %s / %s", p2p.GetAddress(n.Peer), n.ID())
-	}, event.WithWorkerPool(plugin.WorkerPool))
-
-	deps.P2PMgr.NeighborGroupEvents(p2p.NeighborsGroupAuto).NeighborRemoved.Hook(func(event *p2p.NeighborRemovedEvent) {
-		n := event.Neighbor
-		Plugin.LogInfof("Neighbor removed: %s / %s", p2p.GetAddress(n.Peer), n.ID())
-	}, event.WithWorkerPool(plugin.WorkerPool))
+func configure(_ *node.Plugin) {
+	configureLogging()
 }
 
 func run(plugin *node.Plugin) {
 	if err := daemon.BackgroundWorker(PluginName, start, shutdown.PriorityP2P); err != nil {
 		plugin.Logger().Panicf("Failed to start as daemon: %s", err)
 	}
+}
+
+func configureLogging() {
+	// log the p2p events
+	deps.P2PMgr.NeighborGroupEvents(p2p.NeighborsGroupAuto).NeighborAdded.Attach(event.NewClosure(func(event *p2p.NeighborAddedEvent) {
+		n := event.Neighbor
+		Plugin.LogInfof("Neighbor added: %s / %s", p2p.GetAddress(n.Peer), n.ID())
+	}))
+	deps.P2PMgr.NeighborGroupEvents(p2p.NeighborsGroupAuto).NeighborRemoved.Attach(event.NewClosure(func(event *p2p.NeighborRemovedEvent) {
+		n := event.Neighbor
+		Plugin.LogInfof("Neighbor removed: %s / %s", p2p.GetAddress(n.Peer), n.ID())
+	}))
 }

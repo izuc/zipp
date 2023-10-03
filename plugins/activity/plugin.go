@@ -5,15 +5,15 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/izuc/zipp.foundation/core/timeutil"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/runtime/timeutil"
-	"github.com/izuc/zipp/packages/app/blockissuer"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/core/mesh_old/payload"
+
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 var (
@@ -24,8 +24,7 @@ var (
 
 type dependencies struct {
 	dig.In
-	BlockIssuer *blockissuer.BlockIssuer
-	Protocol    *protocol.Protocol
+	Mesh *mesh_old.Mesh
 }
 
 func init() {
@@ -39,26 +38,19 @@ func configure(plugin *node.Plugin) {
 // broadcastActivityBlock broadcasts a sync beacon via communication layer.
 func broadcastActivityBlock() {
 	activityPayload := payload.NewGenericDataPayload([]byte("activity"))
-	for {
-		if estimate := deps.BlockIssuer.Estimate(); estimate > 0 {
-			time.Sleep(estimate)
-		} else {
-			break
-		}
+
+	// sleep some time according to rate setter estimate
+	if deps.Mesh.Options.RateSetterParams.Enabled {
+		time.Sleep(deps.Mesh.RateSetter.Estimate())
 	}
 
-	block, err := deps.BlockIssuer.CreateBlock(activityPayload, Parameters.ParentsCount)
-	if err != nil {
-		Plugin.LogWarnf("error creating activity block: %s", err)
-		return
-	}
-	err = deps.BlockIssuer.IssueBlockAndAwaitBlockToBeScheduled(block, Parameters.BroadcastInterval)
+	blk, err := deps.Mesh.IssuePayload(activityPayload, Parameters.ParentsCount)
 	if err != nil {
 		Plugin.LogWarnf("error issuing activity block: %s", err)
 		return
 	}
 
-	Plugin.LogDebugf("issued activity block %s (issuing time: %s)", block.ID(), block.IssuingTime().String())
+	Plugin.LogDebugf("issued activity block %s", blk.ID())
 }
 
 func run(_ *node.Plugin) {

@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/node"
 )
 
 // PluginName is the name of the graceful shutdown plugin.

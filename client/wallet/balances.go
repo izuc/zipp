@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // TimedBalance represents a balance that is time dependent.

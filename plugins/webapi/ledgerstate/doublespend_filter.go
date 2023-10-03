@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/node/clock"
 )
 
 // DoubleSpendFilter keeps a log of recently submitted transactions and their consumed outputs.
@@ -25,11 +25,11 @@ func NewDoubleSpendFilter() *DoubleSpendFilter {
 	}
 }
 
-// Add adds a transaction, and it's consumed inputs to the doubleSpendFilter.
+// Add adds a transaction and it's consumed inputs to the doubleSpendFilter.
 func (d *DoubleSpendFilter) Add(tx *devnetvm.Transaction) {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
-	now := time.Now()
+	now := clock.SyncedTime()
 	for _, input := range tx.Essence().Inputs() {
 		if input.Type() != devnetvm.UTXOInputType {
 			continue
@@ -85,7 +85,7 @@ func (d *DoubleSpendFilter) CleanUp() {
 	if len(d.addedAt) == 0 {
 		return
 	}
-	now := time.Now()
+	now := clock.SyncedTime()
 	for txID, addedTime := range d.addedAt {
 		if now.Sub(addedTime) > DoubleSpendFilterCleanupInterval {
 			d.remove(txID)
@@ -98,7 +98,7 @@ func (d *DoubleSpendFilter) CleanUp() {
 func (d *DoubleSpendFilter) remove(txID utxo.TransactionID) {
 	// remove all outputs
 	for outputID, storedTxID := range d.recentMap {
-		if bytes.Equal(lo.PanicOnErr(txID.Bytes()), lo.PanicOnErr(storedTxID.Bytes())) {
+		if bytes.Equal(txID.Bytes(), storedTxID.Bytes()) {
 			delete(d.recentMap, outputID)
 		}
 	}

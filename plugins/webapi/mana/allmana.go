@@ -5,28 +5,40 @@ import (
 	"sort"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 
-	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1/manamodels"
+	"github.com/izuc/zipp/packages/core/mana"
+	manaPlugin "github.com/izuc/zipp/plugins/blocklayer"
 )
 
 // getAllManaHandler handles the request.
 func getAllManaHandler(c echo.Context) error {
-	access := deps.Protocol.Engine().ThroughputQuota.BalanceByIDs()
-	accessList := manamodels.IssuerMap(access).ToIssuerStrList()
+	t := time.Now()
+	access, tAccess, err := manaPlugin.GetManaMap(mana.AccessMana, t)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, jsonmodels.GetAllManaResponse{
+			Error: err.Error(),
+		})
+	}
+	accessList := access.ToNodeStrList()
 	sort.Slice(accessList, func(i, j int) bool {
 		return accessList[i].Mana > accessList[j].Mana
 	})
-	consensusList := manamodels.IssuerMap(lo.PanicOnErr(deps.Protocol.Engine().SybilProtection.Weights().Map())).ToIssuerStrList()
+	consensus, tConsensus, err := manaPlugin.GetManaMap(mana.ConsensusMana, t)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, jsonmodels.GetAllManaResponse{
+			Error: err.Error(),
+		})
+	}
+	consensusList := consensus.ToNodeStrList()
 	sort.Slice(consensusList, func(i, j int) bool {
 		return consensusList[i].Mana > consensusList[j].Mana
 	})
 	return c.JSON(http.StatusOK, jsonmodels.GetAllManaResponse{
 		Access:             accessList,
-		AccessTimestamp:    time.Now().Unix(),
+		AccessTimestamp:    tAccess.Unix(),
 		Consensus:          consensusList,
-		ConsensusTimestamp: time.Now().Unix(),
+		ConsensusTimestamp: tConsensus.Unix(),
 	})
 }

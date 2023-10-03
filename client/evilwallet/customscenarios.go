@@ -32,6 +32,23 @@ func SingleTransactionBatch() EvilBatch {
 	return EvilBatch{{ScenarioAlias{Inputs: []string{"1"}, Outputs: []string{"2"}}}}
 }
 
+// DoubleSpendBatch returns an EvilBatch that is a spentNum spend.
+func DoubleSpendBatch(spentNum int) EvilBatch {
+	conflictSlice := make(EvilBatch, 0)
+	aliasCounter := 1
+	// each double spend uses a different unspent output
+	inputStartNum := spentNum * 2
+
+	for i := 1; i <= spentNum; i++ {
+		conflictSlice = append(conflictSlice, []ScenarioAlias{
+			{Inputs: []string{strconv.Itoa(inputStartNum + i)}, Outputs: []string{strconv.Itoa(aliasCounter)}},
+			{Inputs: []string{strconv.Itoa(inputStartNum + i)}, Outputs: []string{strconv.Itoa(aliasCounter + 1)}},
+		})
+		aliasCounter += 2
+	}
+	return conflictSlice
+}
+
 // ConflictSetCircle creates a circular conflict set for a given size, e.g. for size=3, conflict set: A-B-C-A.
 func ConflictSetCircle(size int) EvilBatch {
 	scenarioAlias := make([]ScenarioAlias, 0)
@@ -86,7 +103,7 @@ func Scenario1() EvilBatch {
 	}
 }
 
-// Scenario2 is a reflection of UTXO unit test scenario example B - packages/ledgerstate/utxo_dag_test_exampleB.png.
+// Scenario2 is a reflection of UTXO unit test scenario example B - packages/ledgerstate/utxo_dag_test_exampleB.png
 func Scenario2() EvilBatch {
 	return EvilBatch{
 		[]ScenarioAlias{
@@ -103,7 +120,7 @@ func Scenario2() EvilBatch {
 	}
 }
 
-// Scenario3 is a reflection of UTXO unit test scenario example C - packages/ledgerstate/utxo_dag_test_exampleC.png.
+// Scenario3 is a reflection of UTXO unit test scenario example C - packages/ledgerstate/utxo_dag_test_exampleC.png
 func Scenario3() EvilBatch {
 	return EvilBatch{
 		[]ScenarioAlias{
@@ -120,7 +137,7 @@ func Scenario3() EvilBatch {
 	}
 }
 
-// Scenario4 is a reflection of ledgerstate unit test for conflict confirmation - packages/ledgerstate/ledgerstate_test_SetConflictConfirmed.png.
+// Scenario4 is a reflection of ledgerstate unit test for conflict confirmation - packages/ledgerstate/ledgerstate_test_SetConflictConfirmed.png
 func Scenario4() EvilBatch {
 	return EvilBatch{
 		[]ScenarioAlias{

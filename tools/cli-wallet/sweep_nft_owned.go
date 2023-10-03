@@ -8,7 +8,7 @@ import (
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/client/wallet/packages/sweepnftownednftsoptions"
 	"github.com/izuc/zipp/client/wallet/packages/sweepnftownedoptions"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 func execSweepNFTOwnedFundsCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
@@ -105,7 +105,7 @@ func execSweepNFTOwnedNFTsCommand(command *flag.FlagSet, cliWallet *wallet.Walle
 
 	fmt.Println()
 	for _, sweptNFT := range sweptNFTs {
-		fmt.Printf("Swept NFT %s into the wallet\n", sweptNFT.Base58())
+		fmt.Println(fmt.Sprintf("Swept NFT %s into the wallet", sweptNFT.Base58()))
 	}
 	fmt.Println("Sweeping NFT owned NFTs... [DONE]")
 }

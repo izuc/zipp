@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // region survey  //////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,12 +39,12 @@ var enableRateSetterQuestion = &survey.Select{
 	Default: "enable",
 }
 
-var addURLQuestion = &survey.Input{
+var addUrlQuestion = &survey.Input{
 	Message: "http://",
 	Default: "enable",
 }
 
-var removeURLQuestion = func(urls []string) *survey.MultiSelect {
+var removeUrlQuestion = func(urls []string) *survey.MultiSelect {
 	return &survey.MultiSelect{
 		Message: "Select urls that should be removed.",
 		Options: urls,

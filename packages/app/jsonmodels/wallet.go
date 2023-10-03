@@ -3,7 +3,7 @@ package jsonmodels
 import (
 	"time"
 
-	"github.com/izuc/zipp/packages/core/confirmation"
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
 )
 
 // WalletOutputsOnAddress represents wallet outputs on an address.

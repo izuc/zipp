@@ -3,10 +3,10 @@ package evilwallet
 import (
 	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"go.uber.org/atomic"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // region AliasManager /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +35,7 @@ func (a *AliasManager) AddOutputAlias(output devnetvm.Output, aliasName string) 
 	defer a.mu.Unlock()
 
 	a.outputMap[aliasName] = output
+	return
 }
 
 // AddInputAlias adds an input alias.
@@ -43,6 +44,7 @@ func (a *AliasManager) AddInputAlias(input devnetvm.Input, aliasName string) {
 	defer a.mu.Unlock()
 
 	a.inputMap[aliasName] = input
+	return
 }
 
 // GetInput returns the input for the alias specified.

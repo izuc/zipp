@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
-// Output is a wallet specific representation of an output in the ZIPP network.
+// Output is a wallet specific representation of an output in the IOTA network.
 type Output struct {
 	Address                  address.Address
 	Object                   devnetvm.Output

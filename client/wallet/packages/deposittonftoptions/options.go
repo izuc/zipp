@@ -1,9 +1,9 @@
 package deposittonftoptions
 
 import (
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // DepositFundsToNFTOption is a function that provides options.
@@ -74,11 +74,11 @@ func Build(options ...DepositFundsToNFTOption) (result *DepositFundsToNFTOptions
 		}
 	}
 	if result.Alias == nil {
-		return nil, errors.New("an alias identifier must be specified for withdrawal")
+		return nil, errors.Errorf("an alias identifier must be specified for withdrawal")
 	}
 
 	if result.Amount == nil {
-		return nil, errors.New("no funds provided for deposit")
+		return nil, errors.Errorf("no funds provided for deposit")
 	}
 
 	return

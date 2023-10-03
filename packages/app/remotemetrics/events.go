@@ -3,20 +3,20 @@ package remotemetrics
 import (
 	"time"
 
-	"github.com/izuc/zipp.foundation/runtime/event"
+	"github.com/izuc/zipp.foundation/core/generics/event"
 )
 
 // CollectionLogEvents defines the events for the remotelogmetrics package.
 type CollectionLogEvents struct {
 	// MeshTimeSyncChanged defines the local sync status change event based on mesh time.
-	MeshTimeSyncChanged *event.Event1[*MeshTimeSyncChangedEvent]
-	SchedulerQuery      *event.Event1[*SchedulerQueryEvent]
+	MeshTimeSyncChanged *event.Event[*MeshTimeSyncChangedEvent]
+	SchedulerQuery        *event.Event[*SchedulerQueryEvent]
 }
 
 func newCollectionLogEvents() *CollectionLogEvents {
 	return &CollectionLogEvents{
-		MeshTimeSyncChanged: event.New1[*MeshTimeSyncChangedEvent](),
-		SchedulerQuery:      event.New1[*SchedulerQueryEvent](),
+		MeshTimeSyncChanged: event.New[*MeshTimeSyncChangedEvent](),
+		SchedulerQuery:        event.New[*SchedulerQueryEvent](),
 	}
 }
 

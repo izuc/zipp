@@ -3,7 +3,8 @@ package wallet
 import (
 	"runtime"
 
-	"github.com/izuc/zipp.foundation/ds/bitmask"
+	"github.com/izuc/zipp.foundation/core/bitmask"
+
 	"github.com/izuc/zipp/client/wallet/packages/address"
 	"github.com/izuc/zipp/client/wallet/packages/seed"
 )

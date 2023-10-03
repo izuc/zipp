@@ -4,16 +4,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/core/generics/lo"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/types"
+	"github.com/stretchr/testify/assert"
 
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/types"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp/packages/core/commitment"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/models"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
+	"github.com/izuc/zipp/packages/core/epoch"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/core/mesh_old/payload"
 )
 
 func TestRequest(t *testing.T) {
@@ -28,16 +28,16 @@ func TestRequest(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	require.Equal(t, originalRequest.Address(), clonedRequest.Address())
-	require.Equal(t, originalRequest.AccessManaPledgeID(), clonedRequest.AccessManaPledgeID())
-	require.Equal(t, originalRequest.ConsensusManaPledgeID(), clonedRequest.ConsensusManaPledgeID())
+	assert.Equal(t, originalRequest.Address(), clonedRequest.Address())
+	assert.Equal(t, originalRequest.AccessManaPledgeID(), clonedRequest.AccessManaPledgeID())
+	assert.Equal(t, originalRequest.ConsensusManaPledgeID(), clonedRequest.ConsensusManaPledgeID())
 
 	clonedRequest2, _, err := FromBytes(lo.PanicOnErr(clonedRequest.Bytes()))
 	if err != nil {
 		panic(err)
 	}
 
-	require.Equal(t, originalRequest.Address(), clonedRequest2.Address())
+	assert.Equal(t, originalRequest.Address(), clonedRequest2.Address())
 }
 
 func TestIsFaucetReq(t *testing.T) {
@@ -48,30 +48,38 @@ func TestIsFaucetReq(t *testing.T) {
 
 	faucetRequest := NewRequest(address, emptyID, emptyID, 0)
 
-	faucetBlk := models.NewBlock(
-		models.WithStrongParents(models.NewBlockIDs(models.EmptyBlockID)),
-		models.WithIssuingTime(time.Now()),
-		models.WithIssuer(local.PublicKey()),
-		models.WithSequenceNumber(0),
-		models.WithPayload(faucetRequest),
-		models.WithNonce(0),
-		models.WithSignature(ed25519.EmptySignature),
-		models.WithLatestConfirmedSlot(0),
-		models.WithCommitment(commitment.New(0, commitment.ID{}, types.Identifier{}, 0)),
+	faucetBlk := mesh_old.NewBlock(
+		map[mesh_old.ParentsType]mesh_old.BlockIDs{
+			mesh_old.StrongParentType: {
+				mesh_old.EmptyBlockID: types.Void,
+			},
+		},
+		time.Now(),
+		local.PublicKey(),
+		0,
+		faucetRequest,
+		0,
+		ed25519.EmptySignature,
+		0,
+		epoch.NewECRecord(0),
 	)
 
-	dataBlk := models.NewBlock(
-		models.WithStrongParents(models.NewBlockIDs(models.EmptyBlockID)),
-		models.WithIssuingTime(time.Now()),
-		models.WithIssuer(local.PublicKey()),
-		models.WithSequenceNumber(0),
-		models.WithPayload(payload.NewGenericDataPayload([]byte("data"))),
-		models.WithNonce(0),
-		models.WithSignature(ed25519.EmptySignature),
-		models.WithLatestConfirmedSlot(0),
-		models.WithCommitment(commitment.New(0, commitment.ID{}, types.Identifier{}, 0)),
+	dataBlk := mesh_old.NewBlock(
+		map[mesh_old.ParentsType]mesh_old.BlockIDs{
+			mesh_old.StrongParentType: {
+				mesh_old.EmptyBlockID: types.Void,
+			},
+		},
+		time.Now(),
+		local.PublicKey(),
+		0,
+		payload.NewGenericDataPayload([]byte("data")),
+		0,
+		ed25519.EmptySignature,
+		0,
+		epoch.NewECRecord(0),
 	)
 
-	require.Equal(t, true, IsFaucetReq(faucetBlk))
-	require.Equal(t, false, IsFaucetReq(dataBlk))
+	assert.Equal(t, true, IsFaucetReq(faucetBlk))
+	assert.Equal(t, false, IsFaucetReq(dataBlk))
 }

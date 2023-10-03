@@ -4,19 +4,16 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/bitmask"
+	"github.com/izuc/zipp.foundation/core/identity"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/bitmask"
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/client/wallet/packages/address"
 	"github.com/izuc/zipp/client/wallet/packages/seed"
 	"github.com/izuc/zipp/client/wallet/packages/sendoptions"
-	"github.com/izuc/zipp/packages/app/blockissuer"
 	"github.com/izuc/zipp/packages/app/faucet"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 type Faucet struct {
@@ -24,8 +21,8 @@ type Faucet struct {
 }
 
 // NewFaucet creates a new Faucet instance.
-func NewFaucet(faucetSeed *seed.Seed, p *protocol.Protocol, issuer *blockissuer.BlockIssuer, indexer *indexer.Indexer) (f *Faucet) {
-	connector := NewConnector(p, issuer, indexer)
+func NewFaucet(faucetSeed *seed.Seed) (f *Faucet) {
+	connector := NewConnector(deps.Mesh, deps.Indexer)
 
 	f = &Faucet{wallet.New(
 		wallet.GenericConnector(connector),
@@ -65,7 +62,7 @@ func (f *Faucet) handleFaucetRequest(p *faucet.Payload, ctx context.Context) (*d
 	_, err := f.SendFunds(
 		sendoptions.Sources(f.Seed().Address(0)),                                          // we only reuse the address at index 0 for the wallet
 		sendoptions.Destination(f.Seed().Address(1), uint64(Parameters.TokensPerRequest)), // we send the funds to address at index 1 so that we can be sure the correct output is sent to a requester
-		sendoptions.AccessManaPledgeID(identity.ID{}.EncodeBase58()),
+		sendoptions.AccessManaPledgeID(deps.Local.ID().EncodeBase58()),
 		sendoptions.ConsensusManaPledgeID(identity.ID{}.EncodeBase58()),
 		sendoptions.WaitForConfirmation(true),
 		sendoptions.Context(ctx),

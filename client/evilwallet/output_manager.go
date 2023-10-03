@@ -1,16 +1,16 @@
 package evilwallet
 
 import (
+	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/types"
 
-	"github.com/izuc/zipp.foundation/ds/types"
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 var (
@@ -113,25 +113,20 @@ func (o *OutputManager) IssuerSolidOutIDMap(issuer, outputID string) (isSolid bo
 
 // Track the confirmed statuses of the given outputIDs, it returns true if all of them are confirmed.
 func (o *OutputManager) Track(outputIDs []utxo.OutputID) (allConfirmed bool) {
-	var (
-		wg                     sync.WaitGroup
-		unconfirmedOutputFound atomic.Bool
-	)
-
+	wg := sync.WaitGroup{}
+	allConfirmed = true
 	for _, ID := range outputIDs {
 		wg.Add(1)
-
-		go func(id utxo.OutputID) {
+		go func(id utxo.OutputID, allConfirmed bool) {
 			defer wg.Done()
-
-			if !o.AwaitOutputToBeAccepted(id, awaitOutputToBeConfirmed) {
-				unconfirmedOutputFound.Store(true)
+			ok := o.AwaitOutputToBeAccepted(id, awaitOutputToBeConfirmed)
+			if !ok {
+				allConfirmed = false
+				return
 			}
-		}(ID)
+		}(ID, allConfirmed)
 	}
-	wg.Wait()
-
-	return !unconfirmedOutputFound.Load()
+	return
 }
 
 // CreateOutputFromAddress creates output, retrieves outputID, and adds it to the wallet.
@@ -229,8 +224,11 @@ func (o *OutputManager) AwaitWalletOutputsToBeConfirmed(wallet *Wallet) {
 		addr := output.Address
 		go func(addr devnetvm.Address) {
 			defer wg.Done()
-
-			_ = o.Track(o.RequestOutputsByAddress(addr.Base58()))
+			outputIDs := o.RequestOutputsByAddress(addr.Base58())
+			ok := o.Track(outputIDs)
+			if !ok {
+				return
+			}
 		}(addr)
 	}
 	wg.Wait()
@@ -287,7 +285,7 @@ func (o *OutputManager) AwaitTransactionToBeAccepted(txID string, waitFor time.D
 		}
 	}
 	if !accepted {
-		return errors.Errorf("transaction %s not accepted in time", txID)
+		return fmt.Errorf("transaction %s not accepted in time", txID)
 	}
 	return nil
 }
@@ -298,7 +296,7 @@ func (o *OutputManager) AwaitOutputToBeSolid(outID string, clt Client, waitFor t
 	var solid bool
 
 	for ; time.Since(s) < waitFor; time.Sleep(awaitSolidificationSleep) {
-		solid = o.IssuerSolidOutIDMap(clt.URL(), outID)
+		solid = o.IssuerSolidOutIDMap(clt.Url(), outID)
 		if solid {
 			break
 		}
@@ -308,7 +306,7 @@ func (o *OutputManager) AwaitOutputToBeSolid(outID string, clt Client, waitFor t
 		}
 	}
 	if !solid {
-		return errors.Errorf("output %s not solidified in time", outID)
+		return errors.Newf("output %s not solidified in time", outID)
 	}
 	return nil
 }

@@ -2,32 +2,33 @@ package faucet
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/generics/model"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/serix"
 
-	"github.com/izuc/zipp.foundation/core/model"
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/serializer/serix"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/models"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
-	"github.com/izuc/zipp/packages/protocol/models/payloadtype"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/core/mesh_old/payload"
 )
 
 func init() {
 	err := serix.DefaultAPI.RegisterTypeSettings(Payload{}, serix.TypeSettings{}.WithObjectType(uint32(new(Payload).Type())))
 	if err != nil {
-		panic(errors.Wrap(err, "error registering Transaction type settings"))
+		panic(fmt.Errorf("error registering Transaction type settings: %w", err))
 	}
 	err = serix.DefaultAPI.RegisterInterfaceObjects((*payload.Payload)(nil), new(Payload))
 	if err != nil {
-		panic(errors.Wrap(err, "error registering Transaction as Payload interface"))
+		panic(fmt.Errorf("error registering Transaction as Payload interface: %w", err))
 	}
 }
 
 const (
 	// ObjectName defines the name of the faucet object (payload).
-	ObjectName = "faucet"
+	ObjectName  = "faucet"
+	payloadType = 2
 )
 
 // Payload represents a faucet request which contains an address for the faucet to send funds to.
@@ -45,7 +46,7 @@ type requestModel struct {
 
 // RequestType represents the identifier for the faucet Payload type.
 var (
-	RequestType = payload.NewType(payloadtype.FaucetRequest, ObjectName)
+	RequestType = payload.NewType(payloadType, ObjectName)
 )
 
 // NewRequest is the constructor of a Payload and creates a new Payload object from the given details.
@@ -70,7 +71,7 @@ func FromBytes(data []byte) (payloadDecoded *Payload, consumedBytes int, err err
 
 	consumedBytes, err = serix.DefaultAPI.Decode(context.Background(), data, payloadDecoded, serix.WithValidation())
 	if err != nil {
-		err = errors.Wrap(err, "failed to parse Request")
+		err = errors.Errorf("failed to parse Request: %w", err)
 		return
 	}
 
@@ -108,6 +109,6 @@ func (p *Payload) SetConsensusManaPledgeID(id identity.ID) {
 }
 
 // IsFaucetReq checks if the block is faucet payload.
-func IsFaucetReq(blk *models.Block) bool {
+func IsFaucetReq(blk *mesh_old.Block) bool {
 	return blk.Payload().Type() == RequestType
 }

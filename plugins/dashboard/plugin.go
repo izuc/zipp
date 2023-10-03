@@ -8,28 +8,27 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/core/autopeering/selection"
+	"github.com/izuc/zipp.foundation/core/configuration"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/autopeering/discover"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/autopeering/peer/service"
-	"github.com/izuc/zipp.foundation/autopeering/selection"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/app/retainer"
-	"github.com/izuc/zipp/packages/core/latestblocktracker"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/network/p2p"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+
+	"github.com/izuc/zipp/packages/app/chat"
+	"github.com/izuc/zipp/packages/node/p2p"
+	"github.com/izuc/zipp/packages/node/shutdown"
 	"github.com/izuc/zipp/plugins/banner"
+	"github.com/izuc/zipp/plugins/metrics"
 )
 
 // TODO: mana visualization + metrics
@@ -45,20 +44,18 @@ var (
 	log    *logger.Logger
 	server *echo.Echo
 
-	nodeStartAt        = time.Now()
-	lastAcceptedBlock  = latestblocktracker.New()
-	lastConfirmedBlock = latestblocktracker.New()
+	nodeStartAt = time.Now()
 )
 
 type dependencies struct {
 	dig.In
 
+	Node       *configuration.Configuration
 	Local      *peer.Local
-	Retainer   *retainer.Retainer
-	Protocol   *protocol.Protocol
-	Discover   *discover.Protocol  `optional:"true"`
+	Mesh     *mesh_old.Mesh
 	Selection  *selection.Protocol `optional:"true"`
 	P2PManager *p2p.Manager        `optional:"true"`
+	Chat       *chat.Chat          `optional:"true"`
 	Indexer    *indexer.Indexer
 }
 
@@ -68,16 +65,13 @@ func init() {
 
 func configure(plugin *node.Plugin) {
 	log = logger.NewLogger(plugin.Name)
-
-	deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
-		lastAcceptedBlock.Update(block.ModelsBlock)
-	}, event.WithWorkerPool(plugin.WorkerPool))
-
-	deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockConfirmed.Hook(func(block *blockgadget.Block) {
-		lastConfirmedBlock.Update(block.ModelsBlock)
-	}, event.WithWorkerPool(plugin.WorkerPool))
-
+	configureWebSocketWorkerPool()
+	configureLiveFeed()
+	configureChatLiveFeed()
+	configureVisualizer()
+	configureManaFeed()
 	configureServer()
+	configureConflictLiveFeed()
 }
 
 func configureServer() {
@@ -104,25 +98,35 @@ func configureServer() {
 	setupRoutes(server)
 }
 
-func run(plugin *node.Plugin) {
+func run(*node.Plugin) {
 	// run block broker
-	runWebSocketStreams(plugin)
+	runWebSocketStreams()
 	// run the block live feed
-	runLiveFeed(plugin)
+	runLiveFeed()
 	// run the visualizer vertex feed
-	runVisualizer(plugin)
-	runManaFeed(plugin)
-	runConflictLiveFeed(plugin)
-	runSlotsLiveFeed(plugin)
+	runVisualizer()
+	runManaFeed()
+	runConflictLiveFeed()
+
+	if deps.Chat != nil {
+		runChatLiveFeed()
+	}
 
 	log.Infof("Starting %s ...", PluginName)
-	if err := daemon.BackgroundWorker(PluginName, worker, shutdown.PriorityProfiling); err != nil {
+	if err := daemon.BackgroundWorker(PluginName, worker, shutdown.PriorityAnalysis); err != nil {
 		log.Panicf("Error starting as daemon: %s", err)
 	}
 }
 
 func worker(ctx context.Context) {
 	defer log.Infof("Stopping %s ... done", PluginName)
+
+	defer wsSendWorkerPool.Stop()
+
+	// submit the mps to the worker pool when triggered
+	notifyStatus := event.NewClosure(func(event *metrics.ReceivedBPSUpdatedEvent) { wsSendWorkerPool.TrySubmit(event.BPS) })
+	metrics.Events.ReceivedBPSUpdated.Attach(notifyStatus)
+	defer metrics.Events.ReceivedBPSUpdated.Detach(notifyStatus)
 
 	stopped := make(chan struct{})
 	go func() {
@@ -172,16 +176,28 @@ const (
 	MsgTypeManaMapOverall
 	// MsgTypeManaMapOnline defines a block containing online mana map.
 	MsgTypeManaMapOnline
+	// MsgTypeManaAllowedPledge defines a block containing a list of allowed mana pledge nodeIDs.
+	MsgTypeManaAllowedPledge
+	// MsgTypeManaPledge defines a block that is sent when mana was pledged to the node.
+	MsgTypeManaPledge
+	// MsgTypeManaInitPledge defines a block that is sent when initial pledge events are sent to the dashboard.
+	MsgTypeManaInitPledge
+	// MsgTypeManaRevoke defines a block that is sent when mana was revoked from a node.
+	MsgTypeManaRevoke
+	// MsgTypeManaInitRevoke defines a block that is sent when initial revoke events are sent to the dashboard.
+	MsgTypeManaInitRevoke
+	// MsgTypeManaInitDone defines a block that is sent when all initial values are sent.
+	MsgTypeManaInitDone
 	// MsgManaDashboardAddress is the socket address of the dashboard to stream mana from.
 	MsgManaDashboardAddress
+	// MsgTypeChat defines a chat block.
+	MsgTypeChat
 	// MsgTypeRateSetterMetric defines rate setter metrics.
 	MsgTypeRateSetterMetric
 	// MsgTypeConflictsConflictSet defines a websocket message that contains a conflictSet update for the "conflicts" tab.
 	MsgTypeConflictsConflictSet
 	// MsgTypeConflictsConflict defines a websocket message that contains a conflict update for the "conflicts" tab.
 	MsgTypeConflictsConflict
-	// MsgTypeSlotInfo defines a websocket message that contains a conflict update for the "conflicts" tab.
-	MsgTypeSlotInfo
 )
 
 type wsblk struct {
@@ -190,18 +206,18 @@ type wsblk struct {
 }
 
 type blk struct {
-	ID          string       `json:"id"`
-	Value       int64        `json:"value"`
-	PayloadType payload.Type `json:"payload_type"`
+	ID          string `json:"id"`
+	Value       int64  `json:"value"`
+	PayloadType uint32 `json:"payload_type"`
 }
 
 type nodestatus struct {
-	ID        string          `json:"id"`
-	Version   string          `json:"version"`
-	Uptime    int64           `json:"uptime"`
-	Mem       *memmetrics     `json:"mem"`
-	MeshTime  meshTime        `json:"meshTime"`
-	Scheduler schedulerMetric `json:"scheduler"`
+	ID         string          `json:"id"`
+	Version    string          `json:"version"`
+	Uptime     int64           `json:"uptime"`
+	Mem        *memmetrics     `json:"mem"`
+	MeshTime meshTime      `json:"meshTime"`
+	Scheduler  schedulerMetric `json:"scheduler"`
 }
 
 type meshTime struct {
@@ -214,7 +230,6 @@ type meshTime struct {
 
 	AcceptedBlockID  string `json:"acceptedBlockID"`
 	ConfirmedBlockID string `json:"confirmedBlockID"`
-	ConfirmedSlot    int64  `json:"confirmedSlot"`
 }
 
 type memmetrics struct {
@@ -320,31 +335,25 @@ func currentNodeStatus() *nodestatus {
 	}
 
 	// get MeshTime
-	tm := deps.Protocol.Engine().Clock
+	tm := deps.Mesh.TimeManager
 	status.MeshTime = meshTime{
-		Synced:           deps.Protocol.Engine().IsSynced(),
-		Bootstrapped:     deps.Protocol.Engine().IsBootstrapped(),
-		AcceptedBlockID:  lastAcceptedBlock.BlockID().Base58(),
-		ConfirmedBlockID: lastConfirmedBlock.BlockID().Base58(),
-		ConfirmedSlot:    int64(deps.Protocol.Engine().LastConfirmedSlot()),
-		ATT:              tm.Accepted().Time().UnixNano(),
-		RATT:             tm.Accepted().RelativeTime().UnixNano(),
-		CTT:              tm.Confirmed().Time().UnixNano(),
-		RCTT:             tm.Confirmed().RelativeTime().UnixNano(),
+		Synced:           tm.Synced(),
+		Bootstrapped:     tm.Bootstrapped(),
+		AcceptedBlockID:  tm.LastAcceptedBlock().BlockID.Base58(),
+		ConfirmedBlockID: tm.LastConfirmedBlock().BlockID.Base58(),
+		ATT:              tm.ATT().UnixNano(),
+		RATT:             tm.RATT().UnixNano(),
+		CTT:              tm.CTT().UnixNano(),
+		RCTT:             tm.RCTT().UnixNano(),
 	}
 
-	scheduler := deps.Protocol.CongestionControl.Scheduler()
-	if scheduler == nil {
-		return nil
-	}
-
-	deficit, _ := scheduler.Deficit(deps.Local.ID()).Float64()
+	deficit, _ := deps.Mesh.Scheduler.GetDeficit(deps.Local.ID()).Float64()
 
 	status.Scheduler = schedulerMetric{
-		Running:           deps.Protocol.CongestionControl.Scheduler().IsRunning(),
-		Rate:              deps.Protocol.CongestionControl.Scheduler().Rate().String(),
-		MaxBufferSize:     deps.Protocol.CongestionControl.Scheduler().MaxBufferSize(),
-		CurrentBufferSize: deps.Protocol.CongestionControl.Scheduler().BufferSize(),
+		Running:           deps.Mesh.Scheduler.Running(),
+		Rate:              deps.Mesh.Scheduler.Rate().String(),
+		MaxBufferSize:     deps.Mesh.Scheduler.MaxBufferSize(),
+		CurrentBufferSize: deps.Mesh.Scheduler.BufferSize(),
 		Deficit:           deficit,
 	}
 	return status

@@ -7,8 +7,9 @@ import (
 	flag "github.com/spf13/pflag"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/configuration"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/configuration"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/node"
 )
 
 // PluginName is the name of the config plugin.
@@ -28,11 +29,11 @@ var (
 
 // Init triggers the Init event.
 func Init(container *dig.Container) {
-	Plugin.Events.Init.Trigger(&node.InitEvent{Plugin: Plugin, Container: container})
+	Plugin.Events.Init.Trigger(&node.InitEvent{Plugin, container})
 }
 
 func init() {
-	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
+	Plugin.Events.Init.Hook(event.NewClosure[*node.InitEvent](func(event *node.InitEvent) {
 		if err := fetch(false); err != nil {
 			if !*skipConfigAvailable {
 				// we wanted a config file but it was not present
@@ -50,7 +51,7 @@ func init() {
 		}); err != nil {
 			panic(err)
 		}
-	})
+	}))
 }
 
 // fetch fetches config values from a configFilePath (or the current working dir if not set).

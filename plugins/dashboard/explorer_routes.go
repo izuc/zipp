@@ -3,26 +3,22 @@ package dashboard
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/generics/lo"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
+	"github.com/labstack/echo"
 	"github.com/mr-tron/base58/base58"
-	"github.com/pkg/errors"
 
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/app/retainer"
-	"github.com/izuc/zipp/packages/core/confirmation"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
-	"github.com/izuc/zipp/packages/protocol/models"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
-
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/lo"
+	"github.com/izuc/zipp/packages/core/epoch"
+	"github.com/izuc/zipp/packages/core/ledger"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/plugins/chat"
 	ledgerstateAPI "github.com/izuc/zipp/plugins/webapi/ledgerstate"
-	slotAPI "github.com/izuc/zipp/plugins/webapi/slot"
 )
 
 // ExplorerBlock defines the struct of the ExplorerBlock.
@@ -41,32 +37,27 @@ type ExplorerBlock struct {
 	IssuerShortID string `json:"issuer_short_id"`
 	// The signature of the block.
 	Signature string `json:"signature"`
-	// ParentsByType is the map of parents groups by type
+	// ParentsByType is the map of parents group by type
 	ParentsByType map[string][]string `json:"parentsByType"`
 	// StrongChildren are the strong children of the block.
 	StrongChildren []string `json:"strongChildren"`
 	// WeakChildren are the weak children of the block.
 	WeakChildren []string `json:"weakChildren"`
-	// LikedInsteadChildren are the shallow like children of the block.
-	LikedInsteadChildren []string `json:"shallowLikeChildren"`
+	// ShallowLikeChildren are the shallow like children of the block.
+	ShallowLikeChildren []string `json:"shallowLikeChildren"`
 	// Solid defines the solid status of the block.
-	Solid                  bool     `json:"solid"`
-	ConflictIDs            []string `json:"conflictIDs"`
-	AddedConflictIDs       []string `json:"addedConflictIDs"`
-	SubtractedConflictIDs  []string `json:"subtractedConflictIDs"`
-	Scheduled              bool     `json:"scheduled"`
-	Booked                 bool     `json:"booked"`
-	Orphaned               bool     `json:"orphaned"`
-	ObjectivelyInvalid     bool     `json:"objectivelyInvalid"`
-	SubjectivelyInvalid    bool     `json:"subjectivelyInvalid"`
-	Acceptance             bool     `json:"acceptance"`
-	AcceptanceTime         int64    `json:"acceptanceTime"`
-	Confirmation           bool     `json:"confirmation"`
-	ConfirmationTime       int64    `json:"confirmationTime"`
-	ConfirmationBySlot     bool     `json:"confirmationBySlot"`
-	ConfirmationBySlotTime int64    `json:"confirmationBySlotTime"`
+	Solid                 bool               `json:"solid"`
+	ConflictIDs           []string           `json:"conflictIDs"`
+	AddedConflictIDs      []string           `json:"addedConflictIDs"`
+	SubtractedConflictIDs []string           `json:"subtractedConflictIDs"`
+	Scheduled             bool               `json:"scheduled"`
+	Booked                bool               `json:"booked"`
+	ObjectivelyInvalid    bool               `json:"objectivelyInvalid"`
+	SubjectivelyInvalid   bool               `json:"subjectivelyInvalid"`
+	ConfirmationState     confirmation.State `json:"confirmationState"`
+	ConfirmationStateTime int64              `json:"confirmationStateTime"`
 	// PayloadType defines the type of the payload.
-	PayloadType payload.Type `json:"payload_type"`
+	PayloadType uint32 `json:"payload_type"`
 	// Payload is the content of the payload.
 	Payload interface{} `json:"payload"`
 
@@ -76,81 +67,70 @@ type ExplorerBlock struct {
 	IsPastMarker  bool   `json:"isPastMarker"`
 	PastMarkers   string `json:"pastMarkers"`
 
-	// Slot commitment
-	CommitmentID         string `json:"ec"`
+	// Epoch commitment
+	EC                   string `json:"ec"`
 	EI                   uint64 `json:"ei"`
-	CommitmentRootsID    string `json:"ecr"`
-	PreviousCommitmentID string `json:"prevEC"`
-	CumulativeWeight     int64  `json:"cumulativeWeight"`
-	LatestConfirmedSlot  uint64 `json:"latestConfirmedSlot"`
+	ECR                  string `json:"ecr"`
+	PrevEC               string `json:"prevEC"`
+	LatestConfirmedEpoch uint64 `json:"latestConfirmedEpoch"`
 }
 
-func createExplorerBlock(block *models.Block, blockMetadata *retainer.BlockMetadata) *ExplorerBlock {
-	var conflictIDs, addedConflictIDs, subtractedConflictIDs []string
-	if blockMetadata.M.ConflictIDs != nil {
-		conflictIDs = lo.Map(lo.Map(blockMetadata.M.ConflictIDs.Slice(), packTransactionID), base58.Encode)
-	}
-	if blockMetadata.M.AddedConflictIDs != nil {
-		addedConflictIDs = lo.Map(lo.Map(blockMetadata.M.AddedConflictIDs.Slice(), packTransactionID), base58.Encode)
-	}
-	if blockMetadata.M.SubtractedConflictIDs != nil {
-		subtractedConflictIDs = lo.Map(lo.Map(blockMetadata.M.SubtractedConflictIDs.Slice(), packTransactionID), base58.Encode)
-	}
+func createExplorerBlock(blk *mesh_old.Block) *ExplorerBlock {
+	blockID := blk.ID()
+	cachedBlockMetadata := deps.Mesh.Storage.BlockMetadata(blockID)
+	defer cachedBlockMetadata.Release()
+	blockMetadata, _ := cachedBlockMetadata.Unwrap()
+
+	conflictIDs, _ := deps.Mesh.Booker.BlockConflictIDs(blockID)
+
+	ecRecord := epoch.NewECRecord(blk.ECRecordEI())
+	ecRecord.SetECR(blk.ECR())
+	ecRecord.SetPrevEC(blk.PrevEC())
+
 	t := &ExplorerBlock{
-		ID:                      block.ID().Base58(),
-		SolidificationTimestamp: blockMetadata.M.SolidTime.Unix(),
-		IssuanceTimestamp:       block.IssuingTime().Unix(),
-		IssuerPublicKey:         block.IssuerPublicKey().String(),
-		IssuerShortID:           identity.NewID(block.IssuerPublicKey()).String(),
-		Signature:               block.Signature().String(),
-		SequenceNumber:          block.SequenceNumber(),
-		ParentsByType:           prepareParentReferences(block),
-		StrongChildren:          blockMetadata.M.StrongChildren.Base58(),
-		WeakChildren:            blockMetadata.M.WeakChildren.Base58(),
-		LikedInsteadChildren:    blockMetadata.M.LikedInsteadChildren.Base58(),
-		Solid:                   blockMetadata.M.Solid,
-		ConflictIDs:             conflictIDs,
-		AddedConflictIDs:        addedConflictIDs,
-		SubtractedConflictIDs:   subtractedConflictIDs,
-		Scheduled:               blockMetadata.M.Scheduled,
-		Booked:                  blockMetadata.M.Booked,
-		Orphaned:                blockMetadata.M.Orphaned,
-		ObjectivelyInvalid:      blockMetadata.M.Invalid,
-		SubjectivelyInvalid:     blockMetadata.M.SubjectivelyInvalid,
-		Acceptance:              blockMetadata.M.Accepted,
-		AcceptanceTime:          blockMetadata.M.AcceptedTime.Unix(),
-		Confirmation:            blockMetadata.M.Confirmed,
-		ConfirmationTime:        blockMetadata.M.ConfirmedTime.Unix(),
-		ConfirmationBySlot:      blockMetadata.M.ConfirmedBySlot,
-		ConfirmationBySlotTime:  blockMetadata.M.ConfirmedBySlotTime.Unix(),
-
-		PayloadType:          block.Payload().Type(),
-		Payload:              ProcessPayload(block.Payload()),
-		CommitmentID:         block.Commitment().ID().Base58(),
-		EI:                   uint64(block.Commitment().Index()),
-		CommitmentRootsID:    block.Commitment().RootsID().Base58(),
-		PreviousCommitmentID: block.Commitment().PrevID().Base58(),
-		CumulativeWeight:     block.Commitment().CumulativeWeight(),
-		LatestConfirmedSlot:  uint64(block.LatestConfirmedSlot()),
+		ID:                      blockID.Base58(),
+		SolidificationTimestamp: blockMetadata.SolidificationTime().Unix(),
+		IssuanceTimestamp:       blk.IssuingTime().Unix(),
+		IssuerPublicKey:         blk.IssuerPublicKey().String(),
+		IssuerShortID:           identity.NewID(blk.IssuerPublicKey()).String(),
+		Signature:               blk.Signature().String(),
+		SequenceNumber:          blk.SequenceNumber(),
+		ParentsByType:           prepareParentReferences(blk),
+		StrongChildren:          deps.Mesh.Utils.ApprovingBlockIDs(blockID, mesh_old.StrongChild).Base58(),
+		WeakChildren:            deps.Mesh.Utils.ApprovingBlockIDs(blockID, mesh_old.WeakChild).Base58(),
+		ShallowLikeChildren:     deps.Mesh.Utils.ApprovingBlockIDs(blockID, mesh_old.ShallowLikeChild).Base58(),
+		Solid:                   blockMetadata.IsSolid(),
+		ConflictIDs:             lo.Map(lo.Map(conflictIDs.Slice(), utxo.TransactionID.Bytes), base58.Encode),
+		AddedConflictIDs:        lo.Map(lo.Map(blockMetadata.AddedConflictIDs().Slice(), utxo.TransactionID.Bytes), base58.Encode),
+		SubtractedConflictIDs:   lo.Map(lo.Map(blockMetadata.SubtractedConflictIDs().Slice(), utxo.TransactionID.Bytes), base58.Encode),
+		Scheduled:               blockMetadata.Scheduled(),
+		Booked:                  blockMetadata.IsBooked(),
+		ObjectivelyInvalid:      blockMetadata.IsObjectivelyInvalid(),
+		SubjectivelyInvalid:     blockMetadata.IsSubjectivelyInvalid(),
+		ConfirmationState:       blockMetadata.ConfirmationState(),
+		ConfirmationStateTime:   blockMetadata.ConfirmationStateTime().Unix(),
+		PayloadType:             uint32(blk.Payload().Type()),
+		Payload:                 ProcessPayload(blk.Payload()),
+		EC:                      ecRecord.ComputeEC().Base58(),
+		EI:                      uint64(blk.ECRecordEI()),
+		ECR:                     blk.ECR().Base58(),
+		PrevEC:                  blk.PrevEC().Base58(),
+		LatestConfirmedEpoch:    uint64(blk.LatestConfirmedEpoch()),
 	}
 
-	if d := blockMetadata.M.StructureDetails; d != nil {
-		t.Rank = d.Rank
-		t.PastMarkerGap = d.PastMarkerGap
-		t.IsPastMarker = d.IsPastMarker
-		t.PastMarkers = fmt.Sprintf("Markers{%+v}", d.PastMarkers)
+	if d := blockMetadata.StructureDetails(); d != nil {
+		t.Rank = d.Rank()
+		t.PastMarkerGap = d.PastMarkerGap()
+		t.IsPastMarker = d.IsPastMarker()
+		t.PastMarkers = d.PastMarkers().String()
 	}
 
 	return t
 }
 
-func packTransactionID(txID utxo.TransactionID) []byte {
-	return lo.PanicOnErr(txID.Bytes())
-}
-
-func prepareParentReferences(blk *models.Block) map[string][]string {
+func prepareParentReferences(blk *mesh_old.Block) map[string][]string {
 	parentsByType := make(map[string][]string)
-	blk.ForEachParent(func(parent models.Parent) {
+	blk.ForEachParent(func(parent mesh_old.Parent) {
 		if _, ok := parentsByType[parent.Type.String()]; !ok {
 			parentsByType[parent.Type.String()] = make([]string, 0)
 		}
@@ -184,7 +164,7 @@ type SearchResult struct {
 
 func setupExplorerRoutes(routeGroup *echo.Group) {
 	routeGroup.GET("/block/:id", func(c echo.Context) (err error) {
-		var blockID models.BlockID
+		var blockID mesh_old.BlockID
 		err = blockID.FromBase58(c.Param("id"))
 		if err != nil {
 			return
@@ -216,49 +196,50 @@ func setupExplorerRoutes(routeGroup *echo.Group) {
 	routeGroup.GET("/conflict/:conflictID/children", ledgerstateAPI.GetConflictChildren)
 	routeGroup.GET("/conflict/:conflictID/conflicts", ledgerstateAPI.GetConflictConflicts)
 	routeGroup.GET("/conflict/:conflictID/voters", ledgerstateAPI.GetConflictVoters)
-	routeGroup.GET("/slot/:index", slotAPI.GetCommittedSlot)
-	routeGroup.GET("/slot/:index/blocks", slotAPI.GetBlocks)
-	routeGroup.GET("/slot/commitment/:commitment", slotAPI.GetCommittedSlotByCommitment)
-	routeGroup.GET("/slot/:index/transactions", slotAPI.GetTransactions)
-	routeGroup.GET("/slot/:index/utxos", slotAPI.GetUTXOs)
+	routeGroup.POST("/chat", chat.SendChatBlock)
 
 	routeGroup.GET("/search/:search", func(c echo.Context) error {
 		search := c.Param("search")
 		result := &SearchResult{}
 
-		switch strings.Contains(search, ":") {
-		case true:
-			var blockID models.BlockID
-			err := blockID.FromBase58(search)
+		searchInByte, err := base58.Decode(search)
+		if err != nil {
+			return fmt.Errorf("%w: search ID %s", ErrInvalidParameter, search)
+		}
+
+		switch len(searchInByte) {
+		case devnetvm.AddressLength:
+			addr, err := findAddress(search)
+			if err == nil {
+				result.Address = addr
+			}
+
+		case mesh_old.BlockIDLength:
+			var blockID mesh_old.BlockID
+			err = blockID.FromBase58(c.Param("id"))
 			if err != nil {
-				return errors.WithMessagef(ErrInvalidParameter, "search ID %s", search)
+				return fmt.Errorf("%w: search ID %s", ErrInvalidParameter, search)
 			}
 
 			blk, err := findBlock(blockID)
-			if err != nil {
-				return fmt.Errorf("can't find block %s: %w", search, err)
+			if err == nil {
+				result.Block = blk
 			}
-			result.Block = blk
 
-		case false:
-			addr, err := findAddress(search)
-			if err != nil {
-				return fmt.Errorf("can't find address %s: %w", search, err)
-			}
-			result.Address = addr
+		default:
+			return fmt.Errorf("%w: search ID %s", ErrInvalidParameter, search)
 		}
 
 		return c.JSON(http.StatusOK, result)
 	})
 }
 
-func findBlock(blockID models.BlockID) (explorerBlk *ExplorerBlock, err error) {
-	blockMetadata, exists := deps.Retainer.BlockMetadata(blockID)
-	if !exists {
-		return nil, errors.WithMessagef(ErrNotFound, "block metadata %s", blockID.Base58())
+func findBlock(blockID mesh_old.BlockID) (explorerBlk *ExplorerBlock, err error) {
+	if !deps.Mesh.Storage.Block(blockID).Consume(func(blk *mesh_old.Block) {
+		explorerBlk = createExplorerBlock(blk)
+	}) {
+		err = fmt.Errorf("%w: block %s", ErrNotFound, blockID.Base58())
 	}
-
-	explorerBlk = createExplorerBlock(blockMetadata.M.Block, blockMetadata)
 
 	return
 }
@@ -266,7 +247,7 @@ func findBlock(blockID models.BlockID) (explorerBlk *ExplorerBlock, err error) {
 func findAddress(strAddress string) (*ExplorerAddress, error) {
 	address, err := devnetvm.AddressFromBase58EncodedString(strAddress)
 	if err != nil {
-		return nil, errors.WithMessagef(ErrNotFound, "address %s", strAddress)
+		return nil, fmt.Errorf("%w: address %s", ErrNotFound, strAddress)
 	}
 
 	outputs := make([]ExplorerOutput, 0)
@@ -274,28 +255,28 @@ func findAddress(strAddress string) (*ExplorerAddress, error) {
 	// get outputids by address
 	// deps.Indexer.CachedOutputsOnAddress(address).Consume(func(output ledgerstate.Output) {
 	deps.Indexer.CachedAddressOutputMappings(address).Consume(func(addressOutputMapping *indexer.AddressOutputMapping) {
-		var metaData *mempool.OutputMetadata
+		var metaData *ledger.OutputMetadata
 		var timestamp int64
 
 		// get output metadata + confirmation status from conflict of the output
-		deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutputMetadata(addressOutputMapping.OutputID()).Consume(func(outputMetadata *mempool.OutputMetadata) {
+		deps.Mesh.Ledger.Storage.CachedOutputMetadata(addressOutputMapping.OutputID()).Consume(func(outputMetadata *ledger.OutputMetadata) {
 			metaData = outputMetadata
 		})
 
 		var txID utxo.TransactionID
-		deps.Protocol.Engine().Ledger.MemPool().Storage().CachedOutput(addressOutputMapping.OutputID()).Consume(func(output utxo.Output) {
+		deps.Mesh.Ledger.Storage.CachedOutput(addressOutputMapping.OutputID()).Consume(func(output utxo.Output) {
 			if output, ok := output.(devnetvm.Output); ok {
 				// get the inclusion state info from the transaction that created this output
 				txID = output.ID().TransactionID
 
-				deps.Protocol.Engine().Ledger.MemPool().Storage().CachedTransaction(txID).Consume(func(transaction utxo.Transaction) {
+				deps.Mesh.Ledger.Storage.CachedTransaction(txID).Consume(func(transaction utxo.Transaction) {
 					if tx, ok := transaction.(*devnetvm.Transaction); ok {
 						timestamp = tx.Essence().Timestamp().Unix()
 					}
 				})
 
 				// obtain information about the consumer of the output being considered
-				confirmedConsumerID := deps.Protocol.Engine().Ledger.MemPool().Utils().ConfirmedConsumer(output.ID())
+				confirmedConsumerID := deps.Mesh.Utils.ConfirmedConsumer(output.ID())
 
 				outputs = append(outputs, ExplorerOutput{
 					ID:                jsonmodels.NewOutputID(output.ID()),
@@ -309,7 +290,7 @@ func findAddress(strAddress string) (*ExplorerAddress, error) {
 	})
 
 	if len(outputs) == 0 {
-		return nil, errors.WithMessagef(ErrNotFound, "address %s", strAddress)
+		return nil, fmt.Errorf("%w: address %s", ErrNotFound, strAddress)
 	}
 
 	return &ExplorerAddress{

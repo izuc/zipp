@@ -3,13 +3,13 @@ package scheduler
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/autopeering/peer"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/core/mesh_old"
 )
 
 // PluginName is the name of the web API info endpoint plugin.
@@ -18,9 +18,9 @@ const PluginName = "WebAPISchedulerEndpoint"
 type dependencies struct {
 	dig.In
 
-	Server   *echo.Echo
-	Local    *peer.Local
-	Protocol *protocol.Protocol
+	Server *echo.Echo
+	Local  *peer.Local
+	Mesh *mesh_old.Mesh
 }
 
 var (
@@ -38,18 +38,17 @@ func configure(_ *node.Plugin) {
 }
 
 func getSchedulerInfo(c echo.Context) error {
-	scheduler := deps.Protocol.CongestionControl.Scheduler()
 	nodeQueueSizes := make(map[string]int)
-	for nodeID, size := range scheduler.IssuerQueueSizes() {
+	for nodeID, size := range deps.Mesh.Scheduler.NodeQueueSizes() {
 		nodeQueueSizes[nodeID.String()] = size
 	}
 
-	deficit, _ := scheduler.Deficit(deps.Local.ID()).Float64()
+	deficit, _ := deps.Mesh.Scheduler.GetDeficit(deps.Local.ID()).Float64()
 	return c.JSON(http.StatusOK, jsonmodels.Scheduler{
-		Running:           scheduler.IsRunning(),
-		Rate:              scheduler.Rate().String(),
-		MaxBufferSize:     scheduler.MaxBufferSize(),
-		CurrentBufferSize: scheduler.BufferSize(),
+		Running:           deps.Mesh.Scheduler.Running(),
+		Rate:              deps.Mesh.Scheduler.Rate().String(),
+		MaxBufferSize:     deps.Mesh.Scheduler.MaxBufferSize(),
+		CurrentBufferSize: deps.Mesh.Scheduler.BufferSize(),
 		NodeQueueSizes:    nodeQueueSizes,
 		Deficit:           deficit,
 	})

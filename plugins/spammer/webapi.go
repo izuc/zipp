@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo"
 
 	"github.com/izuc/zipp/packages/app/jsonmodels"
 )
@@ -19,7 +19,7 @@ func handleRequest(c echo.Context) error {
 	switch request.Cmd {
 	case "start":
 		if request.Rate == 0 {
-			log.Infof("Requesting invalid spamming at rate 0 BPS. Setting it to 1 BPS")
+			log.Infof("Requesting invalid spamming at rate 0 mps. Setting it to 1 mps")
 			request.Rate = 1
 		}
 
@@ -33,20 +33,15 @@ func handleRequest(c echo.Context) error {
 
 		var timeUnit time.Duration
 		switch request.Unit {
-		case "BPM":
+		case "mpm":
 			timeUnit = time.Minute
 		default:
-			request.Unit = "BPS"
+			request.Unit = "mps"
 			timeUnit = time.Second
 		}
 
-		// Default payload size set to 5 bytes.
-		if request.PayloadSize == 0 {
-			request.PayloadSize = 5
-		}
-
 		blockSpammer.Shutdown()
-		blockSpammer.Start(request.Rate, request.PayloadSize, timeUnit, request.IMIF)
+		blockSpammer.Start(request.Rate, timeUnit, request.IMIF)
 		log.Infof("Started spamming blocks with %d %s and %s inter-block issuing function", request.Rate, strings.ReplaceAll(request.Unit, "\n", ""), strings.ReplaceAll(request.IMIF, "\n", ""))
 		return c.JSON(http.StatusOK, jsonmodels.SpammerResponse{Block: "started spamming blocks"})
 	case "stop":

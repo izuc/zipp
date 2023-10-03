@@ -2,6 +2,7 @@ package client
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/izuc/zipp/packages/app/jsonmodels"
 )
@@ -28,7 +29,18 @@ const (
 func (api *ZIPPAPI) GetAddressOutputs(base58EncodedAddress string) (*jsonmodels.GetAddressResponse, error) {
 	res := &jsonmodels.GetAddressResponse{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetAddresses + base58EncodedAddress
+		return strings.Join([]string{routeGetAddresses, base58EncodedAddress}, "")
+	}(), nil, res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetAddressUnspentOutputs gets the unspent outputs of an address.
+func (api *ZIPPAPI) GetAddressUnspentOutputs(base58EncodedAddress string) (*jsonmodels.GetAddressResponse, error) {
+	res := &jsonmodels.GetAddressResponse{}
+	if err := api.do(http.MethodGet, func() string {
+		return strings.Join([]string{routeGetAddresses, base58EncodedAddress, pathUnspentOutputs}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -39,7 +51,7 @@ func (api *ZIPPAPI) GetAddressOutputs(base58EncodedAddress string) (*jsonmodels.
 func (api *ZIPPAPI) PostAddressUnspentOutputs(base58EncodedAddresses []string) (*jsonmodels.PostAddressesUnspentOutputsResponse, error) {
 	res := &jsonmodels.PostAddressesUnspentOutputsResponse{}
 	if err := api.do(http.MethodPost, func() string {
-		return routeGetAddresses + "unspentOutputs"
+		return strings.Join([]string{routeGetAddresses, "unspentOutputs"}, "")
 	}(), &jsonmodels.PostAddressesUnspentOutputsRequest{Addresses: base58EncodedAddresses}, res); err != nil {
 		return nil, err
 	}
@@ -50,7 +62,7 @@ func (api *ZIPPAPI) PostAddressUnspentOutputs(base58EncodedAddresses []string) (
 func (api *ZIPPAPI) GetConflict(base58EncodedConflictID string) (*jsonmodels.Conflict, error) {
 	res := &jsonmodels.Conflict{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetConflicts + base58EncodedConflictID
+		return strings.Join([]string{routeGetConflicts, base58EncodedConflictID}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -61,7 +73,7 @@ func (api *ZIPPAPI) GetConflict(base58EncodedConflictID string) (*jsonmodels.Con
 func (api *ZIPPAPI) GetConflictChildren(base58EncodedConflictID string) (*jsonmodels.GetConflictChildrenResponse, error) {
 	res := &jsonmodels.GetConflictChildrenResponse{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetConflicts + base58EncodedConflictID + pathChildren
+		return strings.Join([]string{routeGetConflicts, base58EncodedConflictID, pathChildren}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -72,7 +84,7 @@ func (api *ZIPPAPI) GetConflictChildren(base58EncodedConflictID string) (*jsonmo
 func (api *ZIPPAPI) GetConflictConflicts(base58EncodedConflictID string) (*jsonmodels.GetConflictConflictsResponse, error) {
 	res := &jsonmodels.GetConflictConflictsResponse{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetConflicts + base58EncodedConflictID + pathConflicts
+		return strings.Join([]string{routeGetConflicts, base58EncodedConflictID, pathConflicts}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -83,7 +95,7 @@ func (api *ZIPPAPI) GetConflictConflicts(base58EncodedConflictID string) (*jsonm
 func (api *ZIPPAPI) GetConflictVoters(base58EncodedConflictID string) (*jsonmodels.GetConflictVotersResponse, error) {
 	res := &jsonmodels.GetConflictVotersResponse{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetConflicts + base58EncodedConflictID + pathVoters
+		return strings.Join([]string{routeGetConflicts, base58EncodedConflictID, pathVoters}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -94,7 +106,7 @@ func (api *ZIPPAPI) GetConflictVoters(base58EncodedConflictID string) (*jsonmode
 func (api *ZIPPAPI) GetOutput(base58EncodedOutputID string) (*jsonmodels.Output, error) {
 	res := &jsonmodels.Output{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetOutputs + base58EncodedOutputID
+		return strings.Join([]string{routeGetOutputs, base58EncodedOutputID}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -105,7 +117,7 @@ func (api *ZIPPAPI) GetOutput(base58EncodedOutputID string) (*jsonmodels.Output,
 func (api *ZIPPAPI) GetOutputConsumers(base58EncodedOutputID string) (*jsonmodels.GetOutputConsumersResponse, error) {
 	res := &jsonmodels.GetOutputConsumersResponse{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetOutputs + base58EncodedOutputID + pathConsumers
+		return strings.Join([]string{routeGetOutputs, base58EncodedOutputID, pathConsumers}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -116,7 +128,7 @@ func (api *ZIPPAPI) GetOutputConsumers(base58EncodedOutputID string) (*jsonmodel
 func (api *ZIPPAPI) GetOutputMetadata(base58EncodedOutputID string) (*jsonmodels.OutputMetadata, error) {
 	res := &jsonmodels.OutputMetadata{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetOutputs + base58EncodedOutputID + pathMetadata
+		return strings.Join([]string{routeGetOutputs, base58EncodedOutputID, pathMetadata}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -127,7 +139,7 @@ func (api *ZIPPAPI) GetOutputMetadata(base58EncodedOutputID string) (*jsonmodels
 func (api *ZIPPAPI) GetTransaction(base58EncodedTransactionID string) (*jsonmodels.Transaction, error) {
 	res := &jsonmodels.Transaction{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetTransactions + base58EncodedTransactionID
+		return strings.Join([]string{routeGetTransactions, base58EncodedTransactionID}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -138,7 +150,7 @@ func (api *ZIPPAPI) GetTransaction(base58EncodedTransactionID string) (*jsonmode
 func (api *ZIPPAPI) GetTransactionMetadata(base58EncodedTransactionID string) (*jsonmodels.TransactionMetadata, error) {
 	res := &jsonmodels.TransactionMetadata{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetTransactions + base58EncodedTransactionID + pathMetadata
+		return strings.Join([]string{routeGetTransactions, base58EncodedTransactionID, pathMetadata}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}
@@ -149,7 +161,7 @@ func (api *ZIPPAPI) GetTransactionMetadata(base58EncodedTransactionID string) (*
 func (api *ZIPPAPI) GetTransactionAttachments(base58EncodedTransactionID string) (*jsonmodels.GetTransactionAttachmentsResponse, error) {
 	res := &jsonmodels.GetTransactionAttachmentsResponse{}
 	if err := api.do(http.MethodGet, func() string {
-		return routeGetTransactions + base58EncodedTransactionID + pathAttachments
+		return strings.Join([]string{routeGetTransactions, base58EncodedTransactionID, pathAttachments}, "")
 	}(), nil, res); err != nil {
 		return nil, err
 	}

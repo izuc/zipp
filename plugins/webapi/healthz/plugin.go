@@ -4,13 +4,14 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/core/bootstrapmanager"
+
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 // PluginName is the name of the web API healthz endpoint plugin.
@@ -19,8 +20,8 @@ const PluginName = "WebAPIHealthzEndpoint"
 type dependencies struct {
 	dig.In
 
-	Server   *echo.Echo
-	Protocol *protocol.Protocol
+	Server           *echo.Echo
+	BootstrapManager *bootstrapmanager.Manager `optional:"true"`
 }
 
 var (
@@ -49,7 +50,7 @@ func worker(ctx context.Context) {
 }
 
 func getHealthz(c echo.Context) error {
-	if deps.Protocol.Engine().IsBootstrapped() {
+	if deps.BootstrapManager != nil && !deps.BootstrapManager.Bootstrapped() {
 		return c.NoContent(http.StatusServiceUnavailable)
 	}
 	return c.NoContent(http.StatusOK)

@@ -1,9 +1,9 @@
 package destroynftoptions
 
 import (
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // DestroyNFTOption is a function that provides options.
@@ -79,7 +79,7 @@ func Build(options ...DestroyNFTOption) (result *DestroyNFTOptions, err error) {
 	}
 
 	if result.Alias == nil {
-		return nil, errors.New("an alias identifier must be specified for destroy")
+		return nil, errors.Errorf("an alias identifier must be specified for destroy")
 	}
 
 	return

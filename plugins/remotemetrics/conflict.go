@@ -4,14 +4,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/types"
 	"go.uber.org/atomic"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/advancedset"
+	"github.com/izuc/zipp/packages/core/conflictdag"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/node/clock"
+
 	"github.com/izuc/zipp/packages/app/remotemetrics"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
 )
 
 var (
@@ -33,21 +35,21 @@ var (
 	initialConfirmedConflictCountDB uint64
 
 	// all active conflicts stored in this map, to avoid duplicated event triggers for conflict confirmation.
-	activeConflicts      *advancedset.AdvancedSet[utxo.TransactionID]
+	activeConflicts      map[utxo.TransactionID]types.Empty
 	activeConflictsMutex sync.Mutex
 )
 
 func onConflictConfirmed(conflictID utxo.TransactionID) {
 	activeConflictsMutex.Lock()
 	defer activeConflictsMutex.Unlock()
-	if !activeConflicts.Has(conflictID) {
+	if _, exists := activeConflicts[conflictID]; !exists {
 		return
 	}
 	transactionID := conflictID
 	// update conflict metric counts even if node is not synced.
-	oldestAttachment := updateMetricCounts(conflictID, transactionID)
+	oldestAttachmentTime, oldestAttachmentBlockID, err := updateMetricCounts(conflictID, transactionID)
 
-	if !deps.Protocol.Engine().IsSynced() {
+	if err != nil || !deps.Mesh.Synced() {
 		return
 	}
 
@@ -60,20 +62,22 @@ func onConflictConfirmed(conflictID utxo.TransactionID) {
 		Type:               "conflictConfirmation",
 		NodeID:             nodeID,
 		MetricsLevel:       Parameters.MetricsLevel,
-		BlockID:            oldestAttachment.ID().Base58(),
+		BlockID:            oldestAttachmentBlockID.Base58(),
 		ConflictID:         conflictID.Base58(),
-		CreatedTimestamp:   oldestAttachment.IssuingTime(),
-		ConfirmedTimestamp: time.Now(),
-		DeltaConfirmed:     time.Since(oldestAttachment.IssuingTime()).Nanoseconds(),
+		CreatedTimestamp:   oldestAttachmentTime,
+		ConfirmedTimestamp: clock.SyncedTime(),
+		DeltaConfirmed:     clock.Since(oldestAttachmentTime).Nanoseconds(),
 	}
-	issuerID := identity.NewID(oldestAttachment.IssuerPublicKey())
-	record.IssuerID = issuerID.String()
+	deps.Mesh.Storage.Block(oldestAttachmentBlockID).Consume(func(block *mesh_old.Block) {
+		issuerID := identity.NewID(block.IssuerPublicKey())
+		record.IssuerID = issuerID.String()
+	})
 	_ = deps.RemoteLogger.Send(record)
 	sendConflictMetrics()
 }
 
 func sendConflictMetrics() {
-	if !deps.Protocol.Engine().IsSynced() {
+	if !deps.Mesh.Synced() {
 		return
 	}
 
@@ -99,38 +103,41 @@ func sendConflictMetrics() {
 	_ = deps.RemoteLogger.Send(record)
 }
 
-func updateMetricCounts(conflictID utxo.TransactionID, transactionID utxo.TransactionID) (oldestAttachment *booker.Block) {
-	oldestAttachment = deps.Protocol.Engine().Mesh.Booker().GetEarliestAttachment(transactionID)
-	conflict, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().Conflict(conflictID)
-	if !exists {
-		return oldestAttachment
+func updateMetricCounts(conflictID utxo.TransactionID, transactionID utxo.TransactionID) (time.Time, mesh_old.BlockID, error) {
+	oldestAttachmentTime, oldestAttachmentBlockID, err := deps.Mesh.Utils.FirstAttachment(transactionID)
+	if err != nil {
+		return time.Time{}, mesh_old.BlockID{}, err
 	}
-	conflict.ForEachConflictingConflict(func(conflictingConflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) bool {
-		finalizedConflictCountDB.Inc()
-		activeConflicts.Delete(conflictingConflict.ID())
+	deps.Mesh.Ledger.ConflictDAG.Utils.ForEachConflictingConflictID(conflictID, func(conflictingConflictID utxo.TransactionID) bool {
+		if conflictingConflictID != conflictID {
+			finalizedConflictCountDB.Inc()
+			delete(activeConflicts, conflictingConflictID)
+		}
 		return true
 	})
 	finalizedConflictCountDB.Inc()
 	confirmedConflictCount.Inc()
-	activeConflicts.Delete(conflictID)
-	return oldestAttachment
+	delete(activeConflicts, conflictID)
+	return oldestAttachmentTime, oldestAttachmentBlockID, nil
 }
 
 func measureInitialConflictCounts() {
 	activeConflictsMutex.Lock()
 	defer activeConflictsMutex.Unlock()
-	activeConflicts = advancedset.New[utxo.TransactionID]()
+	activeConflicts = make(map[utxo.TransactionID]types.Empty)
 	conflictsToRemove := make([]utxo.TransactionID, 0)
-	deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().ForEachConflict(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
+	deps.Mesh.Ledger.ConflictDAG.Utils.ForEachConflict(func(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) {
 		switch conflict.ID() {
 		case utxo.EmptyTransactionID:
 			return
 		default:
 			initialConflictTotalCountDB++
-			activeConflicts.Add(conflict.ID())
-			if deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().ConfirmationState(utxo.NewTransactionIDs(conflict.ID())).IsAccepted() {
-				conflict.ForEachConflictingConflict(func(conflictingConflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) bool {
-					initialFinalizedConflictCountDB++
+			activeConflicts[conflict.ID()] = types.Void
+			if deps.Mesh.Ledger.ConflictDAG.ConfirmationState(utxo.NewTransactionIDs(conflict.ID())).IsAccepted() {
+				deps.Mesh.Ledger.ConflictDAG.Utils.ForEachConflictingConflictID(conflict.ID(), func(conflictingConflictID utxo.TransactionID) bool {
+					if conflictingConflictID != conflict.ID() {
+						initialFinalizedConflictCountDB++
+					}
 					return true
 				})
 				initialFinalizedConflictCountDB++
@@ -142,14 +149,12 @@ func measureInitialConflictCounts() {
 
 	// remove finalized conflicts from the map in separate loop when all conflicting conflicts are known
 	for _, conflictID := range conflictsToRemove {
-		conflict, exists := deps.Protocol.Engine().Ledger.MemPool().ConflictDAG().Conflict(conflictID)
-		if !exists {
-			continue
-		}
-		conflict.ForEachConflictingConflict(func(conflictingConflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) bool {
-			activeConflicts.Delete(conflictingConflict.ID())
+		deps.Mesh.Ledger.ConflictDAG.Utils.ForEachConflictingConflictID(conflictID, func(conflictingConflictID utxo.TransactionID) bool {
+			if conflictingConflictID != conflictID {
+				delete(activeConflicts, conflictingConflictID)
+			}
 			return true
 		})
-		activeConflicts.Delete(conflictID)
+		delete(activeConflicts, conflictID)
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/node"
 )
 
 // PluginName is the name of the banner plugin.
@@ -15,7 +15,7 @@ var (
 	Plugin = node.NewPlugin(PluginName, nil, node.Enabled, configure, run)
 
 	// AppVersion version number
-	AppVersion = "v0.1.0"
+	AppVersion = "v0.9.8"
 	// SimplifiedAppVersion is the version number without commit hash
 	SimplifiedAppVersion = simplifiedVersion(AppVersion)
 )
@@ -27,11 +27,12 @@ const (
 
 func configure(ctx *node.Plugin) {
 	fmt.Printf(`
-	____  _  ____  ____ 
-	/_   \/ \/  __\/  __\
-	 /   /| ||  \/||  \/|
-	/   /_| ||  __/|  __/
-	\____/\_/\_/   \_/   						 	
+   _____  ____   _____ _    _ _____ __  __ __  __ ______ _____  
+  / ____|/ __ \ / ____| |  | |_   _|  \/  |  \/  |  ____|  __ \ 
+ | |  __| |  | | (___ | |__| | | | | \  / | \  / | |__  | |__) |
+ | | |_ | |  | |\___ \|  __  | | | | |\/| | |\/| |  __| |  _  / 
+ | |__| | |__| |____) | |  | |_| |_| |  | | |  | | |____| | \ \ 
+  \_____|\____/|_____/|_|  |_|_____|_|  |_|_|  |_|______|_|  \_\
                              %s                                     
 `, AppVersion)
 	fmt.Println()

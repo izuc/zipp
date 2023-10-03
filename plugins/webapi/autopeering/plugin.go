@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/autopeering/discover"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/core/autopeering/selection"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/autopeering/discover"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/autopeering/peer/service"
-	"github.com/izuc/zipp.foundation/autopeering/selection"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the web API autopeering endpoint plugin.

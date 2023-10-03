@@ -2,10 +2,10 @@ package wallet
 
 import (
 	"github.com/capossele/asset-registry/pkg/registry"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // Asset represents a container for all the information regarding a colored coin.
@@ -44,12 +44,12 @@ func (a *Asset) ToRegistry() *registry.Asset {
 func AssetFromRegistryEntry(regAsset *registry.Asset) (*Asset, error) {
 	color, err := devnetvm.ColorFromBase58EncodedString(regAsset.ID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse color(ID) of asset from registry response")
+		return nil, errors.Errorf("failed to parse color(ID) of asset from registry response: %w, err")
 	}
 	var txID utxo.TransactionID
 
 	if err = txID.FromBase58(regAsset.TransactionID); err != nil {
-		return nil, errors.Wrap(err, "failed to parse TransactionID of asset from registry response")
+		return nil, errors.Errorf("failed to parse TransactionID of asset from registry response: %w, err")
 	}
 	return &Asset{
 		Color:         color,

@@ -15,14 +15,12 @@ import {ExplorerAddressQueryResult} from "app/components/ExplorerAddressResult";
 import {Explorer404} from "app/components/Explorer404";
 import {Neighbors} from "app/components/Neighbors";
 import {Visualizer} from "app/components/Visualizer";
+import {Chat} from "app/components/Chat";
 import {Conflicts} from "app/components/Conflicts";
-import {Tips} from "app/components/Tips";
 import {Mana} from "app/components/Mana";
 import {ExplorerTransactionQueryResult} from "app/components/ExplorerTransactionQueryResult";
 import {ExplorerOutputQueryResult} from "app/components/ExplorerOutputQueryResult";
 import {ExplorerConflictQueryResult} from "app/components/ExplorerConflictQueryResult";
-import { SlotLiveFeed } from './SlotLiveFeed';
-import { ExplorerSlotQueryResult } from './ExplorerSlotQueryResult';
 
 interface Props {
     history: any;
@@ -49,7 +47,7 @@ export class Root extends React.Component<Props, any> {
         return (
             <div className="container">
                 <Navbar expand="lg" bg="light" variant="light" className={"mb-4"}>
-                    <Navbar.Brand>ZIPP</Navbar.Brand>
+                    <Navbar.Brand>GoShimmer</Navbar.Brand>
                     <Nav className="mr-auto">
                         <LinkContainer to="/dashboard">
                             <Nav.Link>Dashboard</Nav.Link>
@@ -77,14 +75,9 @@ export class Root extends React.Component<Props, any> {
                                 Conflicts
                             </Nav.Link>
                         </LinkContainer>
-                        <LinkContainer to="/slots">
+                        <LinkContainer to="/chat">
                             <Nav.Link>
-                                Slot
-                            </Nav.Link>
-                        </LinkContainer>
-                        <LinkContainer to="/tips">
-                            <Nav.Link>
-                                Tips
+                                Chat
                             </Nav.Link>
                         </LinkContainer>
                     </Nav>
@@ -105,11 +98,9 @@ export class Root extends React.Component<Props, any> {
                     <Route exact path="/explorer/transaction/:id" component={ExplorerTransactionQueryResult}/>
                     <Route exact path="/explorer/output/:id" component={ExplorerOutputQueryResult}/>
                     <Route exact path="/explorer/conflict/:id" component={ExplorerConflictQueryResult}/>
-                    <Route exact path="/explorer/slot/commitment/:commitment" component={ExplorerSlotQueryResult}/>
                     <Route exact path="/explorer/404/:search" component={Explorer404}/>
+                    <Route exact path="/chat" component={Chat}/>
                     <Route exact path="/conflicts" component={Conflicts}/>
-                    <Route exact path="/slots" component={SlotLiveFeed}/>
-                    <Route exact path="/tips" component={Tips}/>
                     <Route exact path="/explorer" component={Explorer}/>
                     <Route exact path="/visualizer" component={Visualizer}/>
                     <Route exact path="/visualizer/history" component={Visualizer}/>

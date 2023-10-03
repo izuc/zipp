@@ -3,13 +3,11 @@ package weightprovider
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/core/mesh_old"
 )
 
 var (
@@ -21,41 +19,41 @@ var (
 type dependencies struct {
 	dig.In
 
-	Server   *echo.Echo
-	Protocol *protocol.Protocol
+	Server *echo.Echo
+	Mesh *mesh_old.Mesh
 }
 
-// TODO: rename to validatorset or sth?
 func init() {
 	Plugin = node.NewPlugin("WebAPIWeightProviderEndpoint", deps, node.Enabled, configure)
 }
 
 func configure(_ *node.Plugin) {
-	deps.Server.GET("weightprovider/activeissuers", getIssuersHandler)
+	deps.Server.GET("weightprovider/activenodes", getNodesHandler)
 	deps.Server.GET("weightprovider/weights", getWeightsHandler)
 }
 
-func getIssuersHandler(c echo.Context) (err error) {
-	activeValidatorsString := make([]string, 0)
+func getNodesHandler(c echo.Context) (err error) {
+	activeNodes, _ := deps.Mesh.WeightProvider.(*mesh_old.CManaWeightProvider).WeightsOfRelevantVoters()
 
-	_ = deps.Protocol.Engine().SybilProtection.Validators().ForEach(func(id identity.ID) error {
-		activeValidatorsString = append(activeValidatorsString, id.String())
-		return nil
-	})
+	activeNodesString := make([]string, 0)
 
-	return c.JSON(http.StatusOK, activeValidatorsString)
+	for id := range activeNodes {
+		activeNodesString = append(activeNodesString, id.String())
+	}
+
+	return c.JSON(http.StatusOK, activeNodesString)
 }
 
 func getWeightsHandler(c echo.Context) (err error) {
-	weightsString := make(map[string]int64)
-	_ = deps.Protocol.Engine().SybilProtection.Validators().ForEach(func(id identity.ID) error {
-		weightsString[id.String()] = lo.Return1(deps.Protocol.Engine().SybilProtection.Weights().Get(id)).Value
-		return nil
-	})
+	weights, totalWeight := deps.Mesh.WeightProvider.WeightsOfRelevantVoters()
 
+	weightsString := make(map[string]float64)
+	for nodeID, mana := range weights {
+		weightsString[nodeID.String()] = mana
+	}
 	resp := Weights{
 		Weights:     weightsString,
-		TotalWeight: deps.Protocol.Engine().SybilProtection.Validators().TotalWeight(),
+		TotalWeight: totalWeight,
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -63,6 +61,6 @@ func getWeightsHandler(c echo.Context) (err error) {
 
 // Weights defines the weights associated to the nodes.
 type Weights struct {
-	Weights     map[string]int64 `json:"weights"`
-	TotalWeight int64            `json:"totalWeight"`
+	Weights     map[string]float64 `json:"weights"`
+	TotalWeight float64            `json:"totalWeight"`
 }

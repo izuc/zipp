@@ -3,12 +3,13 @@ package remotemetrics
 import (
 	"time"
 
+	"github.com/izuc/zipp/packages/core/mesh_old"
+
 	"github.com/izuc/zipp/packages/app/remotemetrics"
-	"github.com/izuc/zipp/packages/protocol/congestioncontrol/icca/scheduler"
 )
 
 func obtainSchedulerStats(timestamp time.Time) {
-	scheduler := deps.Protocol.CongestionControl.Scheduler()
+	scheduler := deps.Mesh.Scheduler
 	queueMap, aManaNormalizedMap := prepQueueMaps(scheduler)
 
 	var myID string
@@ -18,7 +19,7 @@ func obtainSchedulerStats(timestamp time.Time) {
 	record := remotemetrics.SchedulerMetrics{
 		Type:                         "schedulerSample",
 		NodeID:                       myID,
-		Synced:                       deps.Protocol.Engine().IsSynced(),
+		Synced:                       deps.Mesh.Synced(),
 		MetricsLevel:                 Parameters.MetricsLevel,
 		BufferSize:                   uint32(scheduler.BufferSize()),
 		BufferLength:                 uint32(scheduler.TotalBlocksCount()),
@@ -31,18 +32,17 @@ func obtainSchedulerStats(timestamp time.Time) {
 	_ = deps.RemoteLogger.Send(record)
 }
 
-func prepQueueMaps(s *scheduler.Scheduler) (queueMap map[string]uint32, aManaNormalizedMap map[string]float64) {
-	queueSizes := s.IssuerQueueSizes()
+func prepQueueMaps(s *mesh_old.Scheduler) (queueMap map[string]uint32, aManaNormalizedMap map[string]float64) {
+	queueSizes := s.NodeQueueSizes()
 	queueMap = make(map[string]uint32, len(queueSizes))
 	aManaNormalizedMap = make(map[string]float64, len(queueSizes))
 
-	// TODO: implement when mana is refactored
-	// for id, size := range queueSizes {
-	//	nodeID := id.String()
-	//	aMana := s.GetManaFromCache(id)
-	//
-	//	queueMap[nodeID] = uint32(size)
-	//	aManaNormalizedMap[nodeID] = float64(size) / float64(aMana)
-	// }
+	for id, size := range queueSizes {
+		nodeID := id.String()
+		aMana := s.GetManaFromCache(id)
+
+		queueMap[nodeID] = uint32(size)
+		aManaNormalizedMap[nodeID] = float64(size) / float64(aMana)
+	}
 	return
 }

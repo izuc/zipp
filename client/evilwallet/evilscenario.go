@@ -7,7 +7,7 @@ import (
 	"github.com/mr-tron/base58"
 	"go.uber.org/atomic"
 
-	"github.com/izuc/zipp.foundation/ds/types"
+	"github.com/izuc/zipp.foundation/core/types"
 )
 
 // The custom conflict in spammer can be provided like this:

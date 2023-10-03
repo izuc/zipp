@@ -18,8 +18,8 @@ func (api *ZIPPAPI) ToggleSpammer(enable bool, rate int, unit, imif string) (*js
 		imif = "uniform"
 	}
 	// set default time unit in case of incorrect unit value
-	if unit != "BPM" {
-		unit = "BPS"
+	if unit != "mpm" {
+		unit = "mps"
 	}
 	res := &jsonmodels.SpammerResponse{}
 	if err := api.do(http.MethodGet, func() string {

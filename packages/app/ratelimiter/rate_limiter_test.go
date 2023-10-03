@@ -5,14 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/autopeering/peer/service"
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/logger"
 	"github.com/izuc/zipp/packages/app/ratelimiter"
 )
 
@@ -43,7 +45,7 @@ func TestPeerRateLimiter_ExtendLimit(t *testing.T) {
 	testPeer := newTestPeer()
 	limitExtensionCount := 3
 	for i := 0; i < limitExtensionCount; i++ {
-		prl.ExtendLimit(testPeer.ID(), 1)
+		prl.ExtendLimit(testPeer, 1)
 	}
 	testCount(t, prl, testPeer, defaultTestLimit+limitExtensionCount)
 }
@@ -52,25 +54,25 @@ func testCount(t testing.TB, prl *ratelimiter.PeerRateLimiter, testPeer *peer.Pe
 	activityCount := atomic.NewInt32(0)
 	expectedActivity := testLimit + 1
 	eventCalled := atomic.NewInt32(0)
-	prl.Events.Hit.Hook(func(event *ratelimiter.HitEvent) {
-		p := event.Source
+	prl.Events.Hit.Hook(event.NewClosure(func(event *ratelimiter.HitEvent) {
+		p := event.Peer
 		rl := event.RateLimit
 		eventCalled.Inc()
-		require.Equal(t, int32(expectedActivity), activityCount.Load())
-		require.Equal(t, testPeer.ID(), p)
-		require.Equal(t, defaultTestInterval, rl.Interval)
-		require.Equal(t, testLimit, rl.Limit)
-	})
+		assert.Equal(t, int32(expectedActivity), activityCount.Load())
+		assert.Equal(t, testPeer, p)
+		assert.Equal(t, defaultTestInterval, rl.Interval)
+		assert.Equal(t, testLimit, rl.Limit)
+	}))
 	for i := 0; i < expectedActivity; i++ {
 		activityCount.Inc()
-		prl.Count(testPeer.ID())
+		prl.Count(testPeer)
 	}
-	require.Eventually(t, func() bool { return eventCalled.Load() == 1 }, time.Second, time.Millisecond)
+	assert.Eventually(t, func() bool { return eventCalled.Load() == 1 }, time.Second, time.Millisecond)
 	for i := 0; i < expectedActivity; i++ {
 		activityCount.Inc()
-		prl.Count(testPeer.ID())
+		prl.Count(testPeer)
 	}
-	require.Never(t, func() bool { return eventCalled.Load() > 1 }, time.Second, time.Millisecond)
+	assert.Never(t, func() bool { return eventCalled.Load() > 1 }, time.Second, time.Millisecond)
 }
 
 func newTestRateLimiter(t testing.TB) *ratelimiter.PeerRateLimiter {
@@ -81,8 +83,8 @@ func newTestRateLimiter(t testing.TB) *ratelimiter.PeerRateLimiter {
 
 func newTestPeer() *peer.Peer {
 	services := service.New()
-	services.Update(service.PeeringKey, "tcp4", 0)
-	services.Update(service.P2PKey, "tcp4", 0)
+	services.Update(service.PeeringKey, "tcp", 0)
+	services.Update(service.P2PKey, "tcp", 0)
 
 	var publicKey ed25519.PublicKey
 	copy(publicKey[:], "test peer")

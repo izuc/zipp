@@ -2,12 +2,12 @@ package remotelog
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
-	"time"
 
-	"github.com/pkg/errors"
+	"github.com/izuc/zipp.foundation/core/logger"
 
-	"github.com/izuc/zipp.foundation/logger"
+	"github.com/izuc/zipp/packages/node/clock"
 	"github.com/izuc/zipp/plugins/banner"
 )
 
@@ -17,9 +17,9 @@ type RemoteLoggerConn struct {
 }
 
 func newRemoteLoggerConn(address string) (*RemoteLoggerConn, error) {
-	c, err := net.Dial("udp4", address)
+	c, err := net.Dial("udp", address)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not create UDP socket to '%s'.", address)
+		return nil, fmt.Errorf("could not create UDP socket to '%s'. %v", address, err)
 	}
 
 	return &RemoteLoggerConn{conn: c}, nil
@@ -35,7 +35,7 @@ func (r *RemoteLoggerConn) SendLogMsg(level logger.Level, name, msg string) {
 		level.CapitalString(),
 		name,
 		msg,
-		time.Now(),
+		clock.SyncedTime(),
 		remoteLogType,
 	}
 

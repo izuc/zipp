@@ -6,7 +6,9 @@ import (
 
 	flag "github.com/spf13/pflag"
 
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/node"
+
 	"github.com/izuc/zipp/plugins/banner"
 )
 
@@ -26,11 +28,11 @@ func init() {
 		onAddPlugin(&node.AddEvent{Name: name, Status: plugin.Status})
 	}
 
-	node.Events.AddPlugin.Hook(onAddPlugin)
+	node.Events.AddPlugin.Hook(event.NewClosure(onAddPlugin))
 
 	flag.Usage = printUsage
 
-	Plugin.Events.Init.Hook(onInit)
+	Plugin.Events.Init.Hook(event.NewClosure(onInit))
 }
 
 func onAddPlugin(addEvent *node.AddEvent) {

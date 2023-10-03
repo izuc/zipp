@@ -3,14 +3,16 @@ package faucet
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
 	faucetpkg "github.com/izuc/zipp/packages/app/faucet"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mana"
+	"github.com/izuc/zipp/packages/core/mesh_old"
 	"github.com/izuc/zipp/plugins/faucet"
 )
 
@@ -24,6 +26,7 @@ type dependencies struct {
 	dig.In
 
 	Server *echo.Echo
+	Mesh *mesh_old.Mesh
 }
 
 // Plugin gets the plugin instance.
@@ -48,7 +51,7 @@ func processFaucetRequest(c echo.Context) error {
 
 	addr, err := devnetvm.AddressFromBase58EncodedString(request.Address)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, jsonmodels.FaucetAPIResponse{Error: "Invalid address"})
+		return c.JSON(http.StatusBadRequest, jsonmodels.FaucetRequestResponse{Error: "Invalid address"})
 	}
 
 	var accessManaPledgeID identity.ID
@@ -61,17 +64,15 @@ func processFaucetRequest(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, jsonmodels.FaucetAPIResponse{Error: "Invalid consensus mana node ID"})
 	}
 
-	if consensusManaPledgeID, err = identity.DecodeIDBase58(request.ConsensusManaPledgeID); err != nil {
+	consensusManaPledgeID, err = mana.IDFromStr(request.ConsensusManaPledgeID)
+	accessManaPledgeID, err = mana.IDFromStr(request.AccessManaPledgeID)
+
+	faucetPayload := faucetpkg.NewRequest(addr, accessManaPledgeID, consensusManaPledgeID, request.Nonce)
+
+	err = faucet.OnWebAPIRequest(faucetPayload)
+
+	if err != nil {
 		return c.JSON(http.StatusOK, jsonmodels.FaucetAPIResponse{Success: false, Error: err.Error()})
 	}
-
-	if accessManaPledgeID, err = identity.DecodeIDBase58(request.AccessManaPledgeID); err != nil {
-		return c.JSON(http.StatusOK, jsonmodels.FaucetAPIResponse{Success: false, Error: err.Error()})
-	}
-
-	if err = faucet.OnWebAPIRequest(faucetpkg.NewRequest(addr, accessManaPledgeID, consensusManaPledgeID, request.Nonce)); err != nil {
-		return c.JSON(http.StatusOK, jsonmodels.FaucetAPIResponse{Success: false, Error: err.Error()})
-	}
-
 	return c.JSON(http.StatusOK, jsonmodels.FaucetAPIResponse{Success: true})
 }

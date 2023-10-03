@@ -1,9 +1,9 @@
 package createnftoptions
 
 import (
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // CreateNFTOption is a function that provides options.
@@ -20,8 +20,8 @@ func WaitForConfirmation(wait bool) CreateNFTOption {
 // InitialBalance sets the initial balance of the newly created NFT.
 func InitialBalance(balance map[devnetvm.Color]uint64) CreateNFTOption {
 	return func(options *CreateNFTOptions) error {
-		if balance[devnetvm.ColorZIPP] < devnetvm.DustThresholdAliasOutputZIPP {
-			return errors.Errorf("NFT must have at least %d ZIPP balance", devnetvm.DustThresholdAliasOutputZIPP)
+		if balance[devnetvm.ColorIOTA] < devnetvm.DustThresholdAliasOutputIOTA {
+			return errors.Errorf("NFT must have at least %d IOTA balance", devnetvm.DustThresholdAliasOutputIOTA)
 		}
 		options.InitialBalance = balance
 		return nil
@@ -32,7 +32,7 @@ func InitialBalance(balance map[devnetvm.Color]uint64) CreateNFTOption {
 func ImmutableData(data []byte) CreateNFTOption {
 	return func(options *CreateNFTOptions) error {
 		if data == nil {
-			return errors.New("empty data supplied for immutable data")
+			return errors.Errorf("empty data supplied for immutable data")
 		}
 		if len(data) > devnetvm.MaxOutputPayloadSize {
 			return errors.Errorf("provided immutable data size %d is greater than maximum allowed %d", len(data), devnetvm.MaxOutputPayloadSize)
@@ -79,7 +79,7 @@ func Build(options ...CreateNFTOption) (result *CreateNFTOptions, err error) {
 		}
 	}
 	if result.InitialBalance == nil {
-		result.InitialBalance = map[devnetvm.Color]uint64{devnetvm.ColorZIPP: devnetvm.DustThresholdAliasOutputZIPP}
+		result.InitialBalance = map[devnetvm.Color]uint64{devnetvm.ColorIOTA: devnetvm.DustThresholdAliasOutputIOTA}
 	}
 
 	return

@@ -6,46 +6,33 @@ import (
 	"github.com/izuc/zipp/client/evilwallet"
 )
 
-// Nodes used during the test, use at least two nodes to be able to doublespend.
+// Nodes used during the test, use at least two nodes to be able to doublespend
 var (
-	// urls = []string{"http://bootstrap-01.zipp.org:8080", "http://vanilla-01.zipp.org:8080", "http://drng-01.zipp.org:8080"}
-	// urls = []string{"http://localhost:8080", "http://localhost:8090", "http://localhost:8070", "http://localhost:8040"}
-	urls = []string{}
+	// urls = []string{"http://bootstrap-01.feature.zipp.org:8080", "http://vanilla-01.feature.zipp.org:8080", "http://drng-01.feature.zipp.org:8080"}
+	urls = []string{"http://localhost:8080", "http://localhost:8090"}
 )
 
 var (
 	Script = "basic"
 
 	customSpamParams = CustomSpamParams{
-		ClientURLs:            urls,
+		ClientUrls:            urls,
 		SpamTypes:             []string{"blk"},
 		Rates:                 []int{1},
 		Durations:             []time.Duration{time.Second * 20},
 		BlkToBeSent:           []int{0},
 		TimeUnit:              time.Second,
 		DelayBetweenConflicts: 0,
-		NSpend:                2,
 		Scenario:              evilwallet.Scenario1(),
 		DeepSpam:              false,
-		EnableRateSetter:      false,
+		EnableRateSetter:      true,
 	}
-	quickTestParams = QuickTestParams{
-		ClientURLs:            urls,
+	quickTest = QuickTestParams{
+		ClientUrls:            urls,
 		Rate:                  100,
 		Duration:              time.Second * 30,
 		TimeUnit:              time.Second,
 		DelayBetweenConflicts: 0,
-		EnableRateSetter:      false,
-	}
-
-	commitmentsSpamParams = CommitmentsSpamParams{
-		Rate:           1,
-		Duration:       time.Second * 20,
-		TimeUnit:       time.Second,
-		NetworkAlias:   "docker",
-		SpammerAlias:   "peer_master",
-		ValidAlias:     "faucet",
-		CommitmentType: "latest",
-		ForkAfter:      10,
+		EnableRateSetter:      true,
 	}
 )

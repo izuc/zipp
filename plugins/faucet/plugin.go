@@ -2,25 +2,29 @@ package faucet
 
 import (
 	"context"
+	"time"
 
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/node"
 	"github.com/mr-tron/base58"
-	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
-	"github.com/izuc/zipp/packages/app/blockissuer"
-	"github.com/izuc/zipp/packages/app/faucet"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/mana"
 	"github.com/izuc/zipp/packages/core/pow"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
-	"github.com/izuc/zipp/packages/protocol/engine/mesh/booker"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+
+	walletseed "github.com/izuc/zipp/client/wallet/packages/seed"
+	"github.com/izuc/zipp/packages/app/faucet"
+	"github.com/izuc/zipp/packages/core/bootstrapmanager"
+	"github.com/izuc/zipp/packages/node/shutdown"
+	"github.com/izuc/zipp/plugins/blocklayer"
 )
 
 const (
@@ -38,16 +42,20 @@ var (
 	targetPoWDifficulty int
 
 	// signals that the faucet has initialized itself and can start funding requests.
-	initDone atomic.Bool
-	deps     = new(dependencies)
+	initDone     atomic.Bool
+	bootstrapped chan bool
+
+	waitForManaWindow = 5 * time.Second
+	deps              = new(dependencies)
 )
 
 type dependencies struct {
 	dig.In
 
-	Protocol    *protocol.Protocol
-	Indexer     *indexer.Indexer
-	BlockIssuer *blockissuer.BlockIssuer
+	Local            *peer.Local
+	Mesh           *mesh_old.Mesh
+	BootstrapManager *bootstrapmanager.Manager
+	Indexer          *indexer.Indexer
 }
 
 func init() {
@@ -61,27 +69,41 @@ func newFaucet() *Faucet {
 	}
 	seedBytes, err := base58.Decode(Parameters.Seed)
 	if err != nil {
-		Plugin.LogFatalfAndExitf("configured seed for the faucet is invalid: %s", err)
+		Plugin.LogFatalfAndExit("configured seed for the faucet is invalid: %s", err)
 	}
 	if Parameters.TokensPerRequest <= 0 {
-		Plugin.LogFatalfAndExitf("the amount of tokens to fulfill per request must be above zero")
+		Plugin.LogFatalfAndExit("the amount of tokens to fulfill per request must be above zero")
 	}
 	if Parameters.MaxTransactionBookedAwaitTime <= 0 {
-		Plugin.LogFatalfAndExitf("the max transaction booked await time must be more than 0")
+		Plugin.LogFatalfAndExit("the max transaction booked await time must be more than 0")
 	}
 
-	return NewFaucet(walletseed.NewSeed(seedBytes), deps.Protocol, deps.BlockIssuer, deps.Indexer)
+	return NewFaucet(walletseed.NewSeed(seedBytes))
 }
 
 func configure(plugin *node.Plugin) {
 	targetPoWDifficulty = Parameters.PowDifficulty
+	bootstrapped = make(chan bool, 1)
 
-	deps.Protocol.Events.Engine.Mesh.Booker.BlockTracked.Hook(onBlockProcessed, event.WithWorkerPool(plugin.WorkerPool))
+	configureEvents()
 }
 
 func run(plugin *node.Plugin) {
 	if err := daemon.BackgroundWorker(PluginName, func(ctx context.Context) {
 		defer plugin.LogInfof("Stopping %s ... done", PluginName)
+
+		plugin.LogInfo("Waiting for node to become bootstrapped...")
+		if !waitUntilBootstrapped(ctx) {
+			return
+		}
+		plugin.LogInfo("Waiting for node to become bootstrapped... done")
+
+		plugin.LogInfo("Waiting for node to have sufficient access mana")
+		if err := checkForMana(ctx); err != nil {
+			plugin.LogErrorf("failed to get sufficient access mana: %s", err)
+			return
+		}
+		plugin.LogInfo("Waiting for node to have sufficient access mana... done")
 
 		initDone.Store(true)
 
@@ -92,6 +114,44 @@ func run(plugin *node.Plugin) {
 	}, shutdown.PriorityFaucet); err != nil {
 		plugin.Logger().Panicf("Failed to start daemon: %s", err)
 	}
+}
+
+func waitUntilBootstrapped(ctx context.Context) bool {
+	// if we are already bootstrapped, there is no need to wait for the event
+	if deps.BootstrapManager.Bootstrapped() {
+		return true
+	}
+
+	// block until we are either bootstrapped or shutting down
+	select {
+	case <-bootstrapped:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+}
+
+func checkForMana(ctx context.Context) error {
+	nodeID := deps.Mesh.Options.Identity.ID()
+
+	aMana, _, err := blocklayer.GetAccessMana(nodeID)
+	// ignore ErrNodeNotFoundInBaseManaVector and treat it as 0 mana
+	if err != nil && !errors.Is(err, mana.ErrNodeNotFoundInBaseManaVector) {
+		return err
+	}
+	if aMana < mesh_old.MinMana {
+		return errors.Errorf("insufficient access mana: %f < %f", aMana, mesh_old.MinMana)
+	}
+	return nil
+}
+
+func configureEvents() {
+	deps.Mesh.ApprovalWeightManager.Events.BlockProcessed.Attach(event.NewClosure(func(event *mesh_old.BlockProcessedEvent) {
+		onBlockProcessed(event.BlockID)
+	}))
+	deps.BootstrapManager.Events.Bootstrapped.Attach(event.NewClosure(func(event *bootstrapmanager.BootstrappedEvent) {
+		bootstrapped <- true
+	}))
 }
 
 func OnWebAPIRequest(fundingRequest *faucet.Payload) error {
@@ -110,7 +170,7 @@ func OnWebAPIRequest(fundingRequest *faucet.Payload) error {
 	return nil
 }
 
-func onBlockProcessed(block *booker.Block) {
+func onBlockProcessed(blockID mesh_old.BlockID) {
 	// Do not start picking up request while waiting for initialization.
 	// If faucet nodes crashes, and you restart with a clean db, all previous faucet req blks will be enqueued
 	// and addresses will be funded again. Therefore, do not process any faucet request blocks until we are in
@@ -118,24 +178,26 @@ func onBlockProcessed(block *booker.Block) {
 	if !initDone.Load() {
 		return
 	}
-	if !faucet.IsFaucetReq(block.ModelsBlock) {
-		return
-	}
-	fundingRequest := block.Payload().(*faucet.Payload)
+	deps.Mesh.Storage.Block(blockID).Consume(func(block *mesh_old.Block) {
+		if !faucet.IsFaucetReq(block) {
+			return
+		}
+		fundingRequest := block.Payload().(*faucet.Payload)
 
-	// pledge mana to requester if not specified in the request
-	emptyID := identity.ID{}
-	var aManaPledge identity.ID
-	if fundingRequest.AccessManaPledgeID() == emptyID {
-		aManaPledge = identity.NewID(block.IssuerPublicKey())
-	}
+		// pledge mana to requester if not specified in the request
+		emptyID := identity.ID{}
+		var aManaPledge identity.ID
+		if fundingRequest.AccessManaPledgeID() == emptyID {
+			aManaPledge = identity.NewID(block.IssuerPublicKey())
+		}
 
-	var cManaPledge identity.ID
-	if fundingRequest.ConsensusManaPledgeID() == emptyID {
-		cManaPledge = identity.NewID(block.IssuerPublicKey())
-	}
+		var cManaPledge identity.ID
+		if fundingRequest.ConsensusManaPledgeID() == emptyID {
+			cManaPledge = identity.NewID(block.IssuerPublicKey())
+		}
 
-	_ = handleFaucetRequest(fundingRequest, aManaPledge, cManaPledge)
+		_ = handleFaucetRequest(fundingRequest, aManaPledge, cManaPledge)
+	})
 }
 
 func handleFaucetRequest(fundingRequest *faucet.Payload, pledge ...identity.ID) error {

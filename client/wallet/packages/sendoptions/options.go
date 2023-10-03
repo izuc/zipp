@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
 	"github.com/izuc/zipp/client/wallet/packages/address"
 	"github.com/izuc/zipp/client/wallet/packages/constants"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // SendFundsOption is the type for the optional parameters for the SendFunds call.
@@ -20,7 +20,7 @@ func Destination(addr address.Address, amount uint64, optionalColor ...devnetvm.
 	var outputColor devnetvm.Color
 	switch len(optionalColor) {
 	case 0:
-		outputColor = devnetvm.ColorZIPP
+		outputColor = devnetvm.ColorIOTA
 	case 1:
 		outputColor = optionalColor[0]
 	default:
@@ -121,7 +121,7 @@ func UsePendingOutputs(usePendingOutputs bool) SendFundsOption {
 func LockUntil(until time.Time) SendFundsOption {
 	return func(options *SendFundsOptions) error {
 		if until.Before(time.Now()) {
-			return errors.New("can't timelock funds in the past")
+			return errors.Errorf("can't timelock funds in the past")
 		}
 		if until.After(constants.MaxRepresentableTime) {
 			return errors.Errorf("invalid timelock: %s is later, than max representable time %s",
@@ -137,7 +137,7 @@ func LockUntil(until time.Time) SendFundsOption {
 func Fallback(addy devnetvm.Address, deadline time.Time) SendFundsOption {
 	return func(options *SendFundsOptions) error {
 		if addy == nil {
-			return errors.New("empty fallback address provided")
+			return errors.Errorf("empty fallback address provided")
 		}
 		if deadline.Before(time.Now()) {
 			return errors.Errorf("invalid fallback deadline: %s is in the past", deadline.String())
@@ -173,9 +173,9 @@ func (s *SendFundsOptions) RequiredFunds() map[devnetvm.Color]uint64 {
 	requiredFunds := make(map[devnetvm.Color]uint64)
 	for _, coloredBalances := range s.Destinations {
 		for color, amount := range coloredBalances {
-			// if we want to color sth then we need fresh ZIPP
+			// if we want to color sth then we need fresh IOTA
 			if color == devnetvm.ColorMint {
-				color = devnetvm.ColorZIPP
+				color = devnetvm.ColorIOTA
 			}
 
 			requiredFunds[color] += amount

@@ -7,19 +7,20 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/workerpool"
+	"github.com/labstack/echo"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/app/collector"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/plugins/dashboardmetrics"
+	"github.com/izuc/zipp/packages/node/shutdown"
+	"github.com/izuc/zipp/plugins/metrics"
 )
 
 var (
 	// settings
+	wsSendWorkerCount     = 1
+	wsSendWorkerQueueSize = 250
+	wsSendWorkerPool      *workerpool.NonBlockingQueuedWorkerPool
 	webSocketWriteTimeout = 3 * time.Second
 
 	// clients
@@ -43,57 +44,63 @@ type wsclient struct {
 	exit chan struct{}
 }
 
-func runWebSocketStreams(plugin *node.Plugin) {
-	process := func(msg interface{}) {
-		switch x := msg.(type) {
+func configureWebSocketWorkerPool() {
+	wsSendWorkerPool = workerpool.NewNonBlockingQueuedWorkerPool(func(task workerpool.Task) {
+		switch x := task.Param(0).(type) {
 		case uint64:
 			broadcastWsBlock(&wsblk{MsgTypeBPSMetric, x})
 			broadcastWsBlock(&wsblk{MsgTypeNodeStatus, currentNodeStatus()})
 			broadcastWsBlock(&wsblk{MsgTypeNeighborMetric, neighborMetrics()})
 			broadcastWsBlock(&wsblk{MsgTypeTipsMetric, &tipsInfo{
-				TotalTips: deps.Protocol.TipManager.TipCount(),
+				TotalTips: deps.Mesh.TipManager.TipCount(),
 			}})
 		case *componentsmetric:
 			broadcastWsBlock(&wsblk{MsgTypeComponentCounterMetric, x})
 		case *rateSetterMetric:
 			broadcastWsBlock(&wsblk{MsgTypeRateSetterMetric, x})
 		}
-	}
+		task.Return(nil)
+	}, workerpool.WorkerCount(wsSendWorkerCount), workerpool.QueueSize(wsSendWorkerQueueSize))
+}
+
+func runWebSocketStreams() {
+	updateStatus := event.NewClosure(func(event *metrics.ReceivedBPSUpdatedEvent) {
+		wsSendWorkerPool.TrySubmit(event.BPS)
+	})
+	updateComponentCounterStatus := event.NewClosure(func(event *metrics.ComponentCounterUpdatedEvent) {
+		componentStatus := event.ComponentStatus
+		updateStatus := &componentsmetric{
+			Store:      componentStatus[metrics.Store],
+			Solidifier: componentStatus[metrics.Solidifier],
+			Scheduler:  componentStatus[metrics.Scheduler],
+			Booker:     componentStatus[metrics.Booker],
+		}
+		wsSendWorkerPool.TrySubmit(updateStatus)
+	})
+	updateRateSetterMetrics := event.NewClosure(func(metric *metrics.RateSetterMetric) {
+		wsSendWorkerPool.TrySubmit(&rateSetterMetric{
+			Size:     metric.Size,
+			Estimate: metric.Estimate.String(),
+			Rate:     metric.Rate,
+		})
+	})
 
 	if err := daemon.BackgroundWorker("Dashboard[StatusUpdate]", func(ctx context.Context) {
-		unhook := lo.Batch(
-			dashboardmetrics.Events.AttachedBPSUpdated.Hook(func(event *dashboardmetrics.AttachedBPSUpdatedEvent) {
-				process(event.BPS)
-			}, event.WithWorkerPool(plugin.WorkerPool)).Unhook,
-
-			dashboardmetrics.Events.ComponentCounterUpdated.Hook(func(event *dashboardmetrics.ComponentCounterUpdatedEvent) {
-				componentStatus := event.ComponentStatus
-				process(&componentsmetric{
-					Store:      componentStatus[collector.Attached],
-					Solidifier: componentStatus[collector.Solidified],
-					Scheduler:  componentStatus[collector.Scheduled],
-					Booker:     componentStatus[collector.Booked],
-				})
-			}, event.WithWorkerPool(plugin.WorkerPool)).Unhook,
-
-			dashboardmetrics.Events.RateSetterUpdated.Hook(func(metric *dashboardmetrics.RateSetterMetric) {
-				process(&rateSetterMetric{
-					Size:     metric.Size,
-					Estimate: metric.Estimate.String(),
-					Rate:     metric.Rate,
-				})
-			}, event.WithWorkerPool(plugin.WorkerPool)).Unhook,
-		)
+		metrics.Events.ReceivedBPSUpdated.Attach(updateStatus)
+		metrics.Events.ComponentCounterUpdated.Attach(updateComponentCounterStatus)
+		metrics.Events.RateSetterUpdated.Attach(updateRateSetterMetrics)
 		<-ctx.Done()
 		log.Info("Stopping Dashboard[StatusUpdate] ...")
-		unhook()
+		metrics.Events.ReceivedBPSUpdated.Detach(updateStatus)
+		metrics.Events.RateSetterUpdated.Detach(updateRateSetterMetrics)
+		wsSendWorkerPool.Stop()
 		log.Info("Stopping Dashboard[StatusUpdate] ... done")
 	}, shutdown.PriorityDashboard); err != nil {
 		log.Panicf("Failed to start as daemon: %s", err)
 	}
 }
 
-// registers and creates a new websocket client.
+// reigsters and creates a new websocket client.
 func registerWSClient() (uint64, *wsclient) {
 	wsClientsMu.Lock()
 	defer wsClientsMu.Unlock()
@@ -109,29 +116,31 @@ func registerWSClient() (uint64, *wsclient) {
 
 // removes the websocket client with the given id.
 func removeWsClient(clientID uint64) {
+	wsClientsMu.RLock()
+	wsClient := wsClients[clientID]
+	close(wsClient.exit)
+	wsClientsMu.RUnlock()
+
 	wsClientsMu.Lock()
 	defer wsClientsMu.Unlock()
-
-	close(wsClients[clientID].exit)
 	delete(wsClients, clientID)
+	close(wsClient.channel)
 }
 
 // broadcasts the given block to all connected websocket clients.
 func broadcastWsBlock(blk interface{}, dontDrop ...bool) {
 	wsClientsMu.RLock()
-	wsClientsCopy := lo.MergeMaps(make(map[uint64]*wsclient), wsClients)
-	wsClientsMu.RUnlock()
-	for _, wsClient := range wsClientsCopy {
+	defer wsClientsMu.RUnlock()
+	for _, wsClient := range wsClients {
 		if len(dontDrop) > 0 {
 			select {
-			case <-wsClient.exit:
 			case wsClient.channel <- blk:
+			case <-wsClient.exit:
+				// get unblocked if the websocket connection just got closed
 			}
-			return
+			continue
 		}
-
 		select {
-		case <-wsClient.exit:
 		case wsClient.channel <- blk:
 		default:
 			// potentially drop if slow consumer
@@ -140,6 +149,12 @@ func broadcastWsBlock(blk interface{}, dontDrop ...bool) {
 }
 
 func sendInitialData(ws *websocket.Conn) error {
+	if err := sendAllowedManaPledge(ws); err != nil {
+		return err
+	}
+	if err := ManaBufferInstance().SendEvents(ws); err != nil {
+		return err
+	}
 	if err := ManaBufferInstance().SendValueBlks(ws); err != nil {
 		return err
 	}
@@ -180,13 +195,7 @@ func websocketRoute(c echo.Context) error {
 	}
 
 	for {
-		var blk interface{}
-		select {
-		case <-wsClient.exit:
-			return nil
-		case blk = <-wsClient.channel:
-		}
-
+		blk := <-wsClient.channel
 		if err := ws.WriteJSON(blk); err != nil {
 			break
 		}

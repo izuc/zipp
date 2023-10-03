@@ -3,10 +3,11 @@ package logger
 import (
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/configuration"
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/app/logger"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/configuration"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
 )
 
 // PluginName is the name of the logger plugin.
@@ -24,7 +25,7 @@ func Init(container *dig.Container) {
 }
 
 func init() {
-	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
+	Plugin.Events.Init.Hook(event.NewClosure(func(event *node.InitEvent) {
 		if err := event.Container.Invoke(func(config *configuration.Configuration) {
 			if err := logger.InitGlobalLogger(config); err != nil {
 				panic(err)
@@ -34,6 +35,6 @@ func init() {
 		}
 
 		// enable logging for the daemon
-		daemon.DebugLogger(Plugin.Logger())
-	})
+		daemon.DebugEnabled(true)
+	}))
 }

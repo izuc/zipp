@@ -6,10 +6,8 @@ import (
 	_ "net/http/pprof"
 	"runtime"
 
-	"github.com/felixge/fgprof"
-
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
 )
 
 // PluginName is the name of the profiling plugin.
@@ -36,8 +34,5 @@ func run(_ *node.Plugin) {
 	runtime.SetBlockProfileRate(5)
 
 	log.Infof("%s started, bind-address=%s", PluginName, bindAddr)
-
-	http.DefaultServeMux.Handle("/debug/fgprof", fgprof.Handler())
-
 	go http.ListenAndServe(bindAddr, nil)
 }

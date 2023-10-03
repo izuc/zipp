@@ -2,7 +2,6 @@ import {
     AliasOutput,
     ExtendedLockedOutput,
     Output,
-    OutputID,
     SigLockedColoredOutput,
     SigLockedSingleOutput
 } from "app/misc/Payload";
@@ -12,21 +11,19 @@ import {SigLockedColoredOutputComponent} from "app/components/SigLockedColoredOu
 import {AliasOutputComponent} from "app/components/AliasOutputComponent.tsx";
 import {ExtendedLockedOutputComponent} from "app/components/ExtendedLockedOutput";
 import {ExplorerOutput} from "app/stores/ExplorerStore";
-import {Base58EncodedColorZIPP, resolveColor} from "app/utils/color";
+import {Base58EncodedColorIOTA, resolveColor} from "app/utils/color";
 import {ConfirmationState} from "app/utils/confirmation_state";
-import { Base58, ReadStream } from '@iota/util.js';
 
 export function outputToComponent(output: Output) {
-    const id = outputIDFromBase58(output.outputID.base58);
     switch (output.type) {
         case "SigLockedSingleOutputType":
-            return <SigLockedSingleOutputComponent output={output.output as SigLockedSingleOutput} id={id}/>;
+            return <SigLockedSingleOutputComponent output={output.output as SigLockedSingleOutput} id={output.outputID}/>;
         case "SigLockedColoredOutputType":
-            return <SigLockedColoredOutputComponent output={output.output as SigLockedColoredOutput} id={id}/>;
+            return <SigLockedColoredOutputComponent output={output.output as SigLockedColoredOutput} id={output.outputID}/>;
         case "AliasOutputType":
-            return <AliasOutputComponent output={output.output as AliasOutput} id={id}/>;
+            return <AliasOutputComponent output={output.output as AliasOutput} id={output.outputID}/>;
         case "ExtendedLockedOutputType":
-            return <ExtendedLockedOutputComponent output={output.output as ExtendedLockedOutput} id={id}/>;
+            return <ExtendedLockedOutputComponent output={output.output as ExtendedLockedOutput} id={output.outputID}/>;
         default:
             return;
     }
@@ -44,7 +41,7 @@ export function totalBalanceFromExplorerOutputs(outputs: Array<ExplorerOutput>, 
         switch (o.output.type) {
             case "SigLockedSingleOutputType":
                 let single = o.output.output as SigLockedSingleOutput;
-                let resolvedColor = resolveColor(Base58EncodedColorZIPP);
+                let resolvedColor = resolveColor(Base58EncodedColorIOTA);
                 let prevBalance = totalBalance.get(resolvedColor);
                 if (prevBalance === undefined) {prevBalance = 0;}
                 totalBalance.set(resolvedColor, single.balance + prevBalance);
@@ -96,15 +93,4 @@ let extractBalanceInfo = (o: ExplorerOutput, result: Map<string, number>) => {
         }
         result.set(resolvedColor, balance + prevBalance);
     }
-}
-
-export function outputIDFromBase58(outputIDStr: string): OutputID {
-    const outputIDBytes = Base58.decode(outputIDStr);
-
-    const readStream = new ReadStream(outputIDBytes);
-    return {
-        base58: outputIDStr,
-        transactionID: Base58.encode(readStream.readBytes('TransactionID', 32)),
-        outputIndex: Number(readStream.readUInt16('Index')),
-    };
 }

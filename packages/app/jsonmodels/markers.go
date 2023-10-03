@@ -1,12 +1,12 @@
 package jsonmodels
 
 import (
-	"github.com/izuc/zipp/packages/protocol/markers"
+	markersPackage "github.com/izuc/zipp/packages/core/markers"
 )
 
 // region StructureDetails /////////////////////////////////////////////////////////////////////////////////////////////
 
-// StructureDetails represents the JSON model of the markersold.StructureDetails.
+// StructureDetails represents the JSON model of the markers.StructureDetails.
 type StructureDetails struct {
 	Rank          uint64   `json:"rank"`
 	PastMarkerGap uint64   `json:"pastMarkerGap"`
@@ -14,8 +14,8 @@ type StructureDetails struct {
 	PastMarkers   *Markers `json:"pastMarkers"`
 }
 
-// NewStructureDetails returns the StructureDetails from the given markersold.StructureDetails.
-func NewStructureDetails(structureDetails *markers.StructureDetails) *StructureDetails {
+// NewStructureDetails returns the StructureDetails from the given markers.StructureDetails.
+func NewStructureDetails(structureDetails *markersPackage.StructureDetails) *StructureDetails {
 	if structureDetails == nil {
 		return nil
 	}
@@ -32,19 +32,19 @@ func NewStructureDetails(structureDetails *markers.StructureDetails) *StructureD
 
 // region Markers //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Markers represents the JSON model of the markersold.Markers.
+// Markers represents the JSON model of the markers.Markers.
 type Markers struct {
-	Markers      map[markers.SequenceID]markers.Index `json:"markers"`
-	HighestIndex markers.Index                        `json:"highestIndex"`
-	LowestIndex  markers.Index                        `json:"lowestIndex"`
+	Markers      map[markersPackage.SequenceID]markersPackage.Index `json:"markers"`
+	HighestIndex markersPackage.Index                               `json:"highestIndex"`
+	LowestIndex  markersPackage.Index                               `json:"lowestIndex"`
 }
 
-// NewMarkers returns the Markers from the given markersold.Markers.
-func NewMarkers(m *markers.Markers) *Markers {
+// NewMarkers returns the Markers from the given markers.Markers.
+func NewMarkers(markers *markersPackage.Markers) *Markers {
 	return &Markers{
-		Markers: func() (mappedMarkers map[markers.SequenceID]markers.Index) {
-			mappedMarkers = make(map[markers.SequenceID]markers.Index)
-			m.ForEach(func(sequenceID markers.SequenceID, index markers.Index) bool {
+		Markers: func() (mappedMarkers map[markersPackage.SequenceID]markersPackage.Index) {
+			mappedMarkers = make(map[markersPackage.SequenceID]markersPackage.Index)
+			markers.ForEach(func(sequenceID markersPackage.SequenceID, index markersPackage.Index) bool {
 				mappedMarkers[sequenceID] = index
 
 				return true
@@ -52,8 +52,8 @@ func NewMarkers(m *markers.Markers) *Markers {
 
 			return
 		}(),
-		HighestIndex: m.HighestIndex(),
-		LowestIndex:  m.LowestIndex(),
+		HighestIndex: markers.HighestIndex(),
+		LowestIndex:  markers.LowestIndex(),
 	}
 }
 

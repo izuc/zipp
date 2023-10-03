@@ -162,7 +162,7 @@ export class Visualizer extends React.Component<Props, any> {
                             : "-"}
                             <br/>
                             {
-                                selected ? selected.parentIDsByType && Object.keys(selected.parentIDsByType).map((parentType) =>
+                                selected ? Object.keys(selected.parentIDsByType).map((parentType) =>
                                     <span> {parentType}:{' '}
                                         {selected.parentIDsByType[parentType].map((parent) => {
                                             return (

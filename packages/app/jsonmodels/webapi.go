@@ -1,44 +1,35 @@
 package jsonmodels
 
 import (
-	"strconv"
-
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/advancedset"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/sybilprotection"
-	"github.com/izuc/zipp/packages/protocol/models"
+	"github.com/izuc/zipp/packages/core/conflictdag"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/core/ledger"
 )
 
 // region GetAddressResponse ///////////////////////////////////////////////////////////////////////////////////////////
 
 // GetAddressResponse represents the JSON model of a response from the GetAddress endpoint.
 type GetAddressResponse struct {
-	Address        *Address  `json:"address"`
-	SpentOutputs   []*Output `json:"spentOutputs"`
-	UnspentOutputs []*Output `json:"unspentOutputs"`
+	Address *Address  `json:"address"`
+	Outputs []*Output `json:"outputs"`
 }
 
 // NewGetAddressResponse returns a GetAddressResponse from the given details.
-func NewGetAddressResponse(address devnetvm.Address, spent, unspent devnetvm.Outputs) *GetAddressResponse {
-	mappedOutput := func(outputs devnetvm.Outputs) (mappedOutputs []*Output) {
-		mappedOutputs = make([]*Output, 0)
-		for _, output := range outputs {
-			if output != nil {
-				mappedOutputs = append(mappedOutputs, NewOutput(output))
-			}
-		}
-
-		return
-	}
-
+func NewGetAddressResponse(address devnetvm.Address, outputs devnetvm.Outputs) *GetAddressResponse {
 	return &GetAddressResponse{
-		Address:        NewAddress(address),
-		SpentOutputs:   mappedOutput(spent),
-		UnspentOutputs: mappedOutput(unspent),
+		Address: NewAddress(address),
+		Outputs: func() (mappedOutputs []*Output) {
+			mappedOutputs = make([]*Output, 0)
+			for _, output := range outputs {
+				if output != nil {
+					mappedOutputs = append(mappedOutputs, NewOutput(output))
+				}
+			}
+
+			return
+		}(),
 	}
 }
 
@@ -71,13 +62,13 @@ type GetConflictChildrenResponse struct {
 }
 
 // NewGetConflictChildrenResponse returns a GetConflictChildrenResponse from the given details.
-func NewGetConflictChildrenResponse(conflictID utxo.TransactionID, childConflicts *advancedset.AdvancedSet[*conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]]) *GetConflictChildrenResponse {
+func NewGetConflictChildrenResponse(conflictID utxo.TransactionID, childConflicts []*conflictdag.ChildConflict[utxo.TransactionID]) *GetConflictChildrenResponse {
 	return &GetConflictChildrenResponse{
 		ConflictID: conflictID.Base58(),
 		ChildConflicts: func() (mappedChildConflicts []*ChildConflict) {
 			mappedChildConflicts = make([]*ChildConflict, 0)
-			for it := childConflicts.Iterator(); it.HasNext(); {
-				mappedChildConflicts = append(mappedChildConflicts, NewChildConflict(it.Next()))
+			for _, childConflict := range childConflicts {
+				mappedChildConflicts = append(mappedChildConflicts, NewChildConflict(childConflict))
 			}
 
 			return
@@ -121,14 +112,13 @@ type GetConflictVotersResponse struct {
 }
 
 // NewGetConflictVotersResponse returns a GetConflictVotersResponse from the given details.
-func NewGetConflictVotersResponse(conflictID utxo.TransactionID, voters *sybilprotection.WeightedSet) *GetConflictVotersResponse {
+func NewGetConflictVotersResponse(conflictID utxo.TransactionID, voters *mesh_old.Voters) *GetConflictVotersResponse {
 	return &GetConflictVotersResponse{
 		ConflictID: conflictID.Base58(),
 		Voters: func() (votersStr []string) {
 			votersStr = make([]string, 0)
-			_ = voters.ForEachWeighted(func(id identity.ID, weight int64) error {
-				votersStr = append(votersStr, id.String()+", "+strconv.FormatInt(weight, 10))
-				return nil
+			voters.ForEach(func(voter mesh_old.Voter) {
+				votersStr = append(votersStr, voter.String())
 			})
 			return
 		}(),
@@ -146,7 +136,7 @@ type GetOutputConsumersResponse struct {
 }
 
 // NewGetOutputConsumersResponse returns a GetOutputConsumersResponse from the given details.
-func NewGetOutputConsumersResponse(outputID utxo.OutputID, consumers []*mempool.Consumer) *GetOutputConsumersResponse {
+func NewGetOutputConsumersResponse(outputID utxo.OutputID, consumers []*ledger.Consumer) *GetOutputConsumersResponse {
 	return &GetOutputConsumersResponse{
 		OutputID: NewOutputID(outputID),
 		Consumers: func() []*Consumer {
@@ -173,7 +163,7 @@ type GetTransactionAttachmentsResponse struct {
 }
 
 // NewGetTransactionAttachmentsResponse returns a GetTransactionAttachmentsResponse from the given details.
-func NewGetTransactionAttachmentsResponse(transactionID utxo.TransactionID, blockIDs models.BlockIDs) *GetTransactionAttachmentsResponse {
+func NewGetTransactionAttachmentsResponse(transactionID utxo.TransactionID, blockIDs mesh_old.BlockIDs) *GetTransactionAttachmentsResponse {
 	var blockIDsBase58 []string
 	for blockID := range blockIDs {
 		blockIDsBase58 = append(blockIDsBase58, blockID.Base58())
@@ -203,8 +193,8 @@ type PostPayloadResponse struct {
 	ID string `json:"id"`
 }
 
-// NewPostPayloadResponse returns a PostPayloadResponse from the given meshold.Block.
-func NewPostPayloadResponse(block *models.Block) *PostPayloadResponse {
+// NewPostPayloadResponse returns a PostPayloadResponse from the given mesh_old.Block.
+func NewPostPayloadResponse(block *mesh_old.Block) *PostPayloadResponse {
 	return &PostPayloadResponse{
 		ID: block.ID().Base58(),
 	}
@@ -216,35 +206,13 @@ func NewPostPayloadResponse(block *models.Block) *PostPayloadResponse {
 
 // PostTransactionRequest holds the transaction object(bytes) to send.
 type PostTransactionRequest struct {
-	TransactionBytes []byte `json:"txBytes"`
+	TransactionBytes []byte `json:"txn_bytes"`
 }
 
 // PostTransactionResponse is the HTTP response from sending transaction.
 type PostTransactionResponse struct {
-	TransactionID string `json:"transactionID,omitempty"`
-	BlockID       string `json:"blockID,omitempty"`
+	TransactionID string `json:"transaction_id,omitempty"`
 	Error         string `json:"error,omitempty"`
-}
-
-// endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// region PostBlock Req/Resp ///////////////////////////////////////////////////////////////////////////////////////////
-
-// PostBlockRequest holds the block object(bytes) to send.
-type PostBlockRequest struct {
-	BlockBytes []byte `json:"block_bytes"`
-}
-
-// PostBlockResponse is the HTTP response from sending block.
-type PostBlockResponse struct {
-	BlockID string `json:"block_id,omitempty"`
-	Error   string `json:"error,omitempty"`
-}
-
-func NewPostBlockResponse(block *models.Block) *PostBlockResponse {
-	return &PostBlockResponse{
-		BlockID: block.ID().Base58(),
-	}
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,8 +242,3 @@ type GetUnspentOutputResponse struct {
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// GetSnapshotRequest represents the JSON model of a GetSnapshot request.
-type GetSnapshotRequest struct {
-	SlotIndex uint64 `query:"index"`
-}

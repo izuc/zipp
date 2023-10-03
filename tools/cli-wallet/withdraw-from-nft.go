@@ -9,7 +9,7 @@ import (
 
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/client/wallet/packages/withdrawfromnftoptions"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 func execWithdrawFromFTCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
@@ -20,7 +20,7 @@ func execWithdrawFromFTCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) 
 	helpPtr := command.Bool("help", false, "show this help screen")
 	nftIDPtr := command.String("id", "", "unique identifier of the nft to withdraw from")
 	addressPtr := command.String("dest-addr", "", "(optional) address to send the withdrew tokens to")
-	colorPtr := command.String("color", "ZIPP", "color of funds to withdraw")
+	colorPtr := command.String("color", "IOTA", "color of funds to withdraw")
 	amountPtr := command.Int64("amount", 0, "the amount of tokens that are supposed to be withdrew")
 	accessManaPledgeIDPtr := command.String("access-mana-id", "", "node ID to pledge access mana to")
 	consensusManaPledgeIDPtr := command.String("consensus-mana-id", "", "node ID to pledge consensus mana to")
@@ -55,8 +55,8 @@ func execWithdrawFromFTCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) 
 		var initColor devnetvm.Color
 		// get color
 		switch *colorPtr {
-		case "ZIPP":
-			initColor = devnetvm.ColorZIPP
+		case "IOTA":
+			initColor = devnetvm.ColorIOTA
 		case "NEW":
 			initColor = devnetvm.ColorMint
 		default:

@@ -5,17 +5,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/app/retainer"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
+	"github.com/izuc/zipp/packages/core/consensus/acceptance"
+	"github.com/izuc/zipp/packages/node/shutdown"
+
+	"github.com/izuc/zipp/packages/core/mesh_old"
 )
 
 // PluginName is the name of the dags visualizer plugin.
@@ -32,8 +33,8 @@ var (
 type dependencies struct {
 	dig.In
 
-	Protocol *protocol.Protocol
-	Retainer *retainer.Retainer
+	Mesh           *mesh_old.Mesh
+	AcceptanceGadget *acceptance.Gadget
 }
 
 func init() {
@@ -57,10 +58,11 @@ func configureServer() {
 	server.Use(middleware.Recover())
 
 	setupRoutes(server)
+	setupVisualizer()
 }
 
 func run(plugin *node.Plugin) {
-	runVisualizer(plugin)
+	runVisualizer()
 
 	plugin.LogInfof("Starting %s ...", PluginName)
 	if err := daemon.BackgroundWorker(PluginName, worker, shutdown.PriorityDashboard); err != nil {

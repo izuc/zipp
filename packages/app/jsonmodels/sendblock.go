@@ -1,6 +1,6 @@
 package jsonmodels
 
-// ParentBlockIDs is a json representation of meshold.ParentBlockIDs.
+// ParentBlockIDs is a json representation of mesh_old.ParentBlockIDs.
 type ParentBlockIDs struct {
 	Type     uint8    `json:"type"`
 	BlockIDs []string `json:"blockIDs"`

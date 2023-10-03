@@ -1,18 +1,17 @@
 package evilwallet
 
 import (
-	"fmt"
 	"math"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/identity"
+	"github.com/izuc/zipp.foundation/core/types"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/ds/types"
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 const (
@@ -32,9 +31,9 @@ const (
 )
 
 var (
-	defaultClientsURLs = []string{}
+	defaultClientsURLs = []string{"http://localhost:8080", "http://localhost:8090"}
 	faucetBalance      = devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-		devnetvm.ColorZIPP: uint64(faucetTokensPerRequest),
+		devnetvm.ColorIOTA: uint64(faucetTokensPerRequest),
 	})
 )
 
@@ -49,8 +48,8 @@ type EvilWallet struct {
 }
 
 // NewEvilWallet creates an EvilWallet instance.
-func NewEvilWallet(clientsURLs ...string) *EvilWallet {
-	urls := clientsURLs
+func NewEvilWallet(clientsUrls ...string) *EvilWallet {
+	urls := clientsUrls
 	if len(urls) == 0 {
 		urls = append(urls, defaultClientsURLs...)
 	}
@@ -93,12 +92,12 @@ func (e *EvilWallet) NumOfClient() int {
 	return len(clts)
 }
 
-func (e *EvilWallet) AddClient(clientURL string) {
-	e.connector.AddClient(clientURL)
+func (e *EvilWallet) AddClient(clientUrl string) {
+	e.connector.AddClient(clientUrl)
 }
 
-func (e *EvilWallet) RemoveClient(clientURL string) {
-	e.connector.RemoveClient(clientURL)
+func (e *EvilWallet) RemoveClient(clientUrl string) {
+	e.connector.RemoveClient(clientUrl)
 }
 
 // endregion ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +106,7 @@ func (e *EvilWallet) RemoveClient(clientURL string) {
 
 // RequestFundsFromFaucet requests funds from the faucet, then track the confirmed status of unspent output,
 // also register the alias name for the unspent output if provided.
-func (e *EvilWallet) RequestFundsFromFaucet(options ...FaucetRequestOption) (initWallet *Wallet, err error) {
+func (e *EvilWallet) RequestFundsFromFaucet(options ...FaucetRequestOption) (err error, initWallet *Wallet) {
 	initWallet = e.NewWallet(Fresh)
 	buildOptions := NewFaucetRequestOptions(options...)
 
@@ -154,7 +153,6 @@ func (e *EvilWallet) RequestFreshBigFaucetWallets(numberOfWallets int) {
 // requested from the Faucet.
 func (e *EvilWallet) RequestFreshBigFaucetWallet() (err error) {
 	initWallet := NewWallet()
-	fmt.Println("Requesting funds from faucet...")
 	funds, err := e.requestAndSplitFaucetFunds(initWallet, FaucetRequestSplitNumber*FaucetRequestSplitNumber)
 	if err != nil {
 		return
@@ -193,7 +191,7 @@ func (e *EvilWallet) requestFaucetFunds(wallet *Wallet) (outputID utxo.OutputID,
 	if err = RateSetterSleep(clt, true); err != nil {
 		return
 	}
-	err = clt.BroadcastFaucetRequest(addr.Base58(), 12)
+	err = clt.BroadcastFaucetRequest(addr.Base58())
 	if err != nil {
 		return
 	}
@@ -260,7 +258,7 @@ func (e *EvilWallet) splitOutputs(inputWallet, outputWallet *Wallet, splitNumber
 				if err = RateSetterSleep(clt, true); err != nil {
 					return
 				}
-				txID, _, err := clt.PostTransaction(tx)
+				txID, err := clt.PostTransaction(tx)
 				if err != nil {
 					return
 				}
@@ -345,7 +343,7 @@ func (e *EvilWallet) SendCustomConflicts(conflictsMaps []ConflictSlice) (err err
 				if err = RateSetterSleep(clt, true); err != nil {
 					return
 				}
-				_, _, _ = clt.PostTransaction(tx)
+				_, _ = clt.PostTransaction(tx)
 			}(clients[i], tx)
 		}
 		wg.Wait()
@@ -401,7 +399,7 @@ func (e *EvilWallet) CreateTransaction(options ...Option) (tx *devnetvm.Transact
 	return
 }
 
-// addOutputsToOutputManager adds output to the OutputManager if.
+// addOutputsToOutputManager adds output to the OutputManager if
 func (e *EvilWallet) addOutputsToOutputManager(tx *devnetvm.Transaction, outWallet, tmpWallet *Wallet, tempAddresses map[devnetvm.Address]types.Empty) {
 	for _, o := range tx.Essence().Outputs() {
 		if _, ok := tempAddresses[o.Address()]; ok {
@@ -445,6 +443,7 @@ func (e *EvilWallet) registerOutputAliases(outputs devnetvm.Outputs, addrAliasMa
 		input := devnetvm.NewUTXOInput(output.ID())
 		e.aliasManager.AddInputAlias(input, addrAliasMap[output.Address()])
 	}
+	return
 }
 
 func (e *EvilWallet) prepareInputs(buildOptions *Options) (inputs []devnetvm.Input, err error) {
@@ -518,7 +517,7 @@ func (e *EvilWallet) useFreshIfInputWalletNotProvided(buildOptions *Options) (*W
 		if wallet, err := e.wallets.freshWallet(); wallet != nil {
 			return wallet, nil
 		} else {
-			return nil, errors.Wrap(err, "no Fresh wallet is available")
+			return nil, errors.Newf("no Fresh wallet is available: %w", err)
 		}
 	}
 	return buildOptions.inputWallet, nil
@@ -601,7 +600,7 @@ func (e *EvilWallet) prepareRemainderOutput(buildOptions *Options, outputs []dev
 	// remainder balances is sent to one of the address in inputs
 	if outputBalance < inputBalance {
 		remainderOutput = devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-			devnetvm.ColorZIPP: inputBalance - outputBalance,
+			devnetvm.ColorIOTA: inputBalance - outputBalance,
 		}), remainderAddress)
 		added = true
 	}
@@ -616,6 +615,7 @@ func (e *EvilWallet) updateOutputBalances(buildOptions *Options) (err error) {
 	}
 	totalBalance := uint64(0)
 	if !buildOptions.isBalanceProvided() {
+
 		if buildOptions.areInputsProvidedWithoutAliases() {
 			for _, input := range buildOptions.inputs {
 				// get balance from output manager
@@ -648,7 +648,7 @@ func (e *EvilWallet) updateOutputBalances(buildOptions *Options) (err error) {
 		i := 0
 		for out := range buildOptions.aliasOutputs {
 			buildOptions.aliasOutputs[out] = devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-				devnetvm.ColorZIPP: balances[i],
+				devnetvm.ColorIOTA: balances[i],
 			})
 			i++
 		}
@@ -694,13 +694,16 @@ func (e *EvilWallet) getAddressFromInput(input devnetvm.Input) (addr devnetvm.Ad
 }
 
 func (e *EvilWallet) PrepareCustomConflictsSpam(scenario *EvilScenario) (txs [][]*devnetvm.Transaction, allAliases ScenarioAlias, err error) {
-	conflicts, allAliases := e.prepareConflictSliceForScenario(scenario)
+	conflicts, allAliases, err := e.prepareConflictSliceForScenario(scenario)
+	if err != nil {
+		return
+	}
 	txs, err = e.PrepareCustomConflicts(conflicts)
 
 	return
 }
 
-func (e *EvilWallet) prepareConflictSliceForScenario(scenario *EvilScenario) (conflictSlice []ConflictSlice, allAliases ScenarioAlias) {
+func (e *EvilWallet) prepareConflictSliceForScenario(scenario *EvilScenario) (conflictSlice []ConflictSlice, allAliases ScenarioAlias, err error) {
 	genOutputOptions := func(aliases []string) []*OutputOption {
 		outputOptions := make([]*OutputOption, 0)
 		for _, o := range aliases {

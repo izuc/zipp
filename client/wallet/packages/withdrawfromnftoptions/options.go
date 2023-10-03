@@ -1,9 +1,9 @@
 package withdrawfromnftoptions
 
 import (
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // WithdrawFundsFromNFTOption is a function that provides an option.
@@ -87,7 +87,7 @@ func Build(options ...WithdrawFundsFromNFTOption) (result *WithdrawFundsFromNFTO
 		}
 	}
 	if result.Alias == nil {
-		return nil, errors.New("an alias identifier must be specified for withdrawal")
+		return nil, errors.Errorf("an alias identifier must be specified for withdrawal")
 	}
 
 	return

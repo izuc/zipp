@@ -3,12 +3,12 @@ package ratesetter
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp/packages/app/blockissuer"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp/packages/core/mesh_old"
 )
 
 // PluginName is the name of the web API info endpoint plugin.
@@ -17,8 +17,8 @@ const PluginName = "WebAPIRateSetterEndpoint"
 type dependencies struct {
 	dig.In
 
-	Server      *echo.Echo
-	BlockIssuer *blockissuer.BlockIssuer
+	Server *echo.Echo
+	Mesh *mesh_old.Mesh
 }
 
 var (
@@ -37,7 +37,8 @@ func configure(_ *node.Plugin) {
 
 func getRateSetterEstimate(c echo.Context) error {
 	return c.JSON(http.StatusOK, jsonmodels.RateSetter{
-		Rate:     deps.BlockIssuer.Rate(),
-		Estimate: deps.BlockIssuer.Estimate(),
+		Rate:     deps.Mesh.RateSetter.Rate(),
+		Size:     deps.Mesh.RateSetter.Size(),
+		Estimate: deps.Mesh.RateSetter.Estimate(),
 	})
 }

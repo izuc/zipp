@@ -1,14 +1,14 @@
 package wallet
 
 import (
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
 
-	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/client"
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/core/confirmation"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mana"
 )
 
 // WebConnector implements a connector that uses the web API to connect to a node to implement the required functions
@@ -127,13 +127,27 @@ func (webConnector WebConnector) GetTransactionConfirmationState(txID utxo.Trans
 	return txmeta.ConfirmationState, nil
 }
 
-// GetUnspentAliasOutput returns the current unspent alias output that belongs to a given alias address.
-func (webConnector WebConnector) GetUnspentAliasOutput(addr *devnetvm.AliasAddress) (output *devnetvm.AliasOutput, err error) {
-	res, err := webConnector.client.GetAddressOutputs(addr.Base58())
+// GetAllowedPledgeIDs gets the list of nodeIDs that the node accepts as pledgeIDs in a transaction.
+func (webConnector WebConnector) GetAllowedPledgeIDs() (pledgeIDMap map[mana.Type][]string, err error) {
+	res, err := webConnector.client.GetAllowedManaPledgeNodeIDs()
 	if err != nil {
 		return
 	}
-	for _, o := range res.UnspentOutputs {
+	pledgeIDMap = map[mana.Type][]string{
+		mana.AccessMana:    res.Access.Allowed,
+		mana.ConsensusMana: res.Consensus.Allowed,
+	}
+
+	return
+}
+
+// GetUnspentAliasOutput returns the current unspent alias output that belongs to a given alias address.
+func (webConnector WebConnector) GetUnspentAliasOutput(addr *devnetvm.AliasAddress) (output *devnetvm.AliasOutput, err error) {
+	res, err := webConnector.client.GetAddressUnspentOutputs(addr.Base58())
+	if err != nil {
+		return
+	}
+	for _, o := range res.Outputs {
 		if o.Type != devnetvm.AliasOutputType.String() {
 			continue
 		}
@@ -144,7 +158,7 @@ func (webConnector WebConnector) GetUnspentAliasOutput(addr *devnetvm.AliasAddre
 		}
 		alias, ok := uncastedOutput.(*devnetvm.AliasOutput)
 		if !ok {
-			err = errors.New("alias output received from api cannot be casted to ledgerstate representation")
+			err = errors.Errorf("alias output received from api cannot be casted to ledgerstate representation")
 			return
 		}
 		if alias.GetAliasAddress().Equals(addr) {
@@ -158,12 +172,12 @@ func (webConnector WebConnector) GetUnspentAliasOutput(addr *devnetvm.AliasAddre
 
 // colorFromString is an internal utility method that parses the given string into a Color.
 func colorFromString(colorStr string) (color devnetvm.Color) {
-	if colorStr == "ZIPP" {
-		color = devnetvm.ColorZIPP
+	if colorStr == "IOTA" {
+		color = devnetvm.ColorIOTA
 	} else {
 		var t utxo.TransactionID
 		_ = t.FromBase58(colorStr)
-		color, _, _ = devnetvm.ColorFromBytes(lo.PanicOnErr(t.Bytes()))
+		color, _, _ = devnetvm.ColorFromBytes(t.Bytes())
 	}
 	return
 }

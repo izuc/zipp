@@ -7,7 +7,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/izuc/zipp/client/wallet"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 func execBalanceCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {

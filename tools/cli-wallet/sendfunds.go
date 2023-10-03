@@ -11,14 +11,14 @@ import (
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/client/wallet/packages/address"
 	"github.com/izuc/zipp/client/wallet/packages/sendoptions"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 func execSendFundsCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
 	helpPtr := command.Bool("help", false, "show this help screen")
 	addressPtr := command.String("dest-addr", "", "destination address for the transfer")
 	amountPtr := command.Int64("amount", 0, "the amount of tokens that are supposed to be sent")
-	colorPtr := command.String("color", "ZIPP", "(optional) color of the tokens to transfer")
+	colorPtr := command.String("color", "IOTA", "(optional) color of the tokens to transfer")
 	timelockPtr := command.Int64("lock-until", 0, "(optional) unix timestamp until which time the sent funds are locked from spending")
 	fallbackAddressPtr := command.String("fallb-addr", "", "(optional) fallback address that can claim back the (unspent) sent funds after fallback deadline")
 	fallbackDeadlinePtr := command.Int64("fallb-deadline", 0, "(optional) unix timestamp after which only the fallback address can claim the funds back")
@@ -52,8 +52,8 @@ func execSendFundsCommand(command *flag.FlagSet, cliWallet *wallet.Wallet) {
 
 	var color devnetvm.Color
 	switch *colorPtr {
-	case "ZIPP":
-		color = devnetvm.ColorZIPP
+	case "IOTA":
+		color = devnetvm.ColorIOTA
 	case "NEW":
 		color = devnetvm.ColorMint
 	default:

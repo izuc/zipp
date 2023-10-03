@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/cockroachdb/errors"
+	"github.com/labstack/echo"
 	"github.com/mr-tron/base58"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
-	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/core/mana"
+	manaPlugin "github.com/izuc/zipp/plugins/blocklayer"
 )
 
 // getManaHandler handles the request.
@@ -18,26 +19,39 @@ func getManaHandler(c echo.Context) error {
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, jsonmodels.GetManaResponse{Error: err.Error()})
 	}
-
-	IDstr := request.IssuerID
-	if IDstr == "" {
-		IDstr = deps.Local.ID().EncodeBase58()
-	}
-
-	ID, err := identity.DecodeIDBase58(IDstr)
+	ID, err := mana.IDFromStr(request.NodeID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, jsonmodels.GetManaResponse{Error: err.Error()})
 	}
-
-	accessMana, _ := deps.Protocol.Engine().ThroughputQuota.Balance(ID)
-	consensusMana := lo.Return1(deps.Protocol.Engine().SybilProtection.Weights().Get(ID)).Value
+	if request.NodeID == "" {
+		ID = deps.Local.ID()
+	}
+	t := time.Now()
+	accessMana, tAccess, err := manaPlugin.GetAccessMana(ID, t)
+	if err != nil {
+		if errors.Is(err, mana.ErrNodeNotFoundInBaseManaVector) {
+			accessMana = 0
+			tAccess = t
+		} else {
+			return c.JSON(http.StatusBadRequest, jsonmodels.GetManaResponse{Error: err.Error()})
+		}
+	}
+	consensusMana, tConsensus, err := manaPlugin.GetConsensusMana(ID, t)
+	if err != nil {
+		if errors.Is(err, mana.ErrNodeNotFoundInBaseManaVector) {
+			consensusMana = 0
+			tConsensus = t
+		} else {
+			return c.JSON(http.StatusBadRequest, jsonmodels.GetManaResponse{Error: err.Error()})
+		}
+	}
 
 	return c.JSON(http.StatusOK, jsonmodels.GetManaResponse{
-		ShortIssuerID:      ID.String(),
-		IssuerID:           base58.Encode(lo.PanicOnErr(ID.Bytes())),
+		ShortNodeID:        ID.String(),
+		NodeID:             base58.Encode(ID.Bytes()),
 		Access:             accessMana,
-		AccessTimestamp:    time.Now().Unix(),
+		AccessTimestamp:    tAccess.Unix(),
 		Consensus:          consensusMana,
-		ConsensusTimestamp: time.Now().Unix(),
+		ConsensusTimestamp: tConsensus.Unix(),
 	})
 }

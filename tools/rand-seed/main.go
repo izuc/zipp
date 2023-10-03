@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/core/identity"
 	"github.com/mr-tron/base58"
-
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
-	"github.com/izuc/zipp.foundation/crypto/identity"
 )
 
-//nolint:errcheck // this small tool does not need thorough error checking
 func main() {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {

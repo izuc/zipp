@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/app/blockissuer"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol/models/payload"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/core/mesh_old/payload"
+	"github.com/izuc/zipp/plugins/blocklayer"
 )
 
 const maxIssuedAwaitTime = 5 * time.Second
@@ -23,8 +24,8 @@ const PluginName = "WebAPIDataEndpoint"
 type dependencies struct {
 	dig.In
 
-	Server      *echo.Echo
-	BlockIssuer *blockissuer.BlockIssuer
+	Server *echo.Echo
+	Mesh *mesh_old.Mesh
 }
 
 var (
@@ -56,26 +57,21 @@ func broadcastData(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, jsonmodels.DataResponse{Error: "no data provided"})
 	}
 
-	maxAwaitTime := maxIssuedAwaitTime
-	if request.MaxEstimate > 0 {
-		maxAwaitTime = time.Duration(request.MaxEstimate) * time.Millisecond
-		if deps.BlockIssuer.Estimate().Milliseconds() > request.MaxEstimate {
-			return c.JSON(http.StatusBadRequest, jsonmodels.DataResponse{
-				Error: fmt.Sprintf("issuance estimate greater than %d ms", request.MaxEstimate),
-			})
-		}
+	if request.MaxEstimate > 0 && deps.Mesh.RateSetter.Estimate().Milliseconds() > request.MaxEstimate {
+		return c.JSON(http.StatusBadRequest, jsonmodels.DataResponse{
+			Error: fmt.Sprintf("issuance estimate greater than %d ms", request.MaxEstimate),
+		})
 	}
 
-	constructedBlock, err := deps.BlockIssuer.CreateBlock(payload.NewGenericDataPayload(request.Data))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, jsonmodels.DataResponse{Error: err.Error()})
+	issueData := func() (*mesh_old.Block, error) {
+		return deps.Mesh.IssuePayload(payload.NewGenericDataPayload(request.Data))
 	}
 
 	// await BlockScheduled event to be triggered.
-	err = deps.BlockIssuer.IssueBlockAndAwaitBlockToBeScheduled(constructedBlock, maxAwaitTime)
+	blk, err := blocklayer.AwaitBlockToBeIssued(issueData, deps.Mesh.Options.Identity.PublicKey(), maxIssuedAwaitTime)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, jsonmodels.DataResponse{Error: err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, jsonmodels.DataResponse{ID: constructedBlock.ID().Base58()})
+	return c.JSON(http.StatusOK, jsonmodels.DataResponse{ID: blk.ID().Base58()})
 }

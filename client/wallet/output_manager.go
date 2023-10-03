@@ -2,7 +2,7 @@ package wallet
 
 import (
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
 )
 
 // OutputManager keeps track of the outputs.

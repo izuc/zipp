@@ -4,24 +4,27 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/cockroachdb/errors"
 	"github.com/mr-tron/base58"
-	"github.com/pkg/errors"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/autopeering/peer/service"
-	"github.com/izuc/zipp.foundation/crypto/ed25519"
-	"github.com/izuc/zipp.foundation/kvstore"
-	"github.com/izuc/zipp/packages/core/database"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/plugins/protocol"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer/service"
+	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/kvstore"
+	"github.com/izuc/zipp.foundation/core/node"
+
+	databasePkg "github.com/izuc/zipp/packages/node/database"
+	"github.com/izuc/zipp/packages/node/shutdown"
+	"github.com/izuc/zipp/plugins/database"
 )
 
 // PluginName is the name of the Peer plugin.
@@ -48,11 +51,11 @@ type dependencies struct {
 func init() {
 	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, run)
 
-	Plugin.Events.Init.Hook(func(e *node.InitEvent) {
-		if err := e.Container.Provide(configureLocalPeer); err != nil {
+	Plugin.Events.Init.Hook(event.NewClosure(func(event *node.InitEvent) {
+		if err := event.Container.Provide(configureLocalPeer); err != nil {
 			Plugin.Panic(err)
 		}
-	})
+	}))
 }
 
 func run(_ *node.Plugin) {
@@ -130,22 +133,12 @@ func configureLocalPeer() peerOut {
 func checkCfgSeedAgainstDB(cfgSeed []byte, peerDB *peer.DB) error {
 	prvKeyDB, err := peerDB.LocalPrivateKey()
 	if err != nil {
-		return errors.Wrapf(err, "unable to retrieve private key from peer database")
-	}
-	prvKeyDBBytes, err := prvKeyDB.Bytes()
-	if err != nil {
-		return err
+		return fmt.Errorf("unable to retrieve private key from peer database: %w", err)
 	}
 	prvKeyCfg := ed25519.PrivateKeyFromSeed(cfgSeed)
-	prvKeyCfgBytes, err := prvKeyCfg.Bytes()
-	if err != nil {
-		return err
+	if !bytes.Equal(prvKeyCfg.Bytes(), prvKeyDB.Bytes()) {
+		return fmt.Errorf("%w: identities - pub keys (cfg/db): %s vs. %s", ErrMismatchedPrivateKeys, prvKeyCfg.Public().String(), prvKeyDB.Public().String())
 	}
-
-	if !bytes.Equal(prvKeyCfgBytes, prvKeyDBBytes) {
-		return errors.WithMessagef(ErrMismatchedPrivateKeys, "identities - pub keys (cfg/db): %s vs. %s", prvKeyCfg.Public().String(), prvKeyDB.Public().String())
-	}
-
 	return nil
 }
 
@@ -157,40 +150,41 @@ func readPeerIP() (net.IP, error) {
 
 	peeringIP := net.ParseIP(Parameters.ExternalAddress)
 	if peeringIP == nil {
-		return nil, errors.Errorf("invalid IP address: %s", Parameters.ExternalAddress)
+		return nil, fmt.Errorf("invalid IP address: %s", Parameters.ExternalAddress)
 	}
 
 	return peeringIP, nil
 }
 
 // inits the peer database, returns a bool indicating whether the database is new.
-func initPeerDB() (peerDB *peer.DB, peerDBKVStore kvstore.KVStore, isNewDB bool, err error) {
-	if err = checkValidPeerDBPath(); err != nil {
-		return nil, nil, false, errors.Wrap(err, "invalid peer database path")
+func initPeerDB() (*peer.DB, kvstore.KVStore, bool, error) {
+	if err := checkValidPeerDBPath(); err != nil {
+		return nil, nil, false, err
 	}
 
-	if isNewDB, err = isPeerDBNew(); err != nil {
-		return nil, nil, false, errors.Wrap(err, "unable to check whether peer database is new")
-	}
-
-	db, err := database.NewDB(Parameters.PeerDBDirectory)
+	isNewDB, err := isPeerDBNew()
 	if err != nil {
-		return nil, nil, false, errors.Wrap(err, "error creating peer database")
+		return nil, nil, false, err
 	}
 
-	if peerDBKVStore, err = db.NewStore().WithExtendedRealm([]byte{database.PrefixPeer}); err != nil {
-		return nil, nil, false, errors.Wrap(err, "error creating peer store")
+	db, err := databasePkg.NewDB(Parameters.PeerDBDirectory)
+	if err != nil {
+		return nil, nil, false, fmt.Errorf("error creating peer database: %s", err)
 	}
 
-	if peerDB, err = peer.NewDB(peerDBKVStore); err != nil {
-		return nil, nil, false, errors.Wrap(err, "error creating peer database")
+	peerDBKVStore, err := db.NewStore().WithRealm([]byte{databasePkg.PrefixPeer})
+	if err != nil {
+		return nil, nil, false, fmt.Errorf("error creating peer store: %w", err)
 	}
-
+	peerDB, err := peer.NewDB(peerDBKVStore)
+	if err != nil {
+		return nil, nil, false, fmt.Errorf("error creating peer database: %w", err)
+	}
 	if db == nil {
-		return nil, nil, false, errors.New("couldn't create peer database; nil")
+		return nil, nil, false, fmt.Errorf("couldn't create peer database; nil")
 	}
 
-	return
+	return peerDB, peerDBKVStore, isNewDB, nil
 }
 
 // checks whether the peer database is new by examining whether the directory
@@ -202,7 +196,7 @@ func isPeerDBNew() (bool, error) {
 	case fileInfo != nil:
 		files, readDirErr := os.ReadDir(Parameters.PeerDBDirectory)
 		if readDirErr != nil {
-			return false, errors.Wrap(readDirErr, "unable to check whether peer database is empty")
+			return false, fmt.Errorf("unable to check whether peer database is empty: %w", readDirErr)
 		}
 		if len(files) != 0 {
 			break
@@ -217,18 +211,18 @@ func isPeerDBNew() (bool, error) {
 
 // checks that the peer database path does not reside within the main database directory.
 func checkValidPeerDBPath() error {
-	absMainDBPath, err := filepath.Abs(protocol.DatabaseParameters.Directory)
+	absMainDBPath, err := filepath.Abs(database.Parameters.Directory)
 	if err != nil {
-		return errors.Wrapf(err, "cannot resolve absolute path of %s", protocol.DatabaseParameters.Directory)
+		return fmt.Errorf("cannot resolve absolute path of %s: %w", database.Parameters.Directory, err)
 	}
 
 	absPeerDBPath, err := filepath.Abs(Parameters.PeerDBDirectory)
 	if err != nil {
-		return errors.Wrapf(err, "cannot resolve absolute path of %s", Parameters.PeerDBDirectory)
+		return fmt.Errorf("cannot resolve absolute path of %s: %w", Parameters.PeerDBDirectory, err)
 	}
 
 	if strings.Index(absPeerDBPath, absMainDBPath) == 0 {
-		return errors.Errorf("peerDB: %s should not be a subdirectory of mainDB: %s", Parameters.PeerDBDirectory, protocol.DatabaseParameters.Directory)
+		return fmt.Errorf("peerDB: %s should not be a subdirectory of mainDB: %s", Parameters.PeerDBDirectory, database.Parameters.Directory)
 	}
 	return nil
 }
@@ -243,15 +237,15 @@ func readSeedFromCfg() ([]byte, error) {
 	case strings.HasPrefix(Parameters.Seed, "base64:"):
 		seedBytes, err = base64.StdEncoding.DecodeString(Parameters.Seed[7:])
 	default:
-		err = errors.New("neither base58 nor base64 prefix provided")
+		err = fmt.Errorf("neither base58 nor base64 prefix provided")
 	}
 
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid seed")
+		return nil, fmt.Errorf("invalid seed: %w", err)
 	}
 
 	if l := len(seedBytes); l != ed25519.SeedSize {
-		return nil, errors.Errorf("invalid seed length: %d, need %d", l, ed25519.SeedSize)
+		return nil, fmt.Errorf("invalid seed length: %d, need %d", l, ed25519.SeedSize)
 	}
 
 	return seedBytes, nil

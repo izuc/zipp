@@ -1,7 +1,8 @@
 package plugins
 
 import (
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/node"
+
 	"github.com/izuc/zipp/plugins/dagsvisualizer"
 	"github.com/izuc/zipp/plugins/dashboard"
 )

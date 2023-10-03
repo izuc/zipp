@@ -12,9 +12,11 @@ import * as dateformat from 'dateformat';
 import {Link} from 'react-router-dom';
 import {BasicPayload} from 'app/components/BasicPayload'
 import {TransactionPayload} from 'app/components/TransactionPayload'
+import {ChatPayload} from 'app/components/ChatPayload'
 import {getPayloadType, PayloadType} from 'app/misc/Payload'
+import {StatementPayload} from "app/components/StatemenetPayload";
 import {resolveBase58ConflictID} from "app/utils/conflict";
-import { FaucetPayload } from './FaucetPayload';
+import {resolveConfirmationState} from "app/utils/confirmation_state";
 
 interface Props {
     nodeStore?: NodeStore;
@@ -58,10 +60,13 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                     return <TransactionPayload/>
                 }
                 return <BasicPayload/>
+            case PayloadType.Statement:
+                return <StatementPayload/>
             case PayloadType.Data:
                 return <BasicPayload/>
             case PayloadType.Faucet:
-                return <FaucetPayload/>
+            case PayloadType.Chat:
+                return <ChatPayload/>
             default:
                 return <BasicPayload/>
         }
@@ -128,8 +133,7 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                                             {
                                                 blk.conflictIDs.map((value, index) => {
                                                     return (
-                                                        <ListGroup.Item key={"ConflictID" + index + 1}
-                                                                        className="text-break">
+                                                        <ListGroup.Item key={"ConflictID" + index + 1} className="text-break">
                                                             <Link to={`/explorer/conflict/${value}`}>
                                                                 {resolveBase58ConflictID(value)}
                                                             </Link>
@@ -145,8 +149,7 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                                             {
                                                 blk.addedConflictIDs.map((value, index) => {
                                                     return (
-                                                        <ListGroup.Item key={"AddedConflictID" + index + 1}
-                                                                        className="text-break">
+                                                        <ListGroup.Item key={"AddedConflictID" + index + 1} className="text-break">
                                                             <Link to={`/explorer/conflict/${value}`}>
                                                                 {resolveBase58ConflictID(value)}
                                                             </Link>
@@ -162,8 +165,7 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                                             {
                                                 blk.subtractedConflictIDs.map((value, index) => {
                                                     return (
-                                                        <ListGroup.Item key={"SubtractedConflictID" + index + 1}
-                                                                        className="text-break">
+                                                        <ListGroup.Item key={"SubtractedConflictID" + index + 1} className="text-break">
                                                             <Link to={`/explorer/conflict/${value}`}>
                                                                 {resolveBase58ConflictID(value)}
                                                             </Link>
@@ -183,34 +185,16 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                                         Booked: {blk.booked ? 'Yes' : 'No'}
                                     </ListGroup.Item>
                                     <ListGroup.Item>
-                                        Orphaned: {blk.orphaned ? 'Yes' : 'No'}
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
                                         Objectively Invalid: {blk.objectivelyInvalid ? 'Yes' : 'No'}
                                     </ListGroup.Item>
                                     <ListGroup.Item>
                                         Subjectively Invalid: {blk.subjectivelyInvalid ? 'Yes' : 'No'}
                                     </ListGroup.Item>
                                     <ListGroup.Item>
-                                        Acceptance: {blk.acceptance ? 'Yes' : 'No'}
+                                        Confirmation State: {resolveConfirmationState(blk.confirmationState)}
                                     </ListGroup.Item>
                                     <ListGroup.Item>
-                                        Acceptance
-                                        Time: {dateformat(new Date(blk.acceptanceTime * 1000), "dd.mm.yyyy HH:MM:ss")}
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        Confirmation: {blk.confirmation ? 'Yes' : 'No'}
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        Confirmation
-                                        Time: {dateformat(new Date(blk.confirmationTime * 1000), "dd.mm.yyyy HH:MM:ss")}
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        Confirmation by slot: {blk.confirmationBySlot ? 'Yes' : 'No'}
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        Confirmation by slot
-                                        time: {dateformat(new Date(blk.confirmationBySlotTime * 1000), "dd.mm.yyyy HH:MM:ss")}
+                                        Confirmation State Time: {dateformat(new Date(blk.confirmationStateTime * 1000), "dd.mm.yyyy HH:MM:ss")}
                                     </ListGroup.Item>
                                 </ListGroup>
                             </Col>
@@ -219,7 +203,7 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                         {
                             <Row className={"mb-3"}>
                                 <Col>
-                                    <h5>Slot Commitment</h5>
+                                    <h5>Epoch Commitment</h5>
                                     <ListGroup>
                                         <ListGroup.Item>
                                             EC: {blk.ec}
@@ -235,13 +219,10 @@ export class ExplorerBlockQueryResult extends React.Component<Props, any> {
                                                 <ListGroup.Item>
                                                     PrevEC: {blk.prevEC}
                                                 </ListGroup.Item>
-                                                <ListGroup.Item>
-                                                    Cumulative Weight: {blk.cumulativeWeight}
-                                                </ListGroup.Item>
                                             </ListGroup>
                                         </ListGroup.Item>
                                         <ListGroup.Item>
-                                            LatestConfirmedSlot: {blk.latestConfirmedSlot}
+                                            LatestConfirmedEpoch: {blk.latestConfirmedEpoch}
                                         </ListGroup.Item>
                                     </ListGroup>
                                 </Col>

@@ -78,20 +78,17 @@ class PledgeEvent extends ManaEvent{
     }
 }
 
-class RevokeEvent extends ManaEvent {
+class RevokeEvent extends ManaEvent{
     amount: number;
 
-    constructor(nodeID: string, time: Date, txID: string, amount: number) {
+    constructor(nodeID: string, time: Date,  txID: string, amount: number) {
         super(nodeID, time, txID);
         this.amount = amount;
     }
 }
 
-const emptyRow = (<tr>
-    <td key={'emptyRow'} colSpan={4}>There are no nodes to view with the current search parameters.</td>
-</tr>)
-const emptyListItem = (
-    <ListGroupItem key={'emptyItem'}>There are no events to view with the current search parameters.</ListGroupItem>)
+const emptyRow = (<tr><td colSpan={4}>There are no nodes to view with the current search parameters.</td></tr>)
+const emptyListItem = (<ListGroupItem>There are no events to view with the current search parameters.</ListGroupItem>)
 
 // every 10 seconds, a new value arrives, so this is roughly 17 mins
 const maxStoredManaValues = 100;
@@ -153,12 +150,12 @@ export class ManaStore {
         registerHandler(WSMsgType.Mana, this.addNewManaValue);
         registerHandler(WSMsgType.ManaMapOverall, this.updateNetworkRichest);
         registerHandler(WSMsgType.ManaMapOnline, this.updateActiveRichest);
-        // registerHandler(WSMsgType.ManaAllowedPledge, this.updateAllowedPledgeIDs);
-        // registerHandler(WSMsgType.ManaInitPledge, this.addNewInitPledge);
-        // registerHandler(WSMsgType.ManaInitRevoke, this.addNewInitRevoke);
-        // registerHandler(WSMsgType.ManaInitDone, this.initDone);
-        // registerHandler(WSMsgType.ManaPledge, this.addNewPledge);
-        // registerHandler(WSMsgType.ManaRevoke, this.addNewRevoke);
+        registerHandler(WSMsgType.ManaAllowedPledge, this.updateAllowedPledgeIDs);
+        registerHandler(WSMsgType.ManaInitPledge, this.addNewInitPledge);
+        registerHandler(WSMsgType.ManaInitRevoke, this.addNewInitRevoke);
+        registerHandler(WSMsgType.ManaInitDone, this.initDone);
+        registerHandler(WSMsgType.ManaPledge, this.addNewPledge);
+        registerHandler(WSMsgType.ManaRevoke, this.addNewRevoke);
     };
 
     @action
@@ -346,7 +343,7 @@ export class ManaStore {
     }
 
     nodeList = (leaderBoard: Array<Node>, manaSum: number) => {
-        if (leaderBoard === null || leaderBoard == undefined) {
+        if (leaderBoard === null || undefined) {
             return []
         }
         let feed = [];

@@ -1,13 +1,10 @@
 package mana
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
-
-	"github.com/izuc/zipp.foundation/autopeering/discover"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
 )
 
 // PluginName is the name of the web API mana endpoint plugin.
@@ -16,10 +13,8 @@ const PluginName = "WebAPIManaEndpoint"
 type dependencies struct {
 	dig.In
 
-	Discovery *discover.Protocol `optional:"true"`
-	Protocol  *protocol.Protocol
-	Server    *echo.Echo
-	Local     *peer.Local
+	Server *echo.Echo
+	Local  *peer.Local
 }
 
 var (
@@ -40,4 +35,8 @@ func configure(_ *node.Plugin) {
 	deps.Server.GET("/mana/percentile", getPercentileHandler)
 	deps.Server.GET("/mana/access/online", getOnlineAccessHandler)
 	deps.Server.GET("/mana/consensus/online", getOnlineConsensusHandler)
+	deps.Server.GET("mana/allowedManaPledge", allowedManaPledgeHandler)
+	// deps.Server.GET("/mana/consensus/past", getPastConsensusManaVectorHandler)
+	// deps.Server.GET("/mana/consensus/logs", getEventLogsHandler)
+	// deps.Server.GET("/mana/consensus/metadata", getPastConsensusVectorMetadataHandler)
 }

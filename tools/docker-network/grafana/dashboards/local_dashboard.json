@@ -25,7 +25,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 6,
+  "id": 1,
+  "iteration": 1653635825404,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -93,16 +94,16 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "expr": "info_app{instance=\"$instance\"}",
+          "expr": "iota_info_app{instance=\"$instance\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "ZIPP",
+      "title": "GoShimmer",
       "transformations": [
         {
           "id": "labelsToFields",
@@ -158,11 +159,11 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "exemplar": true,
-          "expr": "info_app{instance=\"$instance\"}",
+          "expr": "iota_info_app{instance=\"$instance\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -225,7 +226,7 @@
         "text": {},
         "textMode": "value"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "exemplar": true,
@@ -294,10 +295,10 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "expr": "info_sync_status{instance=\"$instance\"}",
+          "expr": "meshTimeSynced{instance=\"$instance\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -355,19 +356,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
           "exemplar": true,
-          "expr": "irate(mesh_blocks_per_component_total{component=\"Attached\",instance=\"$instance\"}[5m])",
+          "expr": "irate(mesh_blocks_per_component_count{component=\"Store\",instance=\"$instance\"}[5m])",
           "interval": "",
           "legendFormat": "Total BPS",
-          "range": true,
           "refId": "A"
         }
       ],
@@ -418,10 +413,10 @@
         "text": {},
         "textMode": "value"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "expr": "mana_access_per_node{instance=\"$instance\",nodeID=\"$NodeID\"}",
+          "expr": "mana_access{instance=\"$instance\",nodeID=\"$NodeID\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -474,7 +469,7 @@
         "text": {},
         "textMode": "value"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "datasource": {
@@ -482,7 +477,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "mana_consensus_per_node{instance=\"$instance\",nodeID=\"$NodeID\"}",
+          "expr": "mana_consensus{instance=\"$instance\",nodeID=\"$NodeID\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -496,10 +491,12 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Size of the ledger database.",
+      "description": "Current CPU usage of the node.",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -513,7 +510,7 @@
               }
             ]
           },
-          "unit": "decmbytes"
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -523,7 +520,7 @@
         "x": 16,
         "y": 1
       },
-      "id": 58,
+      "id": 53,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -539,22 +536,16 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "sum(db_size_bytes{instance=\"$instance\"}) /1024/1024",
+          "expr": "process_cpu_usage{instance=\"$instance\"}",
           "interval": "",
           "legendFormat": "",
-          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Total Database Size",
+      "title": "CPU Usage",
       "type": "stat"
     },
     {
@@ -589,7 +580,7 @@
         "x": 18,
         "y": 1
       },
-      "id": 162,
+      "id": 58,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -605,22 +596,16 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "sum(db_size_bytes{type=\"storage_permanent\", instance=\"$instance\"}) /1024/1024",
+          "expr": "db_size_bytes{instance=\"$instance\"}/1024/1024",
           "interval": "",
           "legendFormat": "",
-          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Permanent DB Size",
+      "title": "Database Size",
       "type": "stat"
     },
     {
@@ -628,7 +613,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Size of the ledger database.",
+      "description": "Memory consumed by the node.",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -638,10 +623,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -655,7 +636,7 @@
         "x": 20,
         "y": 1
       },
-      "id": 164,
+      "id": 20,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -671,22 +652,16 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "sum(db_size_bytes{type=\"storage_prunable\", instance=\"$instance\"}) /1024/1024",
+          "expr": "process_mem_usage_bytes{instance=\"$instance\"}/1024/1024",
           "interval": "",
           "legendFormat": "",
-          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Prunable DB size",
+      "title": "Memory Consumption",
       "type": "stat"
     },
     {
@@ -694,7 +669,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Size of the ledger database.",
+      "description": "Memory consumed by the node.",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -704,14 +679,10 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
-          "unit": "decmbytes"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -721,7 +692,7 @@
         "x": 22,
         "y": 1
       },
-      "id": 163,
+      "id": 150,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -737,22 +708,21 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.2.0",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "editorMode": "code",
-          "expr": "sum(db_size_bytes{instance=\"$instance\", type=\"retainer\"}) /1024/1024",
+          "exemplar": true,
+          "expr": "up{instance=\"$instance\"}",
           "interval": "",
           "legendFormat": "",
-          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Retainer DB size",
+      "title": "Node up",
       "type": "stat"
     },
     {
@@ -810,7 +780,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -821,7 +791,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(mesh_block_per_type_total{instance=\"$instance\"}[5m])",
+              "expr": "irate(mesh_blocks_per_type_count{instance=\"$instance\"}[5m])",
               "hide": false,
               "interval": "",
               "legendFormat": "Block Per Second {{block_type}}",
@@ -900,7 +870,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -911,7 +881,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(mesh_blocks_per_component_total{instance=\"$instance\"}[5m])",
+              "expr": "irate(mesh_blocks_per_component_count{instance=\"$instance\"}[5m])",
               "interval": "",
               "legendFormat": "{{component}} BPS",
               "refId": "A"
@@ -990,7 +960,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1000,7 +970,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mesh_tips_count{instance=\"$instance\"}",
+              "expr": "mesh_block_tips_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Block Layer Tips",
               "refId": "A"
@@ -1077,7 +1047,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 0.5,
           "points": true,
           "renderer": "flot",
@@ -1087,19 +1057,19 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "avg_over_time(autopeering_distance{instance=\"$instance\"}[$__range])",
+              "expr": "autopeering_avg_distance{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Average",
               "refId": "A"
             },
             {
-              "expr": "max_over_time(autopeering_distance{instance=\"$instance\"}[$__range])",
+              "expr": "autopeering_max_distance{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Max",
               "refId": "B"
             },
             {
-              "expr": "min_over_time(autopeering_distance{instance=\"$instance\"}[$__range])",
+              "expr": "autopeering_min_distance{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Min",
               "refId": "C"
@@ -1149,8 +1119,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1183,10 +1152,10 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "expr": "autopeering_neighbor_connections_total{instance=\"$instance\"} - autopeering_neighbor_drop_total{instance=\"$instance\"}",
+              "expr": "autopeering_neighbor_connections_count{instance=\"$instance\"} - autopeering_neighbor_drop_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1208,8 +1177,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -1239,10 +1207,10 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "expr": "autopeering_neighbor_connection_lifetime_seconds_total{instance=\"$instance\"}",
+              "expr": "autopeering_avg_neighbor_connection_lifetime{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1264,8 +1232,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1298,10 +1265,10 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "expr": "autopeering_neighbor_connections_total{instance=\"$instance\"}",
+              "expr": "autopeering_neighbor_connections_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1323,8 +1290,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1357,10 +1323,10 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "expr": "autopeering_neighbor_drop_total{instance=\"$instance\"}",
+              "expr": "autopeering_neighbor_drop_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1411,7 +1377,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1422,7 +1388,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(mesh_missing_block_total{instance=\"$instance\"}[5m])",
+              "expr": "irate(mesh_block_solidification_missing_block_count{instance=\"$instance\"}[5m])",
               "interval": "",
               "legendFormat": "Solidifier-requested blocks",
               "refId": "A"
@@ -1500,7 +1466,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1511,7 +1477,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "mesh_missing_block_total{instance=\"$instance\"}",
+              "expr": "mesh_block_solidification_missing_block_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Solidifier-requested blocks",
               "refId": "A"
@@ -1548,279 +1514,565 @@
           }
         },
         {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "decbytes"
+              "links": []
             },
             "overrides": []
           },
+          "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
-            "h": 2,
-            "w": 2,
+            "h": 9,
+            "w": 7,
             "x": 11,
             "y": 26
           },
-          "id": 59,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
+          "hiddenSeries": false,
+          "id": 16,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
           },
-          "pluginVersion": "9.2.0",
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
           "targets": [
             {
-              "expr": "traffic_analysis_outbound_bytes{instance=\"$instance\"}",
+              "expr": "process_cpu_usage{instance=\"$instance\"}",
               "interval": "",
-              "legendFormat": "",
+              "legendFormat": "CPU Usage",
               "refId": "A"
             }
           ],
-          "title": "Analysis",
-          "type": "stat"
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "CPU Usage",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "percent",
+              "label": "",
+              "logBase": 1,
+              "max": "100",
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
         },
         {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "decbytes"
+              "links": []
             },
             "overrides": []
           },
+          "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
-            "h": 2,
-            "w": 2,
-            "x": 13,
-            "y": 26
-          },
-          "id": 67,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "9.2.0",
-          "targets": [
-            {
-              "expr": "traffic_gossip_outbound_packets{instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "title": "Gossip TX",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "decbytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 2,
-            "w": 3,
-            "x": 15,
-            "y": 26
-          },
-          "id": 66,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "9.2.0",
-          "targets": [
-            {
-              "expr": "traffic_gossip_inbound_packets{instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "title": "Gossip RX",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "decbytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 2,
-            "w": 3,
+            "h": 9,
+            "w": 6,
             "x": 18,
             "y": 26
           },
-          "id": 63,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
+          "hiddenSeries": false,
+          "id": 18,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
           },
-          "pluginVersion": "9.2.0",
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
           "targets": [
             {
-              "expr": "autopeering_traffic_outbound_total_bytes{instance=\"$instance\"}",
+              "expr": "process_mem_usage_bytes{instance=\"$instance\"}/1024/1024",
               "interval": "",
-              "legendFormat": "",
+              "legendFormat": "Memory Consumption",
               "refId": "A"
             }
           ],
-          "title": "Autopeering TX",
-          "type": "stat"
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Memory Consumption",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "decmbytes",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
         },
         {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
+          "description": "Number of blocks in missingBlockStore. These are the block the node knows it doesn't have and tries to requests them.",
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "decbytes"
+              "links": []
             },
             "overrides": []
           },
+          "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
-            "h": 2,
-            "w": 3,
-            "x": 21,
-            "y": 26
+            "h": 8,
+            "w": 11,
+            "x": 0,
+            "y": 33
           },
-          "id": 62,
+          "hiddenSeries": false,
+          "id": 147,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
           "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
+            "alertThreshold": true
           },
-          "pluginVersion": "9.2.0",
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
           "targets": [
             {
-              "expr": "autopeering_traffic_inbound_total_bytes{instance=\"$instance\"}",
+              "expr": "mesh_block_missing_count_db{instance=\"$instance\"}",
               "interval": "",
-              "legendFormat": "",
+              "legendFormat": "Missing Blocks",
               "refId": "A"
             }
           ],
-          "title": "Autopeering RX",
-          "type": "stat"
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Missing Blocks",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "description": "Describes the amount of total, solid and not solid blocks in the node's database.",
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 10,
+            "w": 13,
+            "x": 11,
+            "y": 35
+          },
+          "hiddenSeries": false,
+          "id": 73,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "mesh_blocks_per_component_count{component=\"Solidifier\",instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "Solid Blocks in DB",
+              "refId": "A"
+            },
+            {
+              "exemplar": true,
+              "expr": "mesh_blocks_per_component_count{component=\"Store\",instance=\"$instance\"} - mesh_blocks_per_component_count{component=\"Solidifier\",instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "Not Solid Blocks in DB",
+              "refId": "B"
+            },
+            {
+              "exemplar": true,
+              "expr": "mesh_blocks_per_component_count{component=\"Store\",instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "Total Blocks in DB",
+              "refId": "C"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Blocks in Database",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "logBase": 1,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "description": "Number of blocks currently requested by the block mesh.",
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 11,
+            "x": 0,
+            "y": 41
+          },
+          "hiddenSeries": false,
+          "id": 69,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "mesh_block_request_queue_size{instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "Block Request Queue Size",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Block Request Queue Size",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "logBase": 1,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "min": "0",
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "description": "Average time it takes to solidify blocks.",
+          "fieldConfig": {
+            "defaults": {
+              "links": [],
+              "unit": "ms"
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 9,
+            "w": 13,
+            "x": 11,
+            "y": 45
+          },
+          "hiddenSeries": false,
+          "id": 75,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "rate(mesh_block_total_time_since_received{component=\"Solidifier\",instance=\"$instance\"}[5m])/rate(mesh_blocks_per_component_count{component=\"Solidifier\",instance=\"$instance\"}[5m])",
+              "interval": "",
+              "legendFormat": "Avg Solidification Time",
+              "refId": "A"
+            },
+            {
+              "exemplar": true,
+              "expr": "",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Average Solidification Time",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
         },
         {
           "aliasColors": {},
@@ -1841,9 +2093,9 @@
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
-            "w": 13,
-            "x": 11,
-            "y": 28
+            "w": 11,
+            "x": 0,
+            "y": 49
           },
           "hiddenSeries": false,
           "id": 26,
@@ -1863,7 +2115,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1879,13 +2131,13 @@
               "refId": "A"
             },
             {
-              "expr": "irate(autopeering_traffic_inbound_total_bytes{instance=\"$instance\"}[1m])",
+              "expr": "irate(traffic_autopeering_inbound_bytes{instance=\"$instance\"}[1m])",
               "interval": "",
               "legendFormat": "Autopeering RX",
               "refId": "B"
             },
             {
-              "expr": "irate(autopeering_traffic_outbound_total_bytes{instance=\"$instance\"}[1m])",
+              "expr": "irate(traffic_autopeering_outbound_bytes{instance=\"$instance\"}[1m])",
               "interval": "",
               "legendFormat": "Autopeering TX",
               "refId": "C"
@@ -1946,387 +2198,274 @@
           }
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "description": "Number of blocks in missingBlockStore. These are the block the node knows it doesn't have and tries to requests them.",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "decbytes"
             },
             "overrides": []
           },
-          "fill": 1,
-          "fillGradient": 0,
           "gridPos": {
-            "h": 8,
-            "w": 11,
-            "x": 0,
-            "y": 33
-          },
-          "hiddenSeries": false,
-          "id": 147,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "9.2.0",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "mesh_missing_block_total{instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "Missing Blocks",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "Missing Blocks",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "description": "Describes the amount of total, solid and not solid blocks in the node's database.",
-          "fieldConfig": {
-            "defaults": {
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 13,
+            "h": 2,
+            "w": 2,
             "x": 11,
-            "y": 35
+            "y": 54
           },
-          "hiddenSeries": false,
-          "id": 73,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
+          "id": 59,
           "options": {
-            "alertThreshold": true
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
           },
-          "percentage": false,
-          "pluginVersion": "9.2.0",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "exemplar": true,
-              "expr": "mesh_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "Solid Blocks in DB",
-              "refId": "A"
-            },
-            {
-              "exemplar": true,
-              "expr": "mesh_blocks_per_component_total{component=\"Store\",instance=\"$instance\"} - mesh_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "Not Solid Blocks in DB",
-              "refId": "B"
-            },
-            {
-              "exemplar": true,
-              "expr": "mesh_blocks_per_component_total{component=\"Store\",instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "Total Blocks in DB",
-              "refId": "C"
-            }
-          ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "Blocks in Database",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "logBase": 1,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "description": "Number of blocks currently requested by the block mesh.",
-          "fieldConfig": {
-            "defaults": {
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 9,
-            "w": 11,
-            "x": 0,
-            "y": 41
-          },
-          "hiddenSeries": false,
-          "id": 69,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "9.2.0",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "exemplar": true,
-              "expr": "mesh_request_queue_size{instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "Block Request Queue Size",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "Block Request Queue Size",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "logBase": 1,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "min": "0",
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "description": "Average time it takes to solidify blocks.",
-          "fieldConfig": {
-            "defaults": {
-              "links": [],
-              "unit": "ms"
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 13,
-            "x": 11,
-            "y": 42
-          },
-          "hiddenSeries": false,
-          "id": 75,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "9.2.0",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "exemplar": true,
-              "expr": "rate(mesh_block_total_time_since_received{component=\"Solidified\",instance=\"$instance\"}[5m])/rate(mesh_blocks_per_component_total{component=\"Solidified\",instance=\"$instance\"}[5m])",
-              "interval": "",
-              "legendFormat": "Avg Solidification Time",
-              "refId": "A"
-            },
-            {
-              "exemplar": true,
-              "expr": "",
-              "hide": false,
+              "expr": "traffic_analysis_outbound_bytes{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
-              "refId": "B"
+              "refId": "A"
             }
           ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "Average Solidification Time",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
+          "title": "Analysis",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
           },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ms",
-              "logBase": 1,
-              "show": true
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "decbytes"
             },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 2,
+            "w": 2,
+            "x": 13,
+            "y": 54
+          },
+          "id": 67,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.3.3",
+          "targets": [
             {
-              "format": "short",
-              "logBase": 1,
-              "show": true
+              "expr": "traffic_gossip_outbound_packets{instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
             }
           ],
-          "yaxis": {
-            "align": false
-          }
+          "title": "Gossip TX",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "decbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 15,
+            "y": 54
+          },
+          "id": 66,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.3.3",
+          "targets": [
+            {
+              "expr": "traffic_gossip_inbound_packets{instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Gossip RX",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "decbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 18,
+            "y": 54
+          },
+          "id": 63,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.3.3",
+          "targets": [
+            {
+              "expr": "traffic_autopeering_outbound_bytes{instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Autopeering TX",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "decbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 21,
+            "y": 54
+          },
+          "id": 62,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.3.3",
+          "targets": [
+            {
+              "expr": "traffic_autopeering_inbound_bytes{instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Autopeering RX",
+          "type": "stat"
         }
       ],
       "title": "BPS, Autopeering, Traffic, Resources",
@@ -2359,8 +2498,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -2372,7 +2510,7 @@
             "h": 3,
             "w": 4,
             "x": 0,
-            "y": 5
+            "y": 57
           },
           "id": 85,
           "options": {
@@ -2390,18 +2528,18 @@
             "text": {},
             "textMode": "value_and_name"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mana_access_per_node{instance=\"$instance\",nodeID=\"$NodeID\"}",
+              "expr": "mana_access{instance=\"$instance\",nodeID=\"$NodeID\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
             },
             {
               "exemplar": true,
-              "expr": "mana_consensus_per_node{instance=\"$instance\",nodeID=\"$NodeID\"}",
+              "expr": "mana_consensus{instance=\"$instance\",nodeID=\"$NodeID\"}",
               "hide": true,
               "interval": "",
               "legendFormat": "Consensus {{nodeID}}",
@@ -2425,8 +2563,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -2442,7 +2579,7 @@
             "h": 3,
             "w": 3,
             "x": 4,
-            "y": 5
+            "y": 57
           },
           "id": 101,
           "options": {
@@ -2460,17 +2597,17 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mana_node_percentile{instance=\"$instance\",type=\"access\"}",
+              "expr": "mana_access_percentile{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Access",
               "refId": "A"
             },
             {
-              "expr": "mana_node_percentile{instance=\"$instance\",type=\"consensus\"}",
+              "expr": "mana_consensus_percentile{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Consensus",
               "refId": "B"
@@ -2492,8 +2629,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -2505,7 +2641,7 @@
             "h": 3,
             "w": 4,
             "x": 7,
-            "y": 5
+            "y": 57
           },
           "id": 95,
           "options": {
@@ -2523,16 +2659,16 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "expr": "avg(mana_access_per_node{instance=\"$instance\"})",
+              "expr": "avg(mana_access{instance=\"$instance\"})",
               "interval": "",
               "legendFormat": "Access",
               "refId": "A"
             },
             {
-              "expr": "avg(mana_consensus_per_node{instance=\"$instance\"})",
+              "expr": "avg(mana_consensus{instance=\"$instance\"})",
               "interval": "",
               "legendFormat": "Consensus",
               "refId": "B"
@@ -2554,8 +2690,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -2567,7 +2702,7 @@
             "h": 3,
             "w": 3,
             "x": 11,
-            "y": 5
+            "y": 57
           },
           "id": 96,
           "options": {
@@ -2585,18 +2720,18 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "stddev(mana_access_per_node{instance=\"$instance\"})",
+              "expr": "stddev(mana_access{instance=\"$instance\"})",
               "interval": "",
               "legendFormat": "Access",
               "refId": "A"
             },
             {
               "exemplar": true,
-              "expr": "stddev(mana_consensus_per_node{instance=\"$instance\"})",
+              "expr": "stddev(mana_consensus{instance=\"$instance\"})",
               "interval": "",
               "legendFormat": "Consensus",
               "refId": "B"
@@ -2618,8 +2753,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -2631,7 +2765,7 @@
             "h": 3,
             "w": 4,
             "x": 14,
-            "y": 5
+            "y": 57
           },
           "id": 109,
           "options": {
@@ -2649,17 +2783,17 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "targets": [
             {
-              "expr": "mana_neighbors{instance=\"$instance\"}",
+              "expr": "mana_average_neighbors_access{instance=\"$instance\"}",
               "instant": false,
               "interval": "",
               "legendFormat": "Access",
               "refId": "A"
             },
             {
-              "expr": "mana_neighbors{instance=\"$instance\"}",
+              "expr": "mana_average_neighbors_consensus{instance=\"$instance\"}",
               "instant": false,
               "interval": "",
               "legendFormat": "Consensus",
@@ -2691,7 +2825,7 @@
             "h": 15,
             "w": 6,
             "x": 18,
-            "y": 5
+            "y": 57
           },
           "hiddenSeries": false,
           "id": 89,
@@ -2712,7 +2846,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2722,13 +2856,13 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(mana_access_per_node{instance=\"$instance\"})",
+              "expr": "sum(mana_access{instance=\"$instance\"})",
               "interval": "",
               "legendFormat": "Total Access Mana In Network",
               "refId": "A"
             },
             {
-              "expr": "sum(mana_consensus_per_node{instance=\"$instance\"})",
+              "expr": "sum(mana_consensus{instance=\"$instance\"})",
               "interval": "",
               "legendFormat": "Total Consensus Mana In Network",
               "refId": "B"
@@ -2786,7 +2920,7 @@
             "h": 12,
             "w": 9,
             "x": 0,
-            "y": 8
+            "y": 60
           },
           "hiddenSeries": false,
           "id": 98,
@@ -2808,7 +2942,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2818,7 +2952,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mana_access_per_node{}",
+              "expr": "mana_access{instance=\"$instance\"}",
               "instant": true,
               "interval": "",
               "legendFormat": "",
@@ -2882,7 +3016,7 @@
             "h": 12,
             "w": 9,
             "x": 9,
-            "y": 8
+            "y": 60
           },
           "hiddenSeries": false,
           "id": 99,
@@ -2904,7 +3038,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2914,7 +3048,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mana_consensus_per_node{}",
+              "expr": "mana_consensus{instance=\"$instance\"}",
               "instant": true,
               "interval": "",
               "legendFormat": "",
@@ -2979,7 +3113,7 @@
             "h": 9,
             "w": 8,
             "x": 0,
-            "y": 20
+            "y": 72
           },
           "hiddenSeries": false,
           "id": 83,
@@ -3001,7 +3135,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3011,7 +3145,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mana_access_per_node{instance=\"$instance\"}",
+              "expr": "mana_access{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
@@ -3070,7 +3204,7 @@
             "h": 9,
             "w": 8,
             "x": 8,
-            "y": 20
+            "y": 72
           },
           "hiddenSeries": false,
           "id": 90,
@@ -3094,7 +3228,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3104,7 +3238,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mana_access_per_node{instance=\"$instance\"}",
+              "expr": "mana_access{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
@@ -3166,7 +3300,7 @@
             "h": 9,
             "w": 8,
             "x": 16,
-            "y": 20
+            "y": 72
           },
           "id": 92,
           "links": [],
@@ -3175,7 +3309,6 @@
             "legend": {
               "displayMode": "list",
               "placement": "right",
-              "showLegend": true,
               "values": []
             },
             "pieType": "pie",
@@ -3188,15 +3321,14 @@
             },
             "text": {},
             "tooltip": {
-              "mode": "single",
-              "sort": "none"
+              "mode": "single"
             }
           },
           "pluginVersion": "7.5.6",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mana_access_per_node{instance=\"$instance\"}",
+              "expr": "mana_access{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
@@ -3228,7 +3360,7 @@
             "h": 9,
             "w": 8,
             "x": 0,
-            "y": 29
+            "y": 81
           },
           "hiddenSeries": false,
           "id": 84,
@@ -3250,7 +3382,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.3.2",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3260,7 +3392,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mana_consensus_per_node{instance=\"$instance\"}",
+              "expr": "mana_consensus{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
@@ -3319,7 +3451,7 @@
             "h": 9,
             "w": 8,
             "x": 8,
-            "y": 29
+            "y": 81
           },
           "hiddenSeries": false,
           "id": 91,
@@ -3343,7 +3475,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.3.2",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3354,7 +3486,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "mana_consensus_per_node{instance=\"$instance\"}",
+              "expr": "mana_consensus{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
@@ -3416,7 +3548,7 @@
             "h": 9,
             "w": 8,
             "x": 16,
-            "y": 29
+            "y": 81
           },
           "id": 93,
           "links": [],
@@ -3425,7 +3557,6 @@
             "legend": {
               "displayMode": "list",
               "placement": "right",
-              "showLegend": true,
               "values": []
             },
             "pieType": "pie",
@@ -3438,15 +3569,14 @@
             },
             "text": {},
             "tooltip": {
-              "mode": "single",
-              "sort": "none"
+              "mode": "single"
             }
           },
           "pluginVersion": "7.1.1",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mana_consensus_per_node{instance=\"$instance\"}",
+              "expr": "mana_consensus{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "{{nodeID}}",
               "refId": "A"
@@ -3474,9 +3604,9 @@
           "fillGradient": 0,
           "gridPos": {
             "h": 11,
-            "w": 8,
+            "w": 9,
             "x": 0,
-            "y": 38
+            "y": 90
           },
           "hiddenSeries": false,
           "id": 103,
@@ -3498,7 +3628,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.3.2",
+          "pluginVersion": "8.3.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3508,13 +3638,13 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "mana_node_percentile{instance=\"$instance\",type=\"access\"}",
+              "expr": "mana_access_percentile{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Access Percentile",
               "refId": "A"
             },
             {
-              "expr": "mana_node_percentile{instance=\"$instance\",type=\"consensus\"}",
+              "expr": "mana_consensus_percentile{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "Consensus Percentile",
               "refId": "B"
@@ -3538,6 +3668,274 @@
             {
               "format": "percent",
               "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "description": "Average pledged BM1 and BM2 of access mana pledged to the node",
+          "fieldConfig": {
+            "defaults": {
+              "links": [],
+              "unit": "si: m"
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 11,
+            "w": 7,
+            "x": 9,
+            "y": 90
+          },
+          "hiddenSeries": false,
+          "id": 107,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "mana_average_access_pledge{type=\"bm2\",instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "{{nodeID}}",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Average Pledged Access Mana",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "si: m",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "description": "Average pledged BM1 and BM2 of access mana pledged to the node",
+          "fieldConfig": {
+            "defaults": {
+              "links": [],
+              "unit": "si: m"
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 11,
+            "w": 7,
+            "x": 16,
+            "y": 90
+          },
+          "hiddenSeries": false,
+          "id": 114,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "mana_average_access_pledge{type=\"bm2\",instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "{{nodeID}}",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Average Pledged Access Mana",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "si: m",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "description": "Amount of mana currently delegated to the node.",
+          "fieldConfig": {
+            "defaults": {
+              "links": [],
+              "unit": "si: m"
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 10,
+            "w": 9,
+            "x": 0,
+            "y": 101
+          },
+          "hiddenSeries": false,
+          "id": 110,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "mana_delegated_amount{instance=\"$instance\"}",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Mana Delegated To Node",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "si: m",
+              "logBase": 1,
+              "min": "0",
               "show": true
             },
             {
@@ -3610,7 +4008,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3621,7 +4019,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(conflict_resolution_time_seconds_total{instance=\"$instance\"}[1m]) / irate(conflict_resolved_total{instance=\"$instance\"}[1m])",
+              "expr": "irate(mesh_block_finalization_time_since_received{instance=\"$instance\"}[1m]) / irate(mesh_block_finalized_count{instance=\"$instance\"}[1m])",
               "interval": "",
               "legendFormat": "{{blockType}} avg. finalization time",
               "queryType": "randomWalk",
@@ -3702,7 +4100,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3713,7 +4111,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "irate(conflict_resolution_time_seconds_total{instance=\"$instance\"}[30s]) / rate(conflict_resolved_total{instance=\"$instance\"}[30s])",
+              "expr": "irate(mesh_conflict_confirmation_time{instance=\"$instance\"}[30s]) / rate(mesh_conflict_confirmed_count{instance=\"$instance\"}[30s])",
               "interval": "",
               "legendFormat": "Average conflict confirmation time",
               "queryType": "randomWalk",
@@ -3761,6 +4159,10 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -3787,7 +4189,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3798,7 +4200,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(irate(mesh_parent_per_type_total{instance=\"$instance\"}[1m])) by (type,instance) / on(instance) group_left() sum(irate(mesh_accepted_blocks_count{instance=\"$instance\"}[1m])) by (instance)",
+              "expr": "sum(irate(mesh_blocks_parent_count_per_type{instance=\"$instance\"}[1m])) by (type,instance) / on(instance) group_left() sum(irate(mesh_block_finalized_count{instance=\"$instance\"}[1m])) by (instance)",
               "hide": false,
               "interval": "",
               "legendFormat": "{{type}}",
@@ -3850,8 +4252,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -3884,11 +4285,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "targets": [
             {
               "exemplar": true,
-              "expr": "conflict_created_total{instance=\"$instance\"}",
+              "expr": "mesh_conflict_total_count_db{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -3913,8 +4314,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -3947,11 +4347,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "targets": [
             {
               "exemplar": true,
-              "expr": "conflict_created_total{instance=\"$instance\"} - conflict_resolved_total{instance=\"$instance\"}",
+              "expr": "mesh_conflict_total_count_db{instance=\"$instance\"} - mesh_conflict_finalized_count_db{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -3976,8 +4376,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -4010,11 +4409,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "targets": [
             {
               "exemplar": true,
-              "expr": "conflict_resolved_total{instance=\"$instance\"}",
+              "expr": "mesh_conflict_finalized_count_db{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4039,8 +4438,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -4073,11 +4471,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "7.5.6",
           "targets": [
             {
               "exemplar": true,
-              "expr": "conflict_resolved_total{instance=\"$instance\"}",
+              "expr": "mesh_conflict_confirmed_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4088,7 +4486,7 @@
           "type": "stat"
         }
       ],
-      "title": "OTV metrics",
+      "title": "OMV metrics",
       "type": "row"
     },
     {
@@ -4152,11 +4550,11 @@
             "showUnfilled": true,
             "text": {}
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "topk(15, sum by (node_id) (scheduler_queue_size_per_node_bytes{instance=\"$instance\"}/scheduler_mana_per_node{instance=\"$instance\"}))",
+              "expr": "topk(15, sum by (node_id) (scheduler_buffer_size_per_node{instance=\"$instance\"}/scheduler_amana_per_node{instance=\"$instance\"}))",
               "instant": true,
               "interval": "",
               "legendFormat": "Node: {{node_id}}",
@@ -4214,7 +4612,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
@@ -4273,11 +4671,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mesh_blocks_per_component_total{component=\"Scheduled\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_count{component=\"Scheduler\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4334,11 +4732,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mesh_blocks_per_component_total{component=\"SchedulerSkipped\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_count{component=\"SchedulerSkipped\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4395,7 +4793,7 @@
             "text": {},
             "textMode": "value"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": false,
@@ -4455,11 +4853,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "mesh_blocks_per_component_total{component=\"SchedulerDropped\",instance=\"$instance\"}",
+              "expr": "mesh_blocks_per_component_count{component=\"SchedulerDropped\",instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4514,7 +4912,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "datasource": {
@@ -4578,7 +4976,7 @@
             "showUnfilled": true,
             "text": {}
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "datasource": {
@@ -4587,7 +4985,7 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "topk(15, sum by (node_id) (scheduler_queue_size_per_node_bytes{instance=\"$instance\"}))",
+              "expr": "topk(15, sum by (node_id) (scheduler_buffer_size_per_node{instance=\"$instance\"}))",
               "instant": true,
               "interval": "",
               "legendFormat": "Node: {{node_id}}",
@@ -4646,11 +5044,11 @@
             "text": {},
             "textMode": "value"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": false,
-              "expr": "scheduler_buffer_size_bytes_total{instance=\"$instance\"}",
+              "expr": "scheduler_buffer_total_size{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4705,11 +5103,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "scheduler_buffer_size_bytes_total{instance=\"$instance\"}",
+              "expr": "scheduler_buffer_total_blk_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4765,7 +5163,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "datasource": {
@@ -4828,7 +5226,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "datasource": {
@@ -4849,7 +5247,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "scheduler_queue_size_per_node_bytes{node_id=\"$NodeID\",instance=\"$instance\"}",
+              "expr": "scheduler_buffer_size_per_node{node_id=\"$NodeID\",instance=\"$instance\"}",
               "hide": false,
               "interval": "",
               "legendFormat": "Own scheduler queue size",
@@ -4907,7 +5305,7 @@
             "text": {},
             "textMode": "value"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "datasource": {
@@ -4915,7 +5313,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": false,
-              "expr": "scheduler_buffer_size_bytes_total{instance=\"$instance\"} - scheduler_buffer_ready_block_total{instance=\"$instance\"}",
+              "expr": "scheduler_buffer_total_blk_count{instance=\"$instance\"} - scheduler_buffer_ready_blk_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -4970,11 +5368,11 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "exemplar": true,
-              "expr": "scheduler_buffer_ready_block_total{instance=\"$instance\"}",
+              "expr": "scheduler_buffer_ready_blk_count{instance=\"$instance\"}",
               "interval": "",
               "legendFormat": "",
               "queryType": "randomWalk",
@@ -5030,7 +5428,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "9.2.0",
+          "pluginVersion": "8.5.3",
           "targets": [
             {
               "datasource": {
@@ -5047,244 +5445,14 @@
           ],
           "title": "Rate-setter own rate",
           "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "blocks"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 18,
-            "y": 19
-          },
-          "id": 155,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "9.2.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "exemplar": true,
-              "expr": "mesh_blocks_orphaned_total{instance=\"$instance\"}",
-              "interval": "",
-              "legendFormat": "",
-              "queryType": "randomWalk",
-              "refId": "A"
-            }
-          ],
-          "title": "Orphaned blocks count",
-          "type": "stat"
         }
       ],
       "title": "Scheduler metrics",
       "type": "row"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 7
-      },
-      "id": 157,
-      "panels": [],
-      "title": "Workerpools",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 3,
-        "x": 0,
-        "y": 8
-      },
-      "id": 159,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "workerpool_workers{instance=\"$instance\"}",
-          "legendFormat": "{{type}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Workers",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 21,
-        "x": 3,
-        "y": 8
-      },
-      "id": 161,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "workerpool_tasks_pending{instance=\"$instance\"}",
-          "legendFormat": "{{type}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Pending tasks",
-      "type": "timeseries"
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 37,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -5292,14 +5460,14 @@
       {
         "current": {
           "selected": false,
-          "text": "faucet:9311",
-          "value": "faucet:9311"
+          "text": "peer_master2:9311",
+          "value": "peer_master2:9311"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"
         },
-        "definition": "label_values(info_app, instance)",
+        "definition": "label_values(iota_info_app, instance)",
         "hide": 0,
         "includeAll": false,
         "label": "Instance",
@@ -5307,7 +5475,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(info_app, instance)",
+          "query": "label_values(iota_info_app, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -5329,7 +5497,7 @@
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"
         },
-        "definition": "label_values(info_app, nodeID)",
+        "definition": "label_values(iota_info_app, nodeID)",
         "hide": 0,
         "includeAll": false,
         "label": "Node Identity",
@@ -5337,7 +5505,7 @@
         "name": "NodeID",
         "options": [],
         "query": {
-          "query": "label_values(info_app, nodeID)",
+          "query": "label_values(iota_info_app, nodeID)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -5369,7 +5537,7 @@
     ]
   },
   "timezone": "",
-  "title": "ZIPP Local Metrics",
+  "title": "GoShimmer Local Metrics",
   "uid": "R-T27yW7k",
   "version": 3,
   "weekStart": ""

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.uber.org/dig"
 
 	"github.com/izuc/zipp/client"
@@ -16,7 +15,7 @@ import (
 func testBroadcastData(api *client.ZIPPAPI) (string, error) {
 	blkID, err := api.Data([]byte(blkData))
 	if err != nil {
-		return "", errors.Wrap(err, "broadcast failed")
+		return "", fmt.Errorf("broadcast failed: %w", err)
 	}
 	return blkID, nil
 }
@@ -24,7 +23,7 @@ func testBroadcastData(api *client.ZIPPAPI) (string, error) {
 func testTargetGetBlocks(api *client.ZIPPAPI, blkID string) error {
 	// query target node for broadcasted data
 	if _, err := api.GetBlock(blkID); err != nil {
-		return errors.Wrap(err, "querying the target node failed")
+		return fmt.Errorf("querying the target node failed: %w", err)
 	}
 	return nil
 }
@@ -34,7 +33,7 @@ func testNodesGetBlocks(blkID string) error {
 	for _, n := range nodes {
 		nodesAPI := client.NewZIPPAPI(n)
 		if _, err := nodesAPI.GetBlock(blkID); err != nil {
-			return errors.Wrapf(err, "querying node %s failed", n)
+			return fmt.Errorf("querying node %s failed: %w", n, err)
 		}
 		fmt.Printf("blk found in node %s\n", n)
 	}

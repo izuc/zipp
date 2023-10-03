@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/izuc/zipp.foundation/core/node"
 	flag "github.com/spf13/pflag"
 
-	"github.com/izuc/zipp/packages/node"
 	"github.com/izuc/zipp/plugins/config"
 )
 
@@ -38,7 +38,7 @@ func printUsage() {
 		os.Stderr,
 		"\n"+
 			"ZIPP\n\n"+
-			"  A lightweight modular ZIPP node.\n\n"+
+			"  A lightweight modular IOTA node.\n\n"+
 			"Usage:\n\n"+
 			"  %s [OPTIONS]\n\n"+
 			"Options:\n",

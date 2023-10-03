@@ -1,9 +1,9 @@
 package remotemetrics
 
 import (
-	"time"
-
 	"go.uber.org/atomic"
+
+	"github.com/izuc/zipp/packages/node/clock"
 
 	"github.com/izuc/zipp/packages/app/remotemetrics"
 )
@@ -12,7 +12,7 @@ var isMeshTimeSynced atomic.Bool
 
 func checkSynced() {
 	oldMeshTimeSynced := isMeshTimeSynced.Load()
-	tts := deps.Protocol.Engine().IsSynced()
+	tts := deps.Mesh.TimeManager.Synced()
 	if oldMeshTimeSynced != tts {
 		var myID string
 		if deps.Local != nil {
@@ -22,11 +22,11 @@ func checkSynced() {
 			Type:           "sync",
 			NodeID:         myID,
 			MetricsLevel:   Parameters.MetricsLevel,
-			Time:           time.Now(),
-			ATT:            deps.Protocol.Engine().Clock.Accepted().Time(),
-			RATT:           deps.Protocol.Engine().Clock.Accepted().RelativeTime(),
-			CTT:            deps.Protocol.Engine().Clock.Confirmed().Time(),
-			RCTT:           deps.Protocol.Engine().Clock.Confirmed().RelativeTime(),
+			Time:           clock.SyncedTime(),
+			ATT:            deps.Mesh.TimeManager.ATT(),
+			RATT:           deps.Mesh.TimeManager.RATT(),
+			CTT:            deps.Mesh.TimeManager.CTT(),
+			RCTT:           deps.Mesh.TimeManager.RCTT(),
 			CurrentStatus:  tts,
 			PreviousStatus: oldMeshTimeSynced,
 		}

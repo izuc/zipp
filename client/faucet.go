@@ -4,13 +4,14 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/identity"
 
-	"github.com/izuc/zipp.foundation/crypto/identity"
 	"github.com/izuc/zipp/packages/app/faucet"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/mana"
 	"github.com/izuc/zipp/packages/core/pow"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
 )
 
 const (
@@ -28,11 +29,11 @@ func (api *ZIPPAPI) BroadcastFaucetRequest(base58EncodedAddr string, powTarget i
 	var aManaPledgeID identity.ID
 	var cManaPledgeID identity.ID
 	if len(pledgeIDs) > 1 {
-		aManaPledgeIDFromString, err := identity.DecodeIDBase58(pledgeIDs[0])
+		aManaPledgeIDFromString, err := mana.IDFromStr(pledgeIDs[0])
 		if err == nil {
 			aManaPledgeID = aManaPledgeIDFromString
 		}
-		cManaPledgeIDFromString, err := identity.DecodeIDBase58(pledgeIDs[1])
+		cManaPledgeIDFromString, err := mana.IDFromStr(pledgeIDs[1])
 		if err == nil {
 			cManaPledgeID = cManaPledgeIDFromString
 		}
@@ -40,12 +41,12 @@ func (api *ZIPPAPI) BroadcastFaucetRequest(base58EncodedAddr string, powTarget i
 
 	address, err := devnetvm.AddressFromBase58EncodedString(base58EncodedAddr)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not decode address from string")
+		return nil, errors.Errorf("could not decode address from string: %w", err)
 	}
 
 	nonce, err := computeFaucetPoW(address, aManaPledgeID, cManaPledgeID, powTarget)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not compute faucet PoW")
+		return nil, errors.Errorf("could not compute faucet PoW: %w", err)
 	}
 
 	res := &jsonmodels.FaucetRequestResponse{}
@@ -67,25 +68,25 @@ func (api *ZIPPAPI) SendFaucetRequestAPI(base58EncodedAddr string, powTarget int
 	var aManaPledgeID identity.ID
 	var cManaPledgeID identity.ID
 	if accessPledgeID == "" && consensusPledgeID == "" {
-		return nil, errors.New("accessPledgeID and consensusPledgeID must not be empty")
+		return nil, errors.Errorf("accessPledgeID and consensusPledgeID must not be empty")
 	}
-	aManaPledgeIDFromString, err := identity.DecodeIDBase58(accessPledgeID)
+	aManaPledgeIDFromString, err := mana.IDFromStr(accessPledgeID)
 	if err == nil {
 		aManaPledgeID = aManaPledgeIDFromString
 	}
-	cManaPledgeIDFromString, err := identity.DecodeIDBase58(consensusPledgeID)
+	cManaPledgeIDFromString, err := mana.IDFromStr(consensusPledgeID)
 	if err == nil {
 		cManaPledgeID = cManaPledgeIDFromString
 	}
 
 	address, err := devnetvm.AddressFromBase58EncodedString(base58EncodedAddr)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not decode address from string")
+		return nil, errors.Errorf("could not decode address from string: %w", err)
 	}
 
 	nonce, err := computeFaucetPoW(address, aManaPledgeID, cManaPledgeID, powTarget)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not compute faucet PoW")
+		return nil, errors.Errorf("could not compute faucet PoW: %w", err)
 	}
 
 	res := &jsonmodels.FaucetAPIResponse{}

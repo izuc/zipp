@@ -1,16 +1,15 @@
 package manainitializer
 
 import (
-	// import required to profile.
+	// import required to profile
 	_ "net/http/pprof"
 
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/node"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/lo"
 	"github.com/izuc/zipp/client"
 	"github.com/izuc/zipp/client/wallet/packages/seed"
-	"github.com/izuc/zipp/packages/node"
 )
 
 // PluginName is the name of the profiling plugin.
@@ -39,7 +38,7 @@ func run(_ *node.Plugin) {
 	api := client.NewZIPPAPI(Parameters.FaucetAPI)
 	pledgeAddress := Parameters.Address
 	if pledgeAddress == "" {
-		pledgeAddress = seed.NewSeed(lo.PanicOnErr(deps.Local.PublicKey().Bytes())).Address(0).Base58()
+		pledgeAddress = seed.NewSeed(deps.Local.PublicKey().Bytes()).Address(0).Base58()
 	}
 	res, err := api.SendFaucetRequestAPI(pledgeAddress, -1, deps.Local.ID().EncodeBase58(), deps.Local.ID().EncodeBase58())
 	if err != nil {

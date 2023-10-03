@@ -9,11 +9,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"golang.org/x/crypto/blake2b"
 )
 
-// errors returned by the PoW.
+// errors returned by the PoW
 var (
 	ErrCancelled = errors.New("canceled")
 	ErrDone      = errors.New("done")
@@ -134,6 +134,7 @@ func (w *Worker) worker(blk []byte, startNonce uint64, target int, done *uint32,
 			return nonce, nil
 		}
 		nonce++
+
 	}
 	return 0, ErrDone
 }

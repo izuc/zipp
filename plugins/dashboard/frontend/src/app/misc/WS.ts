@@ -10,11 +10,17 @@ export enum WSMsgType {
     Mana,
     ManaMapOverall,
     ManaMapOnline,
+    ManaAllowedPledge,
+    ManaPledge,
+    ManaInitPledge,
+    ManaRevoke,
+    ManaInitRevoke,
+    ManaInitDone,
     BlkManaDashboardAddress,
+    Chat,
     RateSetter,
     ConflictSet,
     Conflict,
-    SlotInfo,
 }
 
 export interface WSBlock {

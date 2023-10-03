@@ -4,17 +4,20 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/labstack/echo"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/app/daemon"
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/logger"
-	"github.com/izuc/zipp/packages/core/shutdown"
-	"github.com/izuc/zipp/packages/network/manualpeering"
-	"github.com/izuc/zipp/packages/network/p2p"
-	"github.com/izuc/zipp/packages/node"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/daemon"
+	"github.com/izuc/zipp.foundation/core/generics/event"
+	"github.com/izuc/zipp.foundation/core/logger"
+	"github.com/izuc/zipp.foundation/core/node"
+
+	"github.com/izuc/zipp/packages/node/gossip"
+	"github.com/izuc/zipp/packages/node/manualpeering"
+	"github.com/izuc/zipp/packages/node/p2p"
+	"github.com/izuc/zipp/packages/node/shutdown"
 )
 
 // PluginName is the name of the manual peering plugin.
@@ -30,21 +33,22 @@ type dependencies struct {
 	dig.In
 
 	Local            *peer.Local
+	GossipMgr        *gossip.Manager
 	Server           *echo.Echo
 	ManualPeeringMgr *manualpeering.Manager
 }
 
 func init() {
 	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, configure, run)
-	Plugin.Events.Init.Hook(func(event *node.InitEvent) {
-		newManager := func(lPeer *peer.Local, p2pMgr *p2p.Manager) *manualpeering.Manager {
-			return manualpeering.NewManager(p2pMgr, lPeer, event.Plugin.WorkerPool, logger.NewLogger(PluginName))
-		}
-
+	Plugin.Events.Init.Hook(event.NewClosure(func(event *node.InitEvent) {
 		if err := event.Container.Provide(newManager); err != nil {
 			Plugin.Panic(err)
 		}
-	})
+	}))
+}
+
+func newManager(lPeer *peer.Local, p2pMgr *p2p.Manager) *manualpeering.Manager {
+	return manualpeering.NewManager(p2pMgr, lPeer, logger.NewLogger(PluginName))
 }
 
 func configure(_ *node.Plugin) {

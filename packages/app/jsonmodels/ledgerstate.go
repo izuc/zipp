@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/cockroachdb/errors"
+	"github.com/izuc/zipp.foundation/core/generics/lo"
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
+	"github.com/izuc/zipp.foundation/core/typeutils"
 	"github.com/mr-tron/base58"
-	"github.com/pkg/errors"
 
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp/packages/core/confirmation"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool/conflictdag"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/typeutils"
+	"github.com/izuc/zipp/packages/core/conflictdag"
+	"github.com/izuc/zipp/packages/core/ledger"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
 // region Address //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,11 +56,11 @@ func NewOutput(output devnetvm.Output) (result *Output) {
 func (o *Output) ToLedgerstateOutput() (devnetvm.Output, error) {
 	outputType, err := devnetvm.OutputTypeFromString(o.Type)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse output type")
+		return nil, errors.Errorf("failed to parse output type: %w", err)
 	}
 	var id utxo.OutputID
-	if iErr := id.FromBase58(o.OutputID.Base58); iErr != nil {
-		return nil, errors.Wrap(iErr, "failed to parse outputID")
+	if iErr := id.FromBase58(o.OutputID.Base58); err != nil {
+		return nil, errors.Errorf("failed to parse outputID: %w", iErr)
 	}
 
 	switch outputType {
@@ -163,7 +163,7 @@ type SigLockedSingleOutput struct {
 func (s *SigLockedSingleOutput) ToLedgerStateOutput(id utxo.OutputID) (devnetvm.Output, error) {
 	addy, err := devnetvm.AddressFromBase58EncodedString(s.Address)
 	if err != nil {
-		return nil, errors.Wrap(err, "wrong address in SigLockedSingleOutput")
+		return nil, errors.Errorf("wrong address in SigLockedSingleOutput: %w", err)
 	}
 	res := devnetvm.NewSigLockedSingleOutput(s.Balance, addy)
 	res.SetID(id)
@@ -175,7 +175,7 @@ func SigLockedSingleOutputFromLedgerstate(output devnetvm.Output) (*SigLockedSin
 	if output.Type() != devnetvm.SigLockedSingleOutputType {
 		return nil, errors.Errorf("wrong output type: %s", output.Type().String())
 	}
-	balance, _ := output.Balances().Get(devnetvm.ColorZIPP)
+	balance, _ := output.Balances().Get(devnetvm.ColorIOTA)
 	res := &SigLockedSingleOutput{
 		Address: output.Address().Base58(),
 		Balance: balance,
@@ -188,7 +188,7 @@ func UnmarshalSigLockedSingleOutputFromBytes(data []byte) (*SigLockedSingleOutpu
 	marshalledOutput := &SigLockedSingleOutput{}
 	err := json.Unmarshal(data, marshalledOutput)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal SigLockedSingleOutput")
+		return nil, errors.Errorf("failed to unmarshal SigLockedSingleOutput: %w", err)
 	}
 	return marshalledOutput, nil
 }
@@ -207,11 +207,11 @@ type SigLockedColoredOutput struct {
 func (s *SigLockedColoredOutput) ToLedgerStateOutput(id utxo.OutputID) (devnetvm.Output, error) {
 	addy, err := devnetvm.AddressFromBase58EncodedString(s.Address)
 	if err != nil {
-		return nil, errors.Wrap(err, "wrong address in SigLockedSingleOutput")
+		return nil, errors.Errorf("wrong address in SigLockedSingleOutput: %w", err)
 	}
 	balances, bErr := getColoredBalances(s.Balances)
 	if bErr != nil {
-		return nil, errors.Wrap(bErr, "failed to parse colored balances")
+		return nil, errors.Errorf("failed to parse colored balances: %w", bErr)
 	}
 
 	res := devnetvm.NewSigLockedColoredOutput(balances, addy)
@@ -236,7 +236,7 @@ func UnmarshalSigLockedColoredOutputFromBytes(data []byte) (*SigLockedColoredOut
 	marshalledOutput := &SigLockedColoredOutput{}
 	err := json.Unmarshal(data, marshalledOutput)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal SigLockedSingleOutput")
+		return nil, errors.Errorf("failed to unmarshal SigLockedSingleOutput: %w", err)
 	}
 	return marshalledOutput, nil
 }
@@ -268,17 +268,17 @@ type AliasOutput struct {
 func (a *AliasOutput) ToLedgerStateOutput(id utxo.OutputID) (devnetvm.Output, error) {
 	balances, err := getColoredBalances(a.Balances)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse colored balances")
+		return nil, errors.Errorf("failed to parse colored balances: %w", err)
 	}
 	// alias address
 	aliasAddy, aErr := devnetvm.AliasAddressFromBase58EncodedString(a.AliasAddress)
 	if aErr != nil {
-		return nil, errors.Wrap(aErr, "wrong alias address in AliasOutput")
+		return nil, errors.Errorf("wrong alias address in AliasOutput: %w", err)
 	}
 	// state address
 	stateAddy, aErr := devnetvm.AddressFromBase58EncodedString(a.StateAddress)
 	if aErr != nil {
-		return nil, errors.Wrap(aErr, "wrong state address in AliasOutput")
+		return nil, errors.Errorf("wrong state address in AliasOutput: %w", err)
 	}
 	// stateIndex
 	stateIndex := a.StateIndex
@@ -374,7 +374,7 @@ func UnmarshalAliasOutputFromBytes(data []byte) (*AliasOutput, error) {
 	marshalledOutput := &AliasOutput{}
 	err := json.Unmarshal(data, marshalledOutput)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal AliasOutput")
+		return nil, errors.Errorf("failed to unmarshal AliasOutput: %w", err)
 	}
 	return marshalledOutput, nil
 }
@@ -397,11 +397,11 @@ type ExtendedLockedOutput struct {
 func (e *ExtendedLockedOutput) ToLedgerStateOutput(id utxo.OutputID) (devnetvm.Output, error) {
 	addy, err := devnetvm.AddressFromBase58EncodedString(e.Address)
 	if err != nil {
-		return nil, errors.Wrap(err, "wrong address in ExtendedLockedOutput")
+		return nil, errors.Errorf("wrong address in ExtendedLockedOutput: %w", err)
 	}
 	balances, bErr := getColoredBalances(e.Balances)
 	if bErr != nil {
-		return nil, errors.Wrap(bErr, "failed to parse colored balances")
+		return nil, errors.Errorf("failed to parse colored balances: %w", bErr)
 	}
 
 	res := devnetvm.NewExtendedLockedOutput(balances.Map(), addy)
@@ -409,7 +409,7 @@ func (e *ExtendedLockedOutput) ToLedgerStateOutput(id utxo.OutputID) (devnetvm.O
 	if e.FallbackAddress != "" && e.FallbackDeadline != 0 {
 		fallbackAddy, fErr := devnetvm.AddressFromBase58EncodedString(e.FallbackAddress)
 		if fErr != nil {
-			return nil, errors.Wrap(fErr, "wrong fallback address in ExtendedLockedOutput")
+			return nil, errors.Errorf("wrong fallback address in ExtendedLockedOutput: %w", err)
 		}
 		res = res.WithFallbackOptions(fallbackAddy, time.Unix(e.FallbackDeadline, 0))
 	}
@@ -452,7 +452,7 @@ func UnmarshalExtendedLockedOutputFromBytes(data []byte) (*ExtendedLockedOutput,
 	marshalledOutput := &ExtendedLockedOutput{}
 	err := json.Unmarshal(data, marshalledOutput)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal ExtendedLockedOutput")
+		return nil, errors.Errorf("failed to unmarshal ExtendedLockedOutput: %w", err)
 	}
 	return marshalledOutput, nil
 }
@@ -477,7 +477,7 @@ func NewOutputID(outputID utxo.OutputID) *OutputID {
 
 // region OutputMetadata ///////////////////////////////////////////////////////////////////////////////////////////////
 
-// OutputMetadata represents the JSON model of the mempool.OutputMetadata.
+// OutputMetadata represents the JSON model of the ledger.OutputMetadata.
 type OutputMetadata struct {
 	OutputID              *OutputID          `json:"outputID"`
 	ConflictIDs           []string           `json:"conflictIDs"`
@@ -487,13 +487,11 @@ type OutputMetadata struct {
 	ConfirmationStateTime int64              `json:"confirmationStateTime"`
 }
 
-// NewOutputMetadata returns the OutputMetadata from the given mempool.OutputMetadata.
-func NewOutputMetadata(outputMetadata *mempool.OutputMetadata, confirmedConsumerID utxo.TransactionID) *OutputMetadata {
+// NewOutputMetadata returns the OutputMetadata from the given ledger.OutputMetadata.
+func NewOutputMetadata(outputMetadata *ledger.OutputMetadata, confirmedConsumerID utxo.TransactionID) *OutputMetadata {
 	return &OutputMetadata{
-		OutputID: NewOutputID(outputMetadata.ID()),
-		ConflictIDs: lo.Map(lo.Map(outputMetadata.ConflictIDs().Slice(), func(t utxo.TransactionID) []byte {
-			return lo.PanicOnErr(t.Bytes())
-		}), base58.Encode),
+		OutputID:              NewOutputID(outputMetadata.ID()),
+		ConflictIDs:           lo.Map(lo.Map(outputMetadata.ConflictIDs().Slice(), utxo.TransactionID.Bytes), base58.Encode),
 		FirstConsumer:         outputMetadata.FirstConsumer().Base58(),
 		ConfirmedConsumer:     confirmedConsumerID.Base58(),
 		ConfirmationState:     outputMetadata.ConfirmationState(),
@@ -505,14 +503,14 @@ func NewOutputMetadata(outputMetadata *mempool.OutputMetadata, confirmedConsumer
 
 // region Consumer /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Consumer represents the JSON model of a mempool.Consumer.
+// Consumer represents the JSON model of a ledger.Consumer.
 type Consumer struct {
 	TransactionID string `json:"transactionID"`
 	Booked        bool   `json:"booked"`
 }
 
-// NewConsumer returns a Consumer from the given mempool.Consumer.
-func NewConsumer(consumer *mempool.Consumer) *Consumer {
+// NewConsumer returns a Consumer from the given ledger.Consumer.
+func NewConsumer(consumer *ledger.Consumer) *Consumer {
 	return &Consumer{
 		TransactionID: consumer.TransactionID().Base58(),
 		Booked:        consumer.IsBooked(),
@@ -527,11 +525,11 @@ type ConflictWeight struct {
 	Parents           []string           `json:"parents"`
 	ConflictIDs       []string           `json:"conflictIDs,omitempty"`
 	ConfirmationState confirmation.State `json:"confirmationState"`
-	ApprovalWeight    int64              `json:"approvalWeight"`
+	ApprovalWeight    float64            `json:"approvalWeight"`
 }
 
 // NewConflictWeight returns a Conflict from the given ledger.Conflict.
-func NewConflictWeight(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID], confirmationState confirmation.State, aw int64) ConflictWeight {
+func NewConflictWeight(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID], confirmationState confirmation.State, aw float64) ConflictWeight {
 	return ConflictWeight{
 		ID: conflict.ID().Base58(),
 		Parents: func() []string {
@@ -544,8 +542,8 @@ func NewConflictWeight(conflict *conflictdag.Conflict[utxo.TransactionID, utxo.O
 		}(),
 		ConflictIDs: func() []string {
 			conflictIDs := make([]string, 0)
-			for it := conflict.ConflictSets().Iterator(); it.HasNext(); {
-				conflictIDs = append(conflictIDs, it.Next().ID().Base58())
+			for it := conflict.ConflictSetIDs().Iterator(); it.HasNext(); {
+				conflictIDs = append(conflictIDs, it.Next().Base58())
 			}
 
 			return conflictIDs
@@ -563,9 +561,9 @@ type ChildConflict struct {
 }
 
 // NewChildConflict returns a ChildConflict from the given ledger.ChildConflict.
-func NewChildConflict(childConflict *conflictdag.Conflict[utxo.TransactionID, utxo.OutputID]) *ChildConflict {
+func NewChildConflict(childConflict *conflictdag.ChildConflict[utxo.TransactionID]) *ChildConflict {
 	return &ChildConflict{
-		ConflictID: childConflict.ID().Base58(),
+		ConflictID: childConflict.ChildConflictID().Base58(),
 	}
 }
 
@@ -635,8 +633,8 @@ func NewTransaction(transaction *devnetvm.Transaction) *Transaction {
 	return &Transaction{
 		Version:           transaction.Essence().Version(),
 		Timestamp:         transaction.Essence().Timestamp().Unix(),
-		AccessPledgeID:    base58.Encode(lo.PanicOnErr(transaction.Essence().AccessPledgeID().Bytes())),
-		ConsensusPledgeID: base58.Encode(lo.PanicOnErr(transaction.Essence().ConsensusPledgeID().Bytes())),
+		AccessPledgeID:    base58.Encode(transaction.Essence().AccessPledgeID().Bytes()),
+		ConsensusPledgeID: base58.Encode(transaction.Essence().ConsensusPledgeID().Bytes()),
 		Inputs:            inputs,
 		Outputs:           outputs,
 		UnlockBlocks:      unlockBlocks,
@@ -723,7 +721,7 @@ func NewUnlockBlock(unlockBlock devnetvm.UnlockBlock) *UnlockBlock {
 
 // region TransactionMetadata ///////////////////////////////////////////////////////////////////////////////////////////
 
-// TransactionMetadata represents the JSON model of the mempool.TransactionMetadata.
+// TransactionMetadata represents the JSON model of the ledger.TransactionMetadata.
 type TransactionMetadata struct {
 	TransactionID         string             `json:"transactionID"`
 	ConflictIDs           []string           `json:"conflictIDs"`
@@ -733,11 +731,11 @@ type TransactionMetadata struct {
 	ConfirmationStateTime int64              `json:"confirmationStateTime"`
 }
 
-// NewTransactionMetadata returns the TransactionMetadata from the given mempool.TransactionMetadata.
-func NewTransactionMetadata(transactionMetadata *mempool.TransactionMetadata) *TransactionMetadata {
+// NewTransactionMetadata returns the TransactionMetadata from the given ledger.TransactionMetadata.
+func NewTransactionMetadata(transactionMetadata *ledger.TransactionMetadata) *TransactionMetadata {
 	return &TransactionMetadata{
 		TransactionID:         transactionMetadata.ID().Base58(),
-		ConflictIDs:           lo.Map(lo.Map(transactionMetadata.ConflictIDs().Slice(), func(t utxo.TransactionID) []byte { return lo.PanicOnErr(t.Bytes()) }), base58.Encode),
+		ConflictIDs:           lo.Map(lo.Map(transactionMetadata.ConflictIDs().Slice(), utxo.TransactionID.Bytes), base58.Encode),
 		Booked:                transactionMetadata.IsBooked(),
 		BookedTime:            transactionMetadata.BookingTime().Unix(),
 		ConfirmationState:     transactionMetadata.ConfirmationState(),
@@ -765,7 +763,7 @@ func getColoredBalances(stringBalances map[string]uint64) (*devnetvm.ColoredBala
 	for stringColor, balance := range stringBalances {
 		color, cErr := devnetvm.ColorFromBase58EncodedString(stringColor)
 		if cErr != nil {
-			return nil, errors.Wrap(cErr, "failed to decode color")
+			return nil, errors.Errorf("failed to decode color: %w", cErr)
 		}
 		cBalances[color] = balance
 	}

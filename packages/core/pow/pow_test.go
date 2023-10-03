@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	_ "golang.org/x/crypto/blake2b" // required by crypto.BLAKE2b_512
 )
@@ -23,8 +24,8 @@ func TestWorker_Work(t *testing.T) {
 	nonce, err := testWorker.Mine(context.Background(), nil, target)
 	require.NoError(t, err)
 	difficulty, err := testWorker.LeadingZerosWithNonce(nil, nonce)
-	require.GreaterOrEqual(t, difficulty, target)
-	require.NoError(t, err)
+	assert.GreaterOrEqual(t, difficulty, target)
+	assert.NoError(t, err)
 }
 
 func TestWorker_Validate(t *testing.T) {
@@ -42,8 +43,8 @@ func TestWorker_Validate(t *testing.T) {
 	w := &Worker{}
 	for _, tt := range tests {
 		zeros, err := w.LeadingZerosWithNonce(tt.blk, tt.nonce)
-		require.Equal(t, tt.expLeadingZeros, zeros)
-		require.Equal(t, tt.expErr, err)
+		assert.Equal(t, tt.expLeadingZeros, zeros)
+		assert.Equal(t, tt.expErr, err)
 	}
 }
 
@@ -63,7 +64,7 @@ func TestWorker_Cancel(t *testing.T) {
 
 	wg.Wait()
 
-	require.ErrorIs(t, err, ErrCancelled)
+	assert.ErrorIs(t, err, ErrCancelled)
 }
 
 func BenchmarkWorker(b *testing.B) {

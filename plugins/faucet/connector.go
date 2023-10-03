@@ -1,41 +1,40 @@
 package faucet
 
 import (
+	"github.com/izuc/zipp.foundation/core/types/confirmation"
 	"github.com/pkg/errors"
 
 	"github.com/izuc/zipp/client/wallet"
 	"github.com/izuc/zipp/client/wallet/packages/address"
-	"github.com/izuc/zipp/packages/app/blockissuer"
-	"github.com/izuc/zipp/packages/core/confirmation"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/mempool"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/utxo"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm"
-	"github.com/izuc/zipp/packages/protocol/engine/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/ledger"
+	"github.com/izuc/zipp/packages/core/ledger/utxo"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
+	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm/indexer"
+	"github.com/izuc/zipp/packages/core/mana"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/plugins/blocklayer"
 )
 
-type Connector struct {
-	blockIssuer *blockissuer.BlockIssuer
-	protocol    *protocol.Protocol
-	indexer     *indexer.Indexer
+type FaucetConnector struct {
+	mesh  *mesh_old.Mesh
+	indexer *indexer.Indexer
 }
 
-func NewConnector(p *protocol.Protocol, blockIssuer *blockissuer.BlockIssuer, indexer *indexer.Indexer) *Connector {
-	return &Connector{
-		blockIssuer: blockIssuer,
-		protocol:    p,
-		indexer:     indexer,
+func NewConnector(t *mesh_old.Mesh, indexer *indexer.Indexer) *FaucetConnector {
+	return &FaucetConnector{
+		mesh:  t,
+		indexer: indexer,
 	}
 }
 
-func (f *Connector) UnspentOutputs(addresses ...address.Address) (unspentOutputs wallet.OutputsByAddressAndOutputID, err error) {
+func (f *FaucetConnector) UnspentOutputs(addresses ...address.Address) (unspentOutputs wallet.OutputsByAddressAndOutputID, err error) {
 	unspentOutputs = make(map[address.Address]map[utxo.OutputID]*wallet.Output)
 
 	for _, addr := range addresses {
 		f.indexer.CachedAddressOutputMappings(addr.Address()).Consume(func(mapping *indexer.AddressOutputMapping) {
-			f.protocol.Engine().Ledger.MemPool().Storage().CachedOutput(mapping.OutputID()).Consume(func(output utxo.Output) {
+			f.mesh.Ledger.Storage.CachedOutput(mapping.OutputID()).Consume(func(output utxo.Output) {
 				if typedOutput, ok := output.(devnetvm.Output); ok {
-					f.protocol.Engine().Ledger.MemPool().Storage().CachedOutputMetadata(typedOutput.ID()).Consume(func(outputMetadata *mempool.OutputMetadata) {
+					f.mesh.Ledger.Storage.CachedOutputMetadata(typedOutput.ID()).Consume(func(outputMetadata *ledger.OutputMetadata) {
 						if !outputMetadata.IsSpent() {
 							walletOutput := &wallet.Output{
 								Address:                  addr,
@@ -43,7 +42,7 @@ func (f *Connector) UnspentOutputs(addresses ...address.Address) (unspentOutputs
 								ConfirmationStateReached: outputMetadata.ConfirmationState().IsAccepted(),
 								Spent:                    false,
 								Metadata: wallet.OutputMetadata{
-									Timestamp: f.protocol.SlotTimeProvider().EndTime(outputMetadata.InclusionSlot()),
+									Timestamp: outputMetadata.CreationTime(),
 								},
 							}
 
@@ -61,31 +60,42 @@ func (f *Connector) UnspentOutputs(addresses ...address.Address) (unspentOutputs
 	return
 }
 
-func (f *Connector) SendTransaction(tx *devnetvm.Transaction) (err error) {
-	block, err := f.blockIssuer.CreateBlock(tx)
-	if err != nil {
-		return errors.Wrapf(err, "error sending tx %s", tx.ID().String())
+func (f *FaucetConnector) SendTransaction(tx *devnetvm.Transaction) (err error) {
+	// attach to block layer
+	issueTransaction := func() (*mesh_old.Block, error) {
+		block, e := deps.Mesh.IssuePayload(tx)
+		if e != nil {
+			return nil, e
+		}
+		return block, nil
 	}
 
-	err = f.blockIssuer.IssueBlockAndAwaitBlockToBeBooked(block, Parameters.MaxTransactionBookedAwaitTime)
+	_, err = blocklayer.AwaitBlockToBeBooked(issueTransaction, tx.ID(), Parameters.MaxTransactionBookedAwaitTime)
 	if err != nil {
-		return errors.Wrapf(err, "error sending tx %s", tx.ID().String())
+		return errors.Errorf("%v: tx %s", err, tx.ID().String())
 	}
-
 	return nil
 }
 
-func (f *Connector) RequestFaucetFunds(address address.Address, powTarget int) (err error) {
+func (f *FaucetConnector) RequestFaucetFunds(address address.Address, powTarget int) (err error) {
 	panic("RequestFaucetFunds is not implemented in faucet connector.")
 }
 
-func (f *Connector) GetTransactionConfirmationState(txID utxo.TransactionID) (confirmationState confirmation.State, err error) {
-	f.protocol.Engine().Ledger.MemPool().Storage().CachedTransactionMetadata(txID).Consume(func(tm *mempool.TransactionMetadata) {
+func (f *FaucetConnector) GetAllowedPledgeIDs() (pledgeIDMap map[mana.Type][]string, err error) {
+	pledgeIDMap = make(map[mana.Type][]string)
+	pledgeIDMap[mana.AccessMana] = []string{deps.Local.ID().EncodeBase58()}
+	pledgeIDMap[mana.ConsensusMana] = []string{deps.Local.ID().EncodeBase58()}
+
+	return
+}
+
+func (f *FaucetConnector) GetTransactionConfirmationState(txID utxo.TransactionID) (confirmationState confirmation.State, err error) {
+	f.mesh.Ledger.Storage.CachedTransactionMetadata(txID).Consume(func(tm *ledger.TransactionMetadata) {
 		confirmationState = tm.ConfirmationState()
 	})
 	return
 }
 
-func (f *Connector) GetUnspentAliasOutput(address *devnetvm.AliasAddress) (output *devnetvm.AliasOutput, err error) {
+func (f *FaucetConnector) GetUnspentAliasOutput(address *devnetvm.AliasAddress) (output *devnetvm.AliasOutput, err error) {
 	panic("GetUnspentAliasOutput is not implemented in faucet connector.")
 }

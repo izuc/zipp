@@ -5,24 +5,18 @@ import (
 	"sort"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/izuc/zipp.foundation/core/autopeering/peer"
+	"github.com/izuc/zipp.foundation/core/node"
+	"github.com/labstack/echo"
 	"github.com/mr-tron/base58/base58"
 	"go.uber.org/dig"
 
-	"github.com/izuc/zipp.foundation/autopeering/peer"
-	"github.com/izuc/zipp.foundation/lo"
-	"github.com/izuc/zipp.foundation/runtime/event"
-	"github.com/izuc/zipp/packages/app/blockissuer"
-	"github.com/izuc/zipp/packages/app/collector"
 	"github.com/izuc/zipp/packages/app/jsonmodels"
-	"github.com/izuc/zipp/packages/core/latestblocktracker"
-	"github.com/izuc/zipp/packages/node"
-	"github.com/izuc/zipp/packages/protocol"
-	"github.com/izuc/zipp/packages/protocol/engine/consensus/blockgadget"
-	"github.com/izuc/zipp/packages/protocol/models"
+	"github.com/izuc/zipp/packages/core/mesh_old"
 	"github.com/izuc/zipp/plugins/autopeering/discovery"
 	"github.com/izuc/zipp/plugins/banner"
-	"github.com/izuc/zipp/plugins/dashboardmetrics"
+	"github.com/izuc/zipp/plugins/blocklayer"
+	"github.com/izuc/zipp/plugins/metrics"
 )
 
 // PluginName is the name of the web API info endpoint plugin.
@@ -31,75 +25,62 @@ const PluginName = "WebAPIInfoEndpoint"
 type dependencies struct {
 	dig.In
 
-	Server      *echo.Echo
-	Local       *peer.Local
-	Protocol    *protocol.Protocol
-	BlockIssuer *blockissuer.BlockIssuer
+	Server *echo.Echo
+	Local  *peer.Local
+	Mesh *mesh_old.Mesh
 }
 
 var (
 	// Plugin is the plugin instance of the web API info endpoint plugin.
-	Plugin             *node.Plugin
-	deps               = new(dependencies)
-	lastAcceptedBlock  = latestblocktracker.New()
-	lastConfirmedBlock = latestblocktracker.New()
+	Plugin *node.Plugin
+	deps   = new(dependencies)
 )
 
 func init() {
-	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, run)
+	Plugin = node.NewPlugin(PluginName, deps, node.Enabled, configure)
 }
 
-func run(plugin *node.Plugin) {
-	deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockAccepted.Hook(func(block *blockgadget.Block) {
-		lastAcceptedBlock.Update(block.ModelsBlock)
-	}, event.WithWorkerPool(plugin.WorkerPool))
-
-	deps.Protocol.Events.Engine.Consensus.BlockGadget.BlockConfirmed.Hook(func(block *blockgadget.Block) {
-		lastConfirmedBlock.Update(block.ModelsBlock)
-	}, event.WithWorkerPool(plugin.WorkerPool))
-
+func configure(_ *node.Plugin) {
 	deps.Server.GET("info", getInfo)
 }
 
 // getInfo returns the info of the node
 // e.g.,
-//
-//	{
-//		"version":"v0.2.0",
-//		"meshTime":{
-//			"blockID":"24Uq4UFQ7p5oLyjuXX32jHhNreo5hY9eo8Awh36RhdTHCwFMtct3SE2rhe3ceYz6rjKDjBs3usoHS3ujFEabP5ri",
-//			"time":1595528075204868900,
-//			"synced":true
-//	}
-//
-//		"identityID":"5bf4aa1d6c47e4ce",
-//		"publickey":"CjUsn86jpFHWnSCx3NhWfU4Lk16mDdy1Hr7ERSTv3xn9",
-//		"enabledplugins":[
-//			"Config",
-//			"AutoPeering",
-//			"Analysis",
-//			"WebAPIDataEndpoint",
-//			"Protocol",
-//			"CLI",
-//			"Database",
-//			"WebAPIAutoPeeringEndpoint",
-//			"Metrics",
-//			"PortCheck",
-//			"Dashboard",
-//			"WebAPI",
-//			"WebAPIInfoEndpoint",
-//			"WebAPIBlockEndpoint",
-//			"Banner",
-//			"Gossip",
-//			"GracefulShutdown",
-//			"Logger"
-//		],
-//		"disabledplugins":[
-//			"RemoteLog",
-//			"Spammer",
-//			"WebAPIAuth"
-//		]
-//	}
+// {
+// 	"version":"v0.2.0",
+//	"meshTime":{
+// 		"blockID":"24Uq4UFQ7p5oLyjuXX32jHhNreo5hY9eo8Awh36RhdTHCwFMtct3SE2rhe3ceYz6rjKDjBs3usoHS3ujFEabP5ri",
+// 		"time":1595528075204868900,
+// 		"synced":true
+// }
+// 	"identityID":"5bf4aa1d6c47e4ce",
+// 	"publickey":"CjUsn86jpFHWnSCx3NhWfU4Lk16mDdy1Hr7ERSTv3xn9",
+// 	"enabledplugins":[
+// 		"Config",
+// 		"AutoPeering",
+// 		"Analysis",
+// 		"WebAPIDataEndpoint",
+// 		"BlockLayer",
+// 		"CLI",
+// 		"Database",
+// 		"WebAPIAutoPeeringEndpoint",
+// 		"Metrics",
+// 		"PortCheck",
+// 		"Dashboard",
+// 		"WebAPI",
+// 		"WebAPIInfoEndpoint",
+// 		"WebAPIBlockEndpoint",
+// 		"Banner",
+// 		"Gossip",
+// 		"GracefulShutdown",
+// 		"Logger"
+// 	],
+// 	"disabledplugins":[
+// 		"RemoteLog",
+// 		"Spammer",
+// 		"WebAPIAuth"
+// 	]
+// }
 func getInfo(c echo.Context) error {
 	var enabledPlugins []string
 	var disabledPlugins []string
@@ -115,76 +96,61 @@ func getInfo(c echo.Context) error {
 	sort.Strings(disabledPlugins)
 
 	// get MeshTime
-	tm := deps.Protocol.Engine().Clock
-	lastAcceptedBlockID := models.EmptyBlockID
-	lastConfirmedBlockID := models.EmptyBlockID
-
-	if lastAcceptedBlock != nil {
-		lastAcceptedBlockID = lastAcceptedBlock.BlockID()
-	}
-	if lastConfirmedBlock != nil {
-		lastConfirmedBlockID = lastConfirmedBlock.BlockID()
-	}
-
+	tm := deps.Mesh.TimeManager
+	lcm := tm.LastAcceptedBlock()
 	meshTime := jsonmodels.MeshTime{
-		Synced:           deps.Protocol.Engine().IsSynced(),
-		Bootstrapped:     deps.Protocol.Engine().IsBootstrapped(),
-		AcceptedBlockID:  lastAcceptedBlockID.Base58(),
-		ConfirmedBlockID: lastConfirmedBlockID.Base58(),
-		ConfirmedSlot:    int64(deps.Protocol.Engine().LastConfirmedSlot()),
-
-		ATT:  tm.Accepted().Time().UnixNano(),
-		RATT: tm.Accepted().RelativeTime().UnixNano(),
-		CTT:  tm.Confirmed().Time().UnixNano(),
-		RCTT: tm.Confirmed().RelativeTime().UnixNano(),
+		Synced:          deps.Mesh.TimeManager.Synced(),
+		AcceptedBlockID: lcm.BlockID.Base58(),
+		ATT:             tm.ATT().UnixNano(),
+		RATT:            tm.RATT().UnixNano(),
+		CTT:             tm.CTT().UnixNano(),
+		RCTT:            tm.RCTT().UnixNano(),
 	}
 
-	timeProvider := jsonmodels.TimeProvider{
-		GenesisTime:  deps.Protocol.Engine().SlotTimeProvider().GenesisTime(),
-		SlotDuration: time.Second * time.Duration(deps.Protocol.Engine().SlotTimeProvider().Duration()),
-	}
-
-	accessMana, _ := deps.Protocol.Engine().ThroughputQuota.Balance(deps.Local.ID())
-	consensusMana := lo.Return1(deps.Protocol.Engine().SybilProtection.Weights().Get(deps.Local.ID())).Value
+	t := time.Now()
+	accessMana, tAccess, _ := blocklayer.GetAccessMana(deps.Local.ID(), t)
+	consensusMana, tConsensus, _ := blocklayer.GetConsensusMana(deps.Local.ID(), t)
 	nodeMana := jsonmodels.Mana{
 		Access:             accessMana,
-		AccessTimestamp:    time.Now(),
+		AccessTimestamp:    tAccess,
 		Consensus:          consensusMana,
-		ConsensusTimestamp: time.Now(),
+		ConsensusTimestamp: tConsensus,
 	}
 
-	issuerQueueSizes := make(map[string]int)
-	for issuerID, size := range deps.Protocol.CongestionControl.Scheduler().IssuerQueueSizes() {
-		issuerQueueSizes[issuerID.String()] = size
+	nodeQueueSizes := make(map[string]int)
+	for nodeID, size := range deps.Mesh.Scheduler.NodeQueueSizes() {
+		nodeQueueSizes[nodeID.String()] = size
 	}
-	scheduler := deps.Protocol.CongestionControl.Scheduler()
-	deficit, _ := scheduler.Deficit(deps.Local.ID()).Float64()
+
+	deficit, _ := deps.Mesh.Scheduler.GetDeficit(deps.Local.ID()).Float64()
 
 	return c.JSON(http.StatusOK, jsonmodels.InfoResponse{
 		Version:               banner.AppVersion,
 		NetworkVersion:        discovery.Parameters.NetworkVersion,
-		MeshTime:              meshTime,
-		TimeProvider:          timeProvider,
-		IdentityID:            base58.Encode(lo.PanicOnErr(deps.Local.Identity.ID().Bytes())),
+		MeshTime:            meshTime,
+		IdentityID:            base58.Encode(deps.Local.Identity.ID().Bytes()),
 		IdentityIDShort:       deps.Local.Identity.ID().String(),
 		PublicKey:             deps.Local.PublicKey().String(),
-		BlockRequestQueueSize: int(dashboardmetrics.BlockRequestQueueSize()),
-		SolidBlockCount:       int(dashboardmetrics.BlockCountSinceStartPerComponentGrafana()[collector.Solidified]),
-		TotalBlockCount:       int(dashboardmetrics.BlockCountSinceStartPerComponentGrafana()[collector.Attached]),
-		EnabledPlugins:        enabledPlugins,
-		DisabledPlugins:       disabledPlugins,
-		Mana:                  nodeMana,
+		BlockRequestQueueSize: int(metrics.BlockRequestQueueSize()),
+		SolidBlockCount: int(metrics.InitialBlockCountPerComponentGrafana()[metrics.Solidifier] +
+			metrics.BlockCountSinceStartPerComponentGrafana()[metrics.Solidifier]),
+		TotalBlockCount: int(metrics.InitialBlockCountPerComponentGrafana()[metrics.Store] +
+			metrics.BlockCountSinceStartPerComponentGrafana()[metrics.Store]),
+		EnabledPlugins:  enabledPlugins,
+		DisabledPlugins: disabledPlugins,
+		Mana:            nodeMana,
 		Scheduler: jsonmodels.Scheduler{
-			Running:           scheduler.IsRunning(),
-			Rate:              scheduler.Rate().String(),
-			MaxBufferSize:     scheduler.MaxBufferSize(),
-			CurrentBufferSize: scheduler.BufferSize(),
+			Running:           deps.Mesh.Scheduler.Running(),
+			Rate:              deps.Mesh.Scheduler.Rate().String(),
+			MaxBufferSize:     deps.Mesh.Scheduler.MaxBufferSize(),
+			CurrentBufferSize: deps.Mesh.Scheduler.BufferSize(),
 			Deficit:           deficit,
-			NodeQueueSizes:    issuerQueueSizes,
+			NodeQueueSizes:    nodeQueueSizes,
 		},
 		RateSetter: jsonmodels.RateSetter{
-			Rate:     deps.BlockIssuer.Rate(),
-			Estimate: deps.BlockIssuer.Estimate(),
+			Rate:     deps.Mesh.RateSetter.Rate(),
+			Size:     deps.Mesh.RateSetter.Size(),
+			Estimate: deps.Mesh.RateSetter.Estimate(),
 		},
 	})
 }

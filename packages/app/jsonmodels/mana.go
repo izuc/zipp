@@ -1,87 +1,92 @@
 package jsonmodels
 
-import (
-	"github.com/izuc/zipp/packages/protocol/engine/throughputquota/mana1/manamodels"
-)
+import "github.com/izuc/zipp/packages/core/mana"
 
 // GetManaRequest is the request for get mana.
 type GetManaRequest struct {
-	IssuerID string `json:"nodeID"`
+	NodeID string `json:"nodeID"`
 }
 
 // GetManaResponse defines the response for get mana.
 type GetManaResponse struct {
-	Error              string `json:"error,omitempty"`
-	ShortIssuerID      string `json:"shortNodeID"`
-	IssuerID           string `json:"nodeID"`
-	Access             int64  `json:"access"`
-	AccessTimestamp    int64  `json:"accessTimestamp"`
-	Consensus          int64  `json:"consensus"`
-	ConsensusTimestamp int64  `json:"consensusTimestamp"`
+	Error              string  `json:"error,omitempty"`
+	ShortNodeID        string  `json:"shortNodeID"`
+	NodeID             string  `json:"nodeID"`
+	Access             float64 `json:"access"`
+	AccessTimestamp    int64   `json:"accessTimestamp"`
+	Consensus          float64 `json:"consensus"`
+	ConsensusTimestamp int64   `json:"consensusTimestamp"`
 }
 
 // GetAllManaResponse is the request to a getAllManaHandler request.
 type GetAllManaResponse struct {
-	Access             []manamodels.IssuerStr `json:"access"`
-	AccessTimestamp    int64                  `json:"accessTimestamp"`
-	Consensus          []manamodels.IssuerStr `json:"consensus"`
-	ConsensusTimestamp int64                  `json:"consensusTimestamp"`
-	Error              string                 `json:"error,omitempty"`
+	Access             []mana.NodeStr `json:"access"`
+	AccessTimestamp    int64          `json:"accessTimestamp"`
+	Consensus          []mana.NodeStr `json:"consensus"`
+	ConsensusTimestamp int64          `json:"consensusTimestamp"`
+	Error              string         `json:"error,omitempty"`
+}
+
+// EventLogsJSON is a events log in JSON.
+type EventLogsJSON struct {
+	Pledge []*mana.PledgedEventJSON `json:"pledge"`
+	Revoke []*mana.RevokedEventJSON `json:"revoke"`
 }
 
 // GetEventLogsRequest is the request.
 type GetEventLogsRequest struct {
-	IssuerIDs []string `json:"nodeIDs"`
+	NodeIDs   []string `json:"nodeIDs"`
 	StartTime int64    `json:"startTime"`
 	EndTime   int64    `json:"endTime"`
 }
 
 // GetEventLogsResponse is the response.
 type GetEventLogsResponse struct {
-	Error     string `json:"error,omitempty"`
-	StartTime int64  `json:"startTime"`
-	EndTime   int64  `json:"endTime"`
+	Logs      map[string]*EventLogsJSON `json:"logs"`
+	Error     string                    `json:"error,omitempty"`
+	StartTime int64                     `json:"startTime"`
+	EndTime   int64                     `json:"endTime"`
 }
 
 // GetNHighestResponse holds info about nodes and their mana values.
 type GetNHighestResponse struct {
-	Error     string                 `json:"error,omitempty"`
-	Issuers   []manamodels.IssuerStr `json:"nodes,omitempty"`
-	Timestamp int64                  `json:"timestamp"`
+	Error     string         `json:"error,omitempty"`
+	Nodes     []mana.NodeStr `json:"nodes,omitempty"`
+	Timestamp int64          `json:"timestamp"`
 }
 
 // GetOnlineResponse is the response to an online mana request.
 type GetOnlineResponse struct {
-	Online    []*OnlineIssuerStr `json:"online"`
-	Error     string             `json:"error,omitempty"`
-	Timestamp int64              `json:"timestamp"`
+	Online    []OnlineNodeStr `json:"online"`
+	Error     string          `json:"error,omitempty"`
+	Timestamp int64           `json:"timestamp"`
 }
 
-// OnlineIssuerStr holds information about online rank, nodeID and mana.
-type OnlineIssuerStr struct {
-	OnlineRank int    `json:"rank"`
-	ShortID    string `json:"shortNodeID"`
-	ID         string `json:"nodeID"`
-	Mana       int64  `json:"mana"`
+// OnlineNodeStr holds information about online rank, nodeID and mana.
+type OnlineNodeStr struct {
+	OnlineRank int     `json:"rank"`
+	ShortID    string  `json:"shortNodeID"`
+	ID         string  `json:"nodeID"`
+	Mana       float64 `json:"mana"`
 }
 
 // PastConsensusManaVectorResponse is the response.
 type PastConsensusManaVectorResponse struct {
-	Consensus []manamodels.IssuerStr `json:"consensus"`
-	Error     string                 `json:"error,omitempty"`
-	TimeStamp int64                  `json:"timestamp"`
+	Consensus []mana.NodeStr `json:"consensus"`
+	Error     string         `json:"error,omitempty"`
+	TimeStamp int64          `json:"timestamp"`
 }
 
 // GetPercentileRequest is the request object of mana/percentile.
 type GetPercentileRequest struct {
-	IssuerID string `json:"nodeID"`
+	NodeID string `json:"nodeID"`
 }
 
 // GetPercentileResponse holds info about the mana percentile(s) of a node.
 type GetPercentileResponse struct {
 	Error              string  `json:"error,omitempty"`
-	ShortIssuerID      string  `json:"shortNodeID"`
-	IssuerID           string  `json:"nodeID"`
+	ShortNodeID        string  `json:"shortNodeID"`
+	NodeID             string  `json:"nodeID"`
 	Access             float64 `json:"access"`
 	AccessTimestamp    int64   `json:"accessTimestamp"`
 	Consensus          float64 `json:"consensus"`
