@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"unsafe"
 
-	"github.com/capossele/asset-registry/pkg/registryservice"
+	"github.com/izuc/asset-registry/pkg/registryservice"
 	"github.com/izuc/zipp.foundation/core/bitmask"
 	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
 	"github.com/izuc/zipp.foundation/core/marshalutil"

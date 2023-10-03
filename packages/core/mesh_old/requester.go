@@ -6,16 +6,16 @@ import (
 
 	"github.com/izuc/zipp.foundation/core/crypto"
 	"github.com/izuc/zipp.foundation/core/generics/event"
-	"github.com/izuc/zipp.foundation/core/timedexecutor"
+	"github.com/izuc/zipp.foundation/core/timed"
 )
 
 // region Requester ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Requester takes care of requesting blocks.
 type Requester struct {
-	mesh            *Mesh
-	timedExecutor     *timedexecutor.TimedExecutor
-	scheduledRequests map[BlockID]*timedexecutor.ScheduledTask
+	mesh              *Mesh
+	timedExecutor     *timed.Executor
+	scheduledRequests map[BlockID]*timed.ScheduledTask
 	options           RequesterOptions
 	Events            *RequesterEvents
 
@@ -25,9 +25,9 @@ type Requester struct {
 // NewRequester creates a new block requester.
 func NewRequester(mesh *Mesh, optionalOptions ...RequesterOption) *Requester {
 	requester := &Requester{
-		mesh:            mesh,
-		timedExecutor:     timedexecutor.New(1),
-		scheduledRequests: make(map[BlockID]*timedexecutor.ScheduledTask),
+		mesh:              mesh,
+		timedExecutor:     timed.NewExecutor(1),
+		scheduledRequests: make(map[BlockID]*timed.ScheduledTask),
 		options:           DefaultRequesterOptions.Apply(optionalOptions...),
 		Events:            newRequesterEvents(),
 	}
@@ -55,7 +55,7 @@ func (r *Requester) Setup() {
 
 // Shutdown shuts down the Requester.
 func (r *Requester) Shutdown() {
-	r.timedExecutor.Shutdown(timedexecutor.CancelPendingTasks)
+	r.timedExecutor.Shutdown(timed.CancelPendingElements)
 }
 
 // StartRequest initiates a regular triggering of the StartRequest event until it has been stopped using StopRequest.

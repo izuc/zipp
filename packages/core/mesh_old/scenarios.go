@@ -22,7 +22,7 @@ type NodeIdentities map[string]*identity.Identity
 type TestScenario struct {
 	Steps         []TestStep
 	PostStep      TestStep
-	Mesh        *Mesh
+	Mesh          *Mesh
 	stepIndex     int
 	t             *testing.T
 	nodes         NodeIdentities
@@ -69,6 +69,7 @@ func (s *TestScenario) Next(prePostStepTuple *PrePostStepTuple) {
 }
 
 // ProcessBlockScenario the approval weight and voter adjustments.
+//
 //nolint:gomnd
 func ProcessBlockScenario(t *testing.T, options ...Option) *TestScenario {
 	s := &TestScenario{t: t}
@@ -436,6 +437,7 @@ func ProcessBlockScenario(t *testing.T, options ...Option) *TestScenario {
 }
 
 // ProcessBlockScenario2 creates a scenario useful to validate strong / weak propagation paths.
+//
 //nolint:gomnd
 func ProcessBlockScenario2(t *testing.T, options ...Option) *TestScenario {
 	s := &TestScenario{t: t}
@@ -538,6 +540,7 @@ func ProcessBlockScenario2(t *testing.T, options ...Option) *TestScenario {
 }
 
 // IssueAndValidateBlockApproval issues the blk by the given alias and assets the expected weights.
+//
 //nolint:gomnd
 func IssueAndValidateBlockApproval(t *testing.T, blockAlias string, eventMock *EventMock, testFramework *BlockTestFramework, expectedConflictWeights map[string]float64, expectedMarkerWeights map[markers.Marker]float64) {
 	eventMock.Expect("BlockProcessed", testFramework.Block(blockAlias).ID())
