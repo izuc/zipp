@@ -17,7 +17,6 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.4.0
 	github.com/libp2p/go-libp2p v0.31.0
-	github.com/libp2p/go-libp2p-core v0.20.1
 	github.com/magiconair/properties v1.8.6
 	github.com/markbates/pkger v0.17.1
 	github.com/mr-tron/base58 v1.2.0

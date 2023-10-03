@@ -14,7 +14,7 @@ import (
 	"github.com/izuc/zipp.foundation/core/generics/event"
 	"github.com/izuc/zipp.foundation/core/kvstore/mapdb"
 	"github.com/izuc/zipp.foundation/core/logger"
-	libp2ppeer "github.com/libp2p/go-libp2p-core/peer"
+	libp2ppeer "github.com/libp2p/go-libp2p/core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/assert"

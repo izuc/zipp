@@ -7,7 +7,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/izuc/zipp.foundation/core/autopeering/peer"
 	"github.com/izuc/zipp.foundation/core/logger"
-	"github.com/libp2p/go-libp2p-core/protocol"
+	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
 // NeighborsGroup is an enum type for various neighbors groups like auto/manual.
