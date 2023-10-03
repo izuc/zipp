@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/cockroachdb/errors"
+	"github.com/iancoleman/orderedmap"
 	"github.com/izuc/zipp.foundation/core/byteutils"
-	"github.com/izuc/zipp.foundation/core/generics/orderedmap"
 	"github.com/izuc/zipp.foundation/core/generics/set"
 	"github.com/izuc/zipp.foundation/core/serix"
 	"github.com/izuc/zipp.foundation/core/stringify"
@@ -193,14 +195,19 @@ func NewOutputIDs(ids ...OutputID) (newOutputIDs OutputIDs) {
 // Outputs represents a collection of Output objects indexed by their OutputID.
 type Outputs struct {
 	// OrderedMap is the underlying data structure that holds the Outputs.
-	orderedmap.OrderedMap[OutputID, Output] `serix:"0"`
+	*orderedmap.OrderedMap
+}
+
+// Size returns the number of outputs in the collection.
+func (o *Outputs) Size() int {
+	return len(o.OrderedMap.Keys())
 }
 
 // NewOutputs returns a new Output collection with the given elements.
 func NewOutputs(outputs ...Output) (newOutputs *Outputs) {
-	newOutputs = &Outputs{*orderedmap.New[OutputID, Output]()}
+	newOutputs = &Outputs{orderedmap.New()}
 	for _, output := range outputs {
-		newOutputs.Set(output.ID(), output)
+		newOutputs.Set(output.ID().String(), output) // Note the conversion of ID to string
 	}
 
 	return newOutputs
@@ -208,31 +215,70 @@ func NewOutputs(outputs ...Output) (newOutputs *Outputs) {
 
 // Add adds the given Output to the collection.
 func (o *Outputs) Add(output Output) {
-	o.Set(output.ID(), output)
+	o.Set(output.ID().String(), output) // Note the conversion of ID to string
+}
+
+func TransactionIDFromString(s string) (TransactionID, error) {
+	decodedBytes, err := base58.Decode(s)
+	if err != nil {
+		return EmptyTransactionID, errors.Errorf("failed to decode base58 encoded TransactionID: %w", err)
+	}
+
+	// Here, assuming NewTransactionID can take the decoded bytes to construct a TransactionID
+	return NewTransactionID(decodedBytes), nil
+}
+
+func OutputIDFromString(s string) (OutputID, error) {
+	parts := strings.Split(s, ",")
+	if len(parts) != 2 {
+		return EmptyOutputID, errors.New("invalid string representation of OutputID")
+	}
+
+	transactionIDStr := strings.TrimSpace(parts[0])
+	indexStr := strings.TrimSpace(parts[1])
+
+	// Assuming TransactionID has a method to convert from a string representation
+	transactionID, err := TransactionIDFromString(transactionIDStr)
+	if err != nil {
+		return EmptyOutputID, err
+	}
+
+	index, err := strconv.ParseUint(indexStr, 10, 16)
+	if err != nil {
+		return EmptyOutputID, errors.New("invalid index in OutputID string representation")
+	}
+
+	return NewOutputID(transactionID, uint16(index)), nil
 }
 
 // IDs returns the identifiers of the stored Outputs.
 func (o *Outputs) IDs() (ids OutputIDs) {
 	outputIDs := make([]OutputID, 0)
-	o.OrderedMap.ForEach(func(id OutputID, _ Output) bool {
-		outputIDs = append(outputIDs, id)
-		return true
-	})
+	for _, key := range o.OrderedMap.Keys() {
+		// Assuming OutputID can be created from the key directly
+		// If not, you'll need to deserialize or convert the key to OutputID
+		outputID, err := OutputIDFromString(key)
+		if err != nil {
+			// Handle the error
+			return nil
+		}
+		outputIDs = append(outputIDs, outputID)
+	}
 
 	return NewOutputIDs(outputIDs...)
 }
 
 // ForEach executes the callback for each element in the collection (it aborts if the callback returns an error).
 func (o *Outputs) ForEach(callback func(output Output) error) (err error) {
-	o.OrderedMap.ForEach(func(_ OutputID, output Output) bool {
-		if err = callback(output); err != nil {
-			return false
+	for _, key := range o.OrderedMap.Keys() {
+		value, _ := o.OrderedMap.Get(key)
+		if output, ok := value.(Output); ok {
+			if err = callback(output); err != nil {
+				return err
+			}
 		}
-
-		return true
-	})
-
-	return err
+	}
+	return nil
 }
 
 // Strings returns a human-readable version of the Outputs.

@@ -12,7 +12,8 @@ func TestPayload(t *testing.T) {
 	a := NewPayload("me", "you", "ciao")
 	abytes := lo.PanicOnErr(a.Bytes())
 	b := new(Payload)
-	err := b.FromBytes(abytes)
+	_, err := b.FromBytes(abytes)
 	require.NoError(t, err)
 	assert.Equal(t, a, b)
+	// If needed, you can also use or check the value of consumedBytes.
 }

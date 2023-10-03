@@ -25,12 +25,17 @@ func getOnlineHandler(c echo.Context, manaType mana.Type) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, jsonmodels.GetOnlineResponse{Error: err.Error()})
 	}
+
 	resp := make([]jsonmodels.OnlineNodeStr, 0)
 	for index, value := range onlinePeersMana {
+		bytes, err := value.ID.Bytes()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, jsonmodels.ErrorResponse{Error: "Failed to get bytes for identity"})
+		}
 		resp = append(resp, jsonmodels.OnlineNodeStr{
 			OnlineRank: index + 1,
 			ShortID:    value.ID.String(),
-			ID:         base58.Encode(value.ID.Bytes()),
+			ID:         base58.Encode(bytes),
 			Mana:       value.Mana,
 		})
 	}

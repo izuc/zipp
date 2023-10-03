@@ -45,14 +45,19 @@ func sendHeartbeat(w io.Writer, hb *packet.Heartbeat) {
 		log.Debugw("Error while writing to connection", "Description", err)
 	}
 	// trigger AnalysisOutboundBytes event
-	metrics.Events.AnalysisOutboundBytes.Trigger(&metrics.AnalysisOutboundBytesEvent{uint64(len(data))})
+	metrics.Events.AnalysisOutboundBytes.Trigger(&metrics.AnalysisOutboundBytesEvent{AmountBytes: uint64(len(data))})
 }
 
 func createHeartbeat() *packet.Heartbeat {
 	// get own ID
 	nodeID := make([]byte, len(identity.ID{}))
 	if deps.Local != nil {
-		copy(nodeID, deps.Local.ID().Bytes())
+		nodeIDBytes, err := deps.Local.ID().Bytes()
+		if err != nil {
+			log.Error("Failed to get bytes from node ID: ", err)
+			return nil // or handle the error as appropriate
+		}
+		copy(nodeID, nodeIDBytes)
 	}
 
 	var outboundIDs [][]byte
@@ -63,7 +68,12 @@ func createHeartbeat() *packet.Heartbeat {
 	outboundIDs = make([][]byte, len(outgoingNeighbors))
 	for i, neighbor := range outgoingNeighbors {
 		outboundIDs[i] = make([]byte, len(identity.ID{}))
-		copy(outboundIDs[i], neighbor.ID().Bytes())
+		neighborIDBytes, err := neighbor.ID().Bytes()
+		if err != nil {
+			log.Error("Failed to get bytes from neighbor ID: ", err)
+			continue // or handle the error as appropriate
+		}
+		copy(outboundIDs[i], neighborIDBytes) // for the outgoingNeighbors loop
 	}
 
 	// get inboundIDs (accepted neighbors)
@@ -71,7 +81,12 @@ func createHeartbeat() *packet.Heartbeat {
 	inboundIDs = make([][]byte, len(incomingNeighbors))
 	for i, neighbor := range incomingNeighbors {
 		inboundIDs[i] = make([]byte, len(identity.ID{}))
-		copy(inboundIDs[i], neighbor.ID().Bytes())
+		neighborIDBytes, err := neighbor.ID().Bytes()
+		if err != nil {
+			log.Error("Failed to get bytes from neighbor ID: ", err)
+			continue // or handle the error as appropriate
+		}
+		copy(outboundIDs[i], neighborIDBytes) // for the outgoingNeighbors loop
 	}
 
 	return &packet.Heartbeat{NetworkID: []byte(banner.SimplifiedAppVersion), OwnID: nodeID, OutboundIDs: outboundIDs, InboundIDs: inboundIDs}

@@ -838,7 +838,7 @@ func createAndStoreParentsDataBlockInMasterConflict(mesh *Mesh, strongParents, w
 
 	block = newTestParentsDataBlock("testblock", parents)
 	mesh.Storage.StoreBlock(block)
-	event.Loop.WaitUntilAllTasksProcessed()
+	event.Loop.PendingTasksCounter.WaitIsZero()
 
 	return
 }

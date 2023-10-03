@@ -34,7 +34,6 @@ func init() {
 			Plugin.Panic(err)
 		}
 
-		// enable logging for the daemon
-		daemon.DebugEnabled(true)
+		daemon.DebugLogger(Plugin.Logger())
 	}))
 }

@@ -19,11 +19,17 @@ type NodeStr struct {
 	Mana        float64 `json:"mana"`
 }
 
-// ToNodeStr converts a Node to a Nodestr
+// ToNodeStr converts a Node to a NodeStr
 func (n Node) ToNodeStr() NodeStr {
+	bytes, err := n.ID.Bytes()
+	if err != nil {
+		// Handle the error appropriately.
+		// Depending on your design, you may want to return an error or use a default value.
+		panic(err) // this is just an example, handle it as suits your application
+	}
 	return NodeStr{
 		ShortNodeID: n.ID.String(),
-		NodeID:      base58.Encode(n.ID.Bytes()),
+		NodeID:      base58.Encode(bytes),
 		Mana:        n.Mana,
 	}
 }
@@ -34,13 +40,19 @@ type NodeMap map[identity.ID]float64
 // NodeMapStr is a NodeMap but with string id.
 type NodeMapStr map[string]float64
 
-// ToNodeStrList converts a NodeMap to list of NodeStr.
+// ToNodeStrList converts a NodeMap to a list of NodeStr.
 func (n NodeMap) ToNodeStrList() []NodeStr {
 	var list []NodeStr
 	for ID, val := range n {
+		bytes, err := ID.Bytes()
+		if err != nil {
+			// Handle the error appropriately.
+			// Depending on your design, you may want to return an error or use a default value.
+			panic(err) // this is just an example, handle it as suits your application
+		}
 		list = append(list, NodeStr{
 			ShortNodeID: ID.String(),
-			NodeID:      base58.Encode(ID.Bytes()),
+			NodeID:      base58.Encode(bytes),
 			Mana:        val,
 		})
 	}

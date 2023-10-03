@@ -209,16 +209,26 @@ func sendAllowedManaPledge(ws *websocket.Conn) error {
 	wsblkData := &AllowedPledgeIDsBlkData{}
 	wsblkData.Access.Enabled = allowedAccess.IsFilterEnabled
 	allowedAccess.Allowed.ForEach(func(ID identity.ID) {
+		idBytes, err := ID.Bytes()
+		if err != nil {
+			log.Error("Failed to get bytes from identity ID: ", err)
+			return
+		}
 		wsblkData.Access.AllowedNodeIDs = append(wsblkData.Access.AllowedNodeIDs, AllowedNodeStr{
 			ShortID: ID.String(),
-			FullID:  base58.Encode(ID.Bytes()),
+			FullID:  base58.Encode(idBytes),
 		})
 	})
 	wsblkData.Consensus.Enabled = allowedConsensus.IsFilterEnabled
 	allowedConsensus.Allowed.ForEach(func(ID identity.ID) {
+		idBytes, err := ID.Bytes()
+		if err != nil {
+			log.Error("Failed to get bytes from identity ID: ", err)
+			return
+		}
 		wsblkData.Consensus.AllowedNodeIDs = append(wsblkData.Consensus.AllowedNodeIDs, AllowedNodeStr{
 			ShortID: ID.String(),
-			FullID:  base58.Encode(ID.Bytes()),
+			FullID:  base58.Encode(idBytes),
 		})
 	})
 

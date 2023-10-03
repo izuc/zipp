@@ -51,9 +51,15 @@ func getPercentileHandler(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, jsonmodels.GetManaResponse{Error: err.Error()})
 		}
 	}
+
+	bytes, err := ID.Bytes()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, jsonmodels.ErrorResponse{Error: "Failed to get bytes for identity"})
+	}
+
 	return c.JSON(http.StatusOK, jsonmodels.GetPercentileResponse{
 		ShortNodeID:        ID.String(),
-		NodeID:             base58.Encode(ID.Bytes()),
+		NodeID:             base58.Encode(bytes),
 		Access:             accessPercentile,
 		AccessTimestamp:    tAccess.Unix(),
 		Consensus:          consensusPercentile,

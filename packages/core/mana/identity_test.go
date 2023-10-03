@@ -10,7 +10,11 @@ import (
 
 func TestIDFromStr(t *testing.T) {
 	_identity := identity.GenerateIdentity()
-	ID, err := IDFromStr(base58.Encode(_identity.ID().Bytes()))
+	idBytes, err := _identity.ID().Bytes()
+	if err != nil {
+		t.Fatalf("Error converting NodeID to bytes: %v", err)
+	}
+	ID, err := IDFromStr(base58.Encode(idBytes))
 	assert.NoError(t, err)
 	assert.Equal(t, _identity.ID(), ID)
 }

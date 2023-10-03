@@ -123,7 +123,10 @@ func (f *EpochCommitmentFactory) updateManaLeaf(outputWithMetadata *ledger.Outpu
 		return nil
 	}
 
-	accountBytes := outputWithMetadata.ConsensusManaPledgeID().Bytes()
+	accountBytes, err := outputWithMetadata.ConsensusManaPledgeID().Bytes()
+	if err != nil {
+		return errors.Wrap(err, "could not get bytes from ConsensusManaPledgeID")
+	}
 
 	var currentBalance uint64
 	if balanceBytes, getLeafErr := f.manaRootTree.Get(accountBytes); getLeafErr != nil && len(balanceBytes) > 0 {
@@ -203,7 +206,11 @@ func (f *EpochCommitmentFactory) insertActivityLeaf(ei epoch.Index, nodeID ident
 	if err != nil {
 		return errors.Wrap(err, "could not get commitment while inserting activity leaf")
 	}
-	return insertLeaf(commitment.activityTree, nodeID.Bytes(), nodeID.Bytes())
+	nodeBytes, err := nodeID.Bytes()
+	if err != nil {
+		return errors.Wrap(err, "could not get bytes from nodeID")
+	}
+	return insertLeaf(commitment.activityTree, nodeBytes, nodeBytes)
 }
 
 // removeActivityLeaf removes the nodeID from the Activity sparse merkle tree.
@@ -212,7 +219,11 @@ func (f *EpochCommitmentFactory) removeActivityLeaf(ei epoch.Index, nodeID ident
 	if err != nil {
 		return errors.Wrap(err, "could not get commitment while deleting activity leaf")
 	}
-	return removeLeaf(commitment.activityTree, nodeID.Bytes())
+	nodeBytes, err := nodeID.Bytes()
+	if err != nil {
+		return errors.Wrap(err, "could not get bytes from nodeID")
+	}
+	return removeLeaf(commitment.activityTree, nodeBytes)
 }
 
 // ecRecord retrieves the epoch commitment.

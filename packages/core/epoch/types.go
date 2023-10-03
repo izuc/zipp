@@ -3,12 +3,13 @@ package epoch
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cockroachdb/errors"
 	"github.com/izuc/zipp.foundation/core/generics/set"
 	"github.com/izuc/zipp.foundation/core/generics/shrinkingmap"
 	"github.com/izuc/zipp.foundation/core/identity"
-	"strings"
-	"time"
 
 	"github.com/izuc/zipp.foundation/core/byteutils"
 	"github.com/izuc/zipp.foundation/core/generics/model"
@@ -103,7 +104,7 @@ func (m MerkleRoot) Bytes() []byte {
 
 // CommitmentRoots contains roots of trees of an epoch.
 type CommitmentRoots struct {
-	MeshRoot        MerkleRoot `serix:"0"`
+	MeshRoot          MerkleRoot `serix:"0"`
 	StateMutationRoot MerkleRoot `serix:"1"`
 	StateRoot         MerkleRoot `serix:"2"`
 	ManaRoot          MerkleRoot `serix:"3"`
@@ -190,7 +191,7 @@ func (e *ECRecord) Bytes() (bytes []byte, err error) {
 }
 
 func (e *ECRecord) FromBytes(bytes []byte) (err error) {
-	err = e.Storable.FromBytes(bytes)
+	_, err = e.Storable.FromBytes(bytes)
 	e.SetID(e.EI())
 
 	return

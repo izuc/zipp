@@ -64,7 +64,7 @@ const (
 
 // Storage represents the storage of blocks.
 type Storage struct {
-	mesh                              *Mesh
+	mesh                                *Mesh
 	blockStorage                        *objectstorage.ObjectStorage[*Block]
 	blockMetadataStorage                *objectstorage.ObjectStorage[*BlockMetadata]
 	childStorage                        *objectstorage.ObjectStorage[*Child]
@@ -86,7 +86,7 @@ func NewStorage(mesh *Mesh) (storage *Storage) {
 	cacheProvider := mesh.Options.CacheTimeProvider
 
 	storage = &Storage{
-		mesh:                              mesh,
+		mesh:                                mesh,
 		shutdown:                            make(chan struct{}),
 		blockStorage:                        objectstorage.NewStructStorage[Block](objectstorage.NewStoreWithRealm(mesh.Options.Store, database.PrefixMesh, PrefixBlock), cacheProvider.CacheTime(cacheTime), objectstorage.LeakDetectionEnabled(false), objectstorage.StoreOnCreation(true)),
 		blockMetadataStorage:                objectstorage.NewStructStorage[BlockMetadata](objectstorage.NewStoreWithRealm(mesh.Options.Store, database.PrefixMesh, PrefixBlockMetadata), cacheProvider.CacheTime(cacheTime), objectstorage.LeakDetectionEnabled(false)),
@@ -300,24 +300,37 @@ func (s *Storage) ConflictVoters(conflictID utxo.TransactionID, computeIfAbsentC
 
 // LatestConflictVotes retrieves the LatestConflictVotes of the given Voter.
 func (s *Storage) LatestConflictVotes(voter Voter, computeIfAbsentCallback ...func(voter Voter) *LatestConflictVotes) *objectstorage.CachedObject[*LatestConflictVotes] {
+	voterBytes, err := voter.Bytes()
+	if err != nil {
+		// Handle the error appropriately, perhaps by returning or logging it
+		return nil
+	}
+
 	if len(computeIfAbsentCallback) >= 1 {
-		return s.latestConflictVotesStorage.ComputeIfAbsent(byteutils.ConcatBytes(voter.Bytes()), func(key []byte) *LatestConflictVotes {
+		return s.latestConflictVotesStorage.ComputeIfAbsent(byteutils.ConcatBytes(voterBytes), func(key []byte) *LatestConflictVotes {
 			return computeIfAbsentCallback[0](voter)
 		})
 	}
 
-	return s.latestConflictVotesStorage.Load(byteutils.ConcatBytes(voter.Bytes()))
+	return s.latestConflictVotesStorage.Load(byteutils.ConcatBytes(voterBytes))
 }
 
 // LatestMarkerVotes retrieves the LatestMarkerVotes of the given voter for the named Sequence.
 func (s *Storage) LatestMarkerVotes(sequenceID markers.SequenceID, voter Voter, computeIfAbsentCallback ...func(sequenceID markers.SequenceID, voter Voter) *LatestMarkerVotes) *objectstorage.CachedObject[*LatestMarkerVotes] {
+	sequenceBytes := sequenceID.Bytes()
+	voterBytes, err := voter.Bytes()
+	if err != nil {
+		// Handle the error appropriately, perhaps by returning or logging it
+		return nil
+	}
+
 	if len(computeIfAbsentCallback) >= 1 {
-		return s.latestMarkerVotesStorage.ComputeIfAbsent(byteutils.ConcatBytes(sequenceID.Bytes(), voter.Bytes()), func(key []byte) *LatestMarkerVotes {
+		return s.latestMarkerVotesStorage.ComputeIfAbsent(byteutils.ConcatBytes(sequenceBytes, voterBytes), func(key []byte) *LatestMarkerVotes {
 			return computeIfAbsentCallback[0](sequenceID, voter)
 		})
 	}
 
-	return s.latestMarkerVotesStorage.Load(byteutils.ConcatBytes(sequenceID.Bytes(), voter.Bytes()))
+	return s.latestMarkerVotesStorage.Load(byteutils.ConcatBytes(sequenceBytes, voterBytes))
 }
 
 // AllLatestMarkerVotes retrieves all LatestMarkerVotes for the named Sequence.

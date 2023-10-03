@@ -38,7 +38,12 @@ func run(_ *node.Plugin) {
 	api := client.NewZIPPAPI(Parameters.FaucetAPI)
 	pledgeAddress := Parameters.Address
 	if pledgeAddress == "" {
-		pledgeAddress = seed.NewSeed(deps.Local.PublicKey().Bytes()).Address(0).Base58()
+		pubKeyBytes, err := deps.Local.PublicKey().Bytes()
+		if err != nil {
+			Plugin.LogWarnf("Could not retrieve public key bytes: %v", err)
+			return
+		}
+		pledgeAddress = seed.NewSeed(pubKeyBytes).Address(0).Base58()
 	}
 	res, err := api.SendFaucetRequestAPI(pledgeAddress, -1, deps.Local.ID().EncodeBase58(), deps.Local.ID().EncodeBase58())
 	if err != nil {

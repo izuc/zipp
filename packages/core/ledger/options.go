@@ -158,7 +158,6 @@ func newOptions(option ...Option) (new *options) {
 	return (&options{
 		store:                        mapdb.NewMapDB(),
 		cacheTimeProvider:            database.NewCacheTimeProvider(0),
-		vm:                           NewMockedVM(),
 		transactionCacheTime:         10 * time.Second,
 		transactionMetadataCacheTime: 10 * time.Second,
 		outputCacheTime:              10 * time.Second,

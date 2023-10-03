@@ -1,7 +1,6 @@
 package gossip
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/cockroachdb/errors"
@@ -134,15 +133,17 @@ func (m *Manager) handlePacket(nbr *p2p.Neighbor, packet proto.Message) error {
 	gpPacket := packet.(*gp.Packet)
 	switch packetBody := gpPacket.GetBody().(type) {
 	case *gp.Packet_Block:
-		if added := event.Loop.TrySubmit(func() { m.processBlockPacket(packetBody, nbr); m.pendingCount.Dec() }); !added {
-			return fmt.Errorf("blockWorkerPool full: packet block discarded")
-		}
 		m.pendingCount.Inc()
+		event.Loop.Submit(func() {
+			m.processBlockPacket(packetBody, nbr)
+			m.pendingCount.Dec()
+		})
 	case *gp.Packet_BlockRequest:
-		if added := event.Loop.TrySubmit(func() { m.processBlockRequestPacket(packetBody, nbr); m.requesterPendingCount.Dec() }); !added {
-			return fmt.Errorf("blockRequestWorkerPool full: block request discarded")
-		}
 		m.requesterPendingCount.Inc()
+		event.Loop.Submit(func() {
+			m.processBlockRequestPacket(packetBody, nbr)
+			m.requesterPendingCount.Dec()
+		})
 	default:
 		return errors.Newf("unsupported packet; packet=%+v, packetBody=%T-%+v", gpPacket, packetBody, packetBody)
 	}

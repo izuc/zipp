@@ -101,10 +101,15 @@ func (p *PledgedEvent) ToJSONSerializable() interface{} {
 
 // String returns a human readable version of the event.
 func (p *PledgedEvent) String() string {
+	nodeIDBytes, err := p.NodeID.Bytes()
+	if err != nil {
+		// Handle the error. For example, you can return a default string or log the error.
+		return "Error converting NodeID to bytes"
+	}
 	return stringify.Struct("PledgeEvent",
 		stringify.NewStructField("type", p.ManaType.String()),
 		stringify.NewStructField("shortNodeID", p.NodeID.String()),
-		stringify.NewStructField("fullNodeID", base58.Encode(p.NodeID.Bytes())),
+		stringify.NewStructField("fullNodeID", base58.Encode(nodeIDBytes)),
 		stringify.NewStructField("time", p.Time.String()),
 		stringify.NewStructField("amount", p.Amount),
 		stringify.NewStructField("txID", p.TransactionID),
@@ -195,10 +200,15 @@ func (r *RevokedEvent) ToJSONSerializable() interface{} {
 
 // String returns a human readable version of the event.
 func (r *RevokedEvent) String() string {
+	nodeIDBytes, err := r.NodeID.Bytes()
+	if err != nil {
+		// Handle the error. For example, you can return a default string or log the error.
+		return "Error converting NodeID to bytes"
+	}
 	return stringify.Struct("RevokedEvent",
 		stringify.NewStructField("type", r.ManaType.String()),
 		stringify.NewStructField("shortNodeID", r.NodeID.String()),
-		stringify.NewStructField("fullNodeID", base58.Encode(r.NodeID.Bytes())),
+		stringify.NewStructField("fullNodeID", base58.Encode(nodeIDBytes)),
 		stringify.NewStructField("time", r.Time.String()),
 		stringify.NewStructField("amount", r.Amount),
 		stringify.NewStructField("txID", r.TransactionID),
@@ -268,10 +278,15 @@ func (u *UpdatedEvent) ToJSONSerializable() interface{} {
 
 // String returns a human readable version of the event.
 func (u *UpdatedEvent) String() string {
+	nodeIDBytes, err := u.NodeID.Bytes()
+	if err != nil {
+		// Handle the error. For example, you can return a default string or log the error.
+		return "Error converting NodeID to bytes"
+	}
 	return stringify.Struct("UpdatedEvent",
 		stringify.NewStructField("type", u.ManaType.String()),
 		stringify.NewStructField("shortNodeID", u.NodeID.String()),
-		stringify.NewStructField("fullNodeID", base58.Encode(u.NodeID.Bytes())),
+		stringify.NewStructField("fullNodeID", base58.Encode(nodeIDBytes)),
 		stringify.NewStructField("oldBaseMana", u.OldMana),
 		stringify.NewStructField("newBaseMana", u.NewMana),
 	)

@@ -24,14 +24,19 @@ func sendMetricHeartbeat(w io.Writer, hb *packet.MetricHeartbeat) {
 		log.Debugw("Error while writing to connection", "Description", err)
 	}
 	// trigger AnalysisOutboundBytes event
-	metrics.Events.AnalysisOutboundBytes.Trigger(&metrics.AnalysisOutboundBytesEvent{uint64(len(data))})
+	metrics.Events.AnalysisOutboundBytes.Trigger(&metrics.AnalysisOutboundBytesEvent{AmountBytes: uint64(len(data))})
 }
 
 func createMetricHeartbeat() *packet.MetricHeartbeat {
 	// get own ID
 	nodeID := make([]byte, len(identity.ID{}))
 	if deps.Local != nil {
-		copy(nodeID, deps.Local.ID().Bytes())
+		nodeIDBytes, err := deps.Local.ID().Bytes()
+		if err != nil {
+			log.Error("Failed to get bytes from node ID: ", err)
+			return nil // or handle the error as appropriate
+		}
+		copy(nodeID, nodeIDBytes)
 	}
 
 	return &packet.MetricHeartbeat{

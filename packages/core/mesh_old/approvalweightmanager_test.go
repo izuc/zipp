@@ -3,9 +3,10 @@ package mesh_old
 
 import (
 	"fmt"
-	"github.com/izuc/zipp/packages/core/epoch"
 	"testing"
 	"time"
+
+	"github.com/izuc/zipp/packages/core/epoch"
 
 	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
 	"github.com/izuc/zipp.foundation/core/debug"
@@ -73,7 +74,7 @@ func TestConflictWeightMarshalling(t *testing.T) {
 	conflictWeight := NewConflictWeight(randomConflictID())
 	conflictWeight.SetWeight(5.1234)
 	conflictWeightDecoded := new(ConflictWeight)
-	err := conflictWeightDecoded.FromBytes(lo.PanicOnErr(conflictWeight.Bytes()))
+	_, err := conflictWeightDecoded.FromBytes(lo.PanicOnErr(conflictWeight.Bytes()))
 	require.NoError(t, err)
 	assert.Equal(t, lo.PanicOnErr(conflictWeight.Bytes()), lo.PanicOnErr(conflictWeightDecoded.Bytes()))
 	assert.Equal(t, conflictWeight.Weight(), conflictWeightDecoded.Weight())
@@ -86,7 +87,7 @@ func TestConflictVotersMarshalling(t *testing.T) {
 		conflictVoters.AddVoter(identity.GenerateIdentity().ID())
 	}
 	conflictVotersFromBytes := new(ConflictVoters)
-	err := conflictVotersFromBytes.FromBytes(lo.PanicOnErr(conflictVoters.Bytes()))
+	_, err := conflictVotersFromBytes.FromBytes(lo.PanicOnErr(conflictVoters.Bytes()))
 	require.NoError(t, err)
 
 	// verify that conflictVotersFromBytes has all voters from conflictVoters

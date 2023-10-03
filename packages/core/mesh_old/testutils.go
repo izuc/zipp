@@ -189,8 +189,8 @@ func (m *BlockTestFramework) IssueBlocks(blockAliases ...string) *BlockTestFrame
 }
 
 func (m *BlockTestFramework) WaitUntilAllTasksProcessed() (self *BlockTestFramework) {
-	// time.Sleep(100 * time.Millisecond)
-	event.Loop.WaitUntilAllTasksProcessed()
+	// Assuming event.Loop is an instance of UnboundedWorkerPool
+	event.Loop.PendingTasksCounter.WaitIsZero()
 	return m
 }
 

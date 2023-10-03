@@ -511,8 +511,7 @@ type testManager struct {
 }
 
 func newTestManagers(t testing.TB, doMock bool, names ...string) []*testManager {
-	ctx := context.Background()
-	mn := mocknet.New(ctx)
+	mn := mocknet.New()
 	var results []*testManager
 	for _, name := range names {
 		name := name

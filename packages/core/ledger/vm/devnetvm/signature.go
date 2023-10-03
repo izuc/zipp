@@ -164,7 +164,13 @@ func (e *ED25519Signature) AddressSignatureValid(address Address, data []byte) b
 		return false
 	}
 
-	hashedPublicKey := blake2b.Sum256(e.PublicKey.Bytes())
+	publicKeyBytes, err := e.PublicKey.Bytes()
+	if err != nil {
+		// Handle the error if necessary or just return false
+		return false
+	}
+
+	hashedPublicKey := blake2b.Sum256(publicKeyBytes)
 	if !bytes.Equal(hashedPublicKey[:], address.Digest()) {
 		return false
 	}

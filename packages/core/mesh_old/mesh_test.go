@@ -24,8 +24,8 @@ import (
 
 	"github.com/izuc/zipp/packages/core/consensus/omv"
 	"github.com/izuc/zipp/packages/core/epoch"
-	"github.com/izuc/zipp/packages/core/pow"
 	"github.com/izuc/zipp/packages/core/mesh_old/payload"
+	"github.com/izuc/zipp/packages/core/pow"
 )
 
 func BenchmarkVerifyDataBlocks(b *testing.B) {
@@ -225,9 +225,9 @@ func TestMesh_StoreBlock(t *testing.T) {
 
 func TestMesh_MissingBlocks(t *testing.T) {
 	const (
-		blockCount  = 2000
-		meshWidth = 250
-		storeDelay  = 5 * time.Millisecond
+		blockCount = 2000
+		meshWidth  = 250
+		storeDelay = 5 * time.Millisecond
 	)
 
 	// create the mesh
@@ -320,7 +320,10 @@ func TestMesh_MissingBlocks(t *testing.T) {
 	}))
 
 	// issue tips to start solidification
-	tips.ForEach(func(key BlockID, _ BlockID) { mesh.Storage.StoreBlock(blocks[key]) })
+	tips.ForEach(func(key BlockID, value BlockID) bool {
+		mesh.Storage.StoreBlock(blocks[key])
+		return true // Assuming you always want to continue iteration
+	})
 
 	// wait for all transactions to become solid
 	assert.Eventually(t, func() bool { return atomic.LoadInt32(&solidBlocks) == blockCount }, 5*time.Minute, 100*time.Millisecond)
@@ -374,7 +377,7 @@ func TestMesh_Flow(t *testing.T) {
 
 		solidBlkCount   = 2000
 		invalidBlkCount = 10
-		meshWidth     = 250
+		meshWidth       = 250
 		networkDelay    = 5 * time.Millisecond
 	)
 
@@ -562,12 +565,14 @@ func TestMesh_Flow(t *testing.T) {
 	mesh.Setup()
 
 	// issue tips to start solidification
-	tips.ForEach(func(key BlockID, _ BlockID) {
+	tips.ForEach(func(key BlockID, _ BlockID) bool {
 		if key == EmptyBlockID {
-			return
+			return true // Assuming you want to continue iteration even if key is EmptyBlockID
 		}
 		inboxWP.TrySubmit(lo.PanicOnErr(blocks[key].Bytes()), localPeer)
+		return true // Continue the iteration for all items
 	})
+
 	// incoming invalid blocks
 	for _, blk := range invalidblks {
 		inboxWP.TrySubmit(lo.PanicOnErr(blk.Bytes()), localPeer)

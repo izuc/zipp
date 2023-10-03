@@ -630,10 +630,12 @@ func (o *OutputWithMetadata) FromObjectStorage(key, value []byte) error {
 
 // FromBytes unmarshals an OutputWithMetadata from a sequence of bytes.
 func (o *OutputWithMetadata) FromBytes(data []byte) error {
-	err := o.Storable.FromBytes(data)
+	_, err := o.Storable.FromBytes(data)
+	if err != nil {
+		return err
+	}
 	o.M.Output.SetID(o.ID())
-
-	return err
+	return nil
 }
 
 // Output returns the Output field.

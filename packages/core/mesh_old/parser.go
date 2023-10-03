@@ -364,7 +364,8 @@ func NewRecentlySeenBytesFilter() *RecentlySeenBytesFilter {
 // Filter filters up on the given bytes and peer and calls the acceptance callback
 // if the input passes or the rejection callback if the input is rejected.
 func (r *RecentlySeenBytesFilter) Filter(bytes []byte, peer *peer.Peer) {
-	if r.bytesFilter.Add(bytes) {
+	_, added := r.bytesFilter.Add(bytes)
+	if added {
 		r.getAcceptCallback()(bytes, peer)
 		return
 	}

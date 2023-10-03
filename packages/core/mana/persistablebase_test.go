@@ -32,8 +32,11 @@ func TestPersistableBaseMana_Bytes(t *testing.T) {
 
 func TestPersistableBaseMana_ObjectStorageKey(t *testing.T) {
 	p := newPersistableMana()
-	key := p.ObjectStorageKey()
-	assert.Equal(t, identity.ID{}.Bytes(), key, "should be equal")
+	keyBytes, err := identity.ID{}.Bytes()
+	if err != nil {
+		t.Fatal("Failed to get bytes from identity.ID: ", err)
+	}
+	assert.Equal(t, keyBytes, p.ObjectStorageKey(), "should be equal")
 }
 
 func TestPersistableBaseMana_ObjectStorageValue(t *testing.T) {
@@ -45,8 +48,14 @@ func TestPersistableBaseMana_ObjectStorageValue(t *testing.T) {
 func TestPersistableBaseMana_FromBytes(t *testing.T) {
 	p1 := newPersistableMana()
 	p2 := new(PersistableBaseMana)
-	err := p2.FromBytes(lo.PanicOnErr(p1.Bytes()))
-	assert.Nil(t, err, "should not have returned error")
+
+	bytes := lo.PanicOnErr(p1.Bytes())
+	_, err := p2.FromBytes(bytes)
+	if err != nil {
+		t.Fatal("FromBytes returned an error: ", err)
+	}
+
+	// Note: Depending on your requirements, you may also want to check the value of consumedBytes
 	assert.Equal(t, lo.PanicOnErr(p1.Bytes()), lo.PanicOnErr(p2.Bytes()), "should be equal")
 }
 

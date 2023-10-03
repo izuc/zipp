@@ -23,7 +23,7 @@ const tipLifeGracePeriod = maxParentsTimeDifference - 1*time.Minute
 
 // TipManager manages a map of tips and emits events for their removal and addition.
 type TipManager struct {
-	mesh              *Mesh
+	mesh                *Mesh
 	tips                *randommap.RandomMap[BlockID, BlockID]
 	tipsCleaner         *TipsCleaner
 	tipsConflictTracker *TipsConflictTracker
@@ -33,7 +33,7 @@ type TipManager struct {
 // NewTipManager creates a new tip-selector.
 func NewTipManager(mesh *Mesh, tips ...BlockID) *TipManager {
 	tipManager := &TipManager{
-		mesh:              mesh,
+		mesh:                mesh,
 		tips:                randommap.New[BlockID, BlockID](),
 		tipsConflictTracker: NewTipsConflictTracker(mesh),
 		Events:              newTipManagerEvents(),
@@ -124,17 +124,19 @@ func (t *TipManager) addTip(block *Block) (added bool) {
 		return false
 	}
 
-	if t.tips.Set(blockID, blockID) {
-		t.tipsConflictTracker.AddTip(blockID)
-		t.Events.TipAdded.Trigger(&TipEvent{
-			BlockID: blockID,
-		})
-
-		t.tipsCleaner.Add(block.IssuingTime(), blockID)
-		return true
+	// Check if the tip is already present
+	if t.tips.Has(blockID) {
+		return false
 	}
 
-	return false
+	t.tips.Set(blockID, blockID)
+	t.tipsConflictTracker.AddTip(blockID)
+	t.Events.TipAdded.Trigger(&TipEvent{
+		BlockID: blockID,
+	})
+
+	t.tipsCleaner.Add(block.IssuingTime(), blockID)
+	return true
 }
 
 func (t *TipManager) deleteTip(blkID BlockID) (deleted bool) {
@@ -192,11 +194,12 @@ func (t *TipManager) Tips(p payload.Payload, countParents int) (parents BlockIDs
 
 // isPastConeTimestampCorrect performs the TSC check for the given tip.
 // Conceptually, this involves the following steps:
-//   1. Collect all confirmed blocks in the tip's past cone at the boundary of confirmed/unconfirmed.
-//   2. Order by timestamp (ascending), if the oldest confirmed block > TSC threshold then return false.
+//  1. Collect all confirmed blocks in the tip's past cone at the boundary of confirmed/unconfirmed.
+//  2. Order by timestamp (ascending), if the oldest confirmed block > TSC threshold then return false.
 //
 // This function is optimized through the use of markers and the following assumption:
-//   If there's any unconfirmed block >TSC threshold, then the oldest confirmed block will be >TSC threshold, too.
+//
+//	If there's any unconfirmed block >TSC threshold, then the oldest confirmed block will be >TSC threshold, too.
 func (t *TipManager) isPastConeTimestampCorrect(blockID BlockID) (timestampValid bool) {
 	minSupportedTimestamp := t.mesh.TimeManager.ATT().Add(-t.mesh.Options.TimeSinceConfirmationThreshold)
 	timestampValid = true

@@ -136,7 +136,18 @@ func checkCfgSeedAgainstDB(cfgSeed []byte, peerDB *peer.DB) error {
 		return fmt.Errorf("unable to retrieve private key from peer database: %w", err)
 	}
 	prvKeyCfg := ed25519.PrivateKeyFromSeed(cfgSeed)
-	if !bytes.Equal(prvKeyCfg.Bytes(), prvKeyDB.Bytes()) {
+
+	cfgBytes, err := prvKeyCfg.Bytes()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve bytes from cfg private key: %w", err)
+	}
+
+	dbBytes, err := prvKeyDB.Bytes()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve bytes from database private key: %w", err)
+	}
+
+	if !bytes.Equal(cfgBytes, dbBytes) {
 		return fmt.Errorf("%w: identities - pub keys (cfg/db): %s vs. %s", ErrMismatchedPrivateKeys, prvKeyCfg.Public().String(), prvKeyDB.Public().String())
 	}
 	return nil

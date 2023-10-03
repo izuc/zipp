@@ -5,14 +5,14 @@ import (
 	"sync"
 
 	"github.com/cockroachdb/errors"
-	"github.com/izuc/zipp/packages/core/epoch"
-	"github.com/izuc/zipp/packages/core/mesh_old"
-	"github.com/izuc/zipp/packages/node/p2p"
 	"github.com/izuc/zipp.foundation/core/autopeering/peer"
 	"github.com/izuc/zipp.foundation/core/generics/event"
 	"github.com/izuc/zipp.foundation/core/generics/options"
 	"github.com/izuc/zipp.foundation/core/logger"
 	"github.com/izuc/zipp.foundation/core/typeutils"
+	"github.com/izuc/zipp/packages/core/epoch"
+	"github.com/izuc/zipp/packages/core/mesh_old"
+	"github.com/izuc/zipp/packages/node/p2p"
 )
 
 const (
@@ -152,8 +152,7 @@ func (m *Manager) Stop() {
 }
 
 func submitTask[P any](packetProcessor func(packet P, nbr *p2p.Neighbor), packet P, nbr *p2p.Neighbor) error {
-	if added := event.Loop.TrySubmit(func() { packetProcessor(packet, nbr) }); !added {
-		return errors.Errorf("WorkerPool full: packet block discarded")
-	}
+	// Here, we are directly using the Submit method of the worker pool
+	event.Loop.Submit(func() { packetProcessor(packet, nbr) })
 	return nil
 }

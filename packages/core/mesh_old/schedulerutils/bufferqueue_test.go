@@ -329,7 +329,15 @@ func (m *testBlock) Bytes() []byte {
 	}
 	// marshal result
 	marshalUtil := marshalutil.New()
-	marshalUtil.Write(m.pubKey)
+
+	// Handle the ed25519.PublicKey bytes
+	pubKeyBytes, err := m.pubKey.Bytes()
+	if err != nil {
+		// Handle the error, for example, return an empty slice
+		return []byte{}
+	}
+	marshalUtil.WriteBytes(pubKeyBytes)
+
 	marshalUtil.WriteTime(m.issuingTime)
 	marshalUtil.WriteBytes(m.payload)
 	marshalUtil.WriteInt32(int32(m.idx))

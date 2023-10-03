@@ -46,9 +46,14 @@ func getManaHandler(c echo.Context) error {
 		}
 	}
 
+	bytes, err := ID.Bytes()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, jsonmodels.ErrorResponse{Error: "Failed to get bytes for identity"})
+	}
+
 	return c.JSON(http.StatusOK, jsonmodels.GetManaResponse{
 		ShortNodeID:        ID.String(),
-		NodeID:             base58.Encode(ID.Bytes()),
+		NodeID:             base58.Encode(bytes),
 		Access:             accessMana,
 		AccessTimestamp:    tAccess.Unix(),
 		Consensus:          consensusMana,

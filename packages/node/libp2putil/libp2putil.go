@@ -5,8 +5,8 @@ import (
 	"github.com/izuc/zipp.foundation/core/autopeering/peer"
 	"github.com/izuc/zipp.foundation/core/crypto/ed25519"
 	"github.com/libp2p/go-libp2p"
-	libp2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
-	libp2ppeer "github.com/libp2p/go-libp2p-core/peer"
+	libp2pcrypto "github.com/libp2p/go-libp2p/core/crypto"
+	libp2ppeer "github.com/libp2p/go-libp2p/core/peer"
 )
 
 // GetLibp2pIdentity returns libp2p Host option for Identity from local peer object.
@@ -24,7 +24,11 @@ func GetLibp2pIdentity(lPeer *peer.Local) (libp2p.Option, error) {
 
 // ToLibp2pPrivateKey transforms private key in our type to libp2p type.
 func ToLibp2pPrivateKey(ourPrivateKey ed25519.PrivateKey) (libp2pcrypto.PrivKey, error) {
-	libp2pPrivateKey, err := libp2pcrypto.UnmarshalEd25519PrivateKey(ourPrivateKey.Bytes())
+	privateKeyBytes, err := ourPrivateKey.Bytes()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	libp2pPrivateKey, err := libp2pcrypto.UnmarshalEd25519PrivateKey(privateKeyBytes)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -33,7 +37,10 @@ func ToLibp2pPrivateKey(ourPrivateKey ed25519.PrivateKey) (libp2pcrypto.PrivKey,
 
 // ToLibp2pPeerID computes libp2p peer ID from our peer object.
 func ToLibp2pPeerID(p *peer.Peer) (libp2ppeer.ID, error) {
-	pubKeyBytes := p.PublicKey().Bytes()
+	pubKeyBytes, err := p.PublicKey().Bytes()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
 	pubKeyLibp2p, err := libp2pcrypto.UnmarshalEd25519PublicKey(pubKeyBytes)
 	if err != nil {
 		return "", errors.WithStack(err)

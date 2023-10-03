@@ -630,11 +630,25 @@ func NewTransaction(transaction *devnetvm.Transaction) *Transaction {
 		dataPayload = lo.PanicOnErr(transaction.Essence().Payload().Bytes())
 	}
 
+	accessPledgeIDBytes, err := transaction.Essence().AccessPledgeID().Bytes()
+	if err != nil {
+		// handle the error, possibly by returning or logging it
+		return nil
+	}
+	accessPledgeID := base58.Encode(accessPledgeIDBytes)
+
+	consensusPledgeIDBytes, err := transaction.Essence().ConsensusPledgeID().Bytes()
+	if err != nil {
+		// handle the error, possibly by returning or logging it
+		return nil
+	}
+	consensusPledgeID := base58.Encode(consensusPledgeIDBytes)
+
 	return &Transaction{
 		Version:           transaction.Essence().Version(),
 		Timestamp:         transaction.Essence().Timestamp().Unix(),
-		AccessPledgeID:    base58.Encode(transaction.Essence().AccessPledgeID().Bytes()),
-		ConsensusPledgeID: base58.Encode(transaction.Essence().ConsensusPledgeID().Bytes()),
+		AccessPledgeID:    accessPledgeID,
+		ConsensusPledgeID: consensusPledgeID,
 		Inputs:            inputs,
 		Outputs:           outputs,
 		UnlockBlocks:      unlockBlocks,

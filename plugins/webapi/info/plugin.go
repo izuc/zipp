@@ -27,7 +27,7 @@ type dependencies struct {
 
 	Server *echo.Echo
 	Local  *peer.Local
-	Mesh *mesh_old.Mesh
+	Mesh   *mesh_old.Mesh
 }
 
 var (
@@ -46,41 +46,43 @@ func configure(_ *node.Plugin) {
 
 // getInfo returns the info of the node
 // e.g.,
-// {
-// 	"version":"v0.2.0",
-//	"meshTime":{
-// 		"blockID":"24Uq4UFQ7p5oLyjuXX32jHhNreo5hY9eo8Awh36RhdTHCwFMtct3SE2rhe3ceYz6rjKDjBs3usoHS3ujFEabP5ri",
-// 		"time":1595528075204868900,
-// 		"synced":true
-// }
-// 	"identityID":"5bf4aa1d6c47e4ce",
-// 	"publickey":"CjUsn86jpFHWnSCx3NhWfU4Lk16mDdy1Hr7ERSTv3xn9",
-// 	"enabledplugins":[
-// 		"Config",
-// 		"AutoPeering",
-// 		"Analysis",
-// 		"WebAPIDataEndpoint",
-// 		"BlockLayer",
-// 		"CLI",
-// 		"Database",
-// 		"WebAPIAutoPeeringEndpoint",
-// 		"Metrics",
-// 		"PortCheck",
-// 		"Dashboard",
-// 		"WebAPI",
-// 		"WebAPIInfoEndpoint",
-// 		"WebAPIBlockEndpoint",
-// 		"Banner",
-// 		"Gossip",
-// 		"GracefulShutdown",
-// 		"Logger"
-// 	],
-// 	"disabledplugins":[
-// 		"RemoteLog",
-// 		"Spammer",
-// 		"WebAPIAuth"
-// 	]
-// }
+//
+//	{
+//		"version":"v0.2.0",
+//		"meshTime":{
+//			"blockID":"24Uq4UFQ7p5oLyjuXX32jHhNreo5hY9eo8Awh36RhdTHCwFMtct3SE2rhe3ceYz6rjKDjBs3usoHS3ujFEabP5ri",
+//			"time":1595528075204868900,
+//			"synced":true
+//	}
+//
+//		"identityID":"5bf4aa1d6c47e4ce",
+//		"publickey":"CjUsn86jpFHWnSCx3NhWfU4Lk16mDdy1Hr7ERSTv3xn9",
+//		"enabledplugins":[
+//			"Config",
+//			"AutoPeering",
+//			"Analysis",
+//			"WebAPIDataEndpoint",
+//			"BlockLayer",
+//			"CLI",
+//			"Database",
+//			"WebAPIAutoPeeringEndpoint",
+//			"Metrics",
+//			"PortCheck",
+//			"Dashboard",
+//			"WebAPI",
+//			"WebAPIInfoEndpoint",
+//			"WebAPIBlockEndpoint",
+//			"Banner",
+//			"Gossip",
+//			"GracefulShutdown",
+//			"Logger"
+//		],
+//		"disabledplugins":[
+//			"RemoteLog",
+//			"Spammer",
+//			"WebAPIAuth"
+//		]
+//	}
 func getInfo(c echo.Context) error {
 	var enabledPlugins []string
 	var disabledPlugins []string
@@ -124,11 +126,17 @@ func getInfo(c echo.Context) error {
 
 	deficit, _ := deps.Mesh.Scheduler.GetDeficit(deps.Local.ID()).Float64()
 
+	identityBytes, err := deps.Local.Identity.ID().Bytes()
+	if err != nil {
+		// Handle error. For this example, I'm returning an HTTP error, but you can handle it differently.
+		return c.JSON(http.StatusInternalServerError, jsonmodels.ErrorResponse{Error: err.Error()})
+	}
+
 	return c.JSON(http.StatusOK, jsonmodels.InfoResponse{
 		Version:               banner.AppVersion,
 		NetworkVersion:        discovery.Parameters.NetworkVersion,
-		MeshTime:            meshTime,
-		IdentityID:            base58.Encode(deps.Local.Identity.ID().Bytes()),
+		MeshTime:              meshTime,
+		IdentityID:            base58.Encode(identityBytes),
 		IdentityIDShort:       deps.Local.Identity.ID().String(),
 		PublicKey:             deps.Local.PublicKey().String(),
 		BlockRequestQueueSize: int(metrics.BlockRequestQueueSize()),

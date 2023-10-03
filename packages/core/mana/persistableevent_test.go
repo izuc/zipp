@@ -18,10 +18,18 @@ func TestPersistableEvent_Bytes(t *testing.T) {
 	marshalUtil := marshalutil.New()
 	marshalUtil.WriteByte(ev.Type)
 	marshalUtil.WriteByte(byte(ev.ManaType))
-	marshalUtil.WriteBytes(ev.NodeID.Bytes())
+
+	nodeIDBytes, err := ev.NodeID.Bytes()
+	if err != nil {
+		t.Fatal("Failed to get bytes from NodeID: ", err)
+	}
+	marshalUtil.WriteBytes(nodeIDBytes)
+
 	marshalUtil.WriteTime(ev.Time)
 	marshalUtil.WriteBytes(ev.TransactionID.Bytes())
 	marshalUtil.WriteUint64(math.Float64bits(ev.Amount))
+
+	// Directly use the result for InputID since there's no error to check
 	marshalUtil.WriteBytes(ev.InputID.Bytes())
 
 	bytes := marshalUtil.Bytes()

@@ -366,7 +366,16 @@ func (m *Manager) changeNeighborStatus(neighbor *p2p.Neighbor, connStatus Connec
 }
 
 func (m *Manager) connectionDirection(peerPK ed25519.PublicKey) (ConnectionDirection, error) {
-	result := bytes.Compare(m.local.PublicKey().Bytes(), peerPK.Bytes())
+	localBytes, err := m.local.PublicKey().Bytes()
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to get local public key bytes")
+	}
+	peerBytes, err := peerPK.Bytes()
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to get peer public key bytes")
+	}
+
+	result := bytes.Compare(localBytes, peerBytes)
 	if result < 0 {
 		return ConnDirectionOutbound, nil
 	} else if result > 0 {

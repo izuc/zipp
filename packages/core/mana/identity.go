@@ -40,6 +40,11 @@ func IDFromPubKey(pubKey string) (iID identity.ID, err error) {
 		return
 	}
 
-	copy(iID[:], _identity.ID().Bytes())
+	idBytes, err := _identity.ID().Bytes()
+	if err != nil {
+		err = fmt.Errorf("could not convert NodeID to bytes: %w", err)
+		return
+	}
+	copy(iID[:], idBytes)
 	return
 }
