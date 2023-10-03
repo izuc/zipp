@@ -1,8 +1,8 @@
 package wallet
 
 import (
-	"github.com/capossele/asset-registry/pkg/registry"
 	"github.com/cockroachdb/errors"
+	"github.com/izuc/asset-registry/pkg/registry"
 
 	"github.com/izuc/zipp/packages/core/ledger/utxo"
 	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"

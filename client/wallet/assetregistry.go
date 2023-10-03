@@ -4,9 +4,9 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/capossele/asset-registry/pkg/registryclient"
 	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"
+	"github.com/izuc/asset-registry/pkg/registryclient"
 	"github.com/izuc/zipp.foundation/core/marshalutil"
 	"github.com/izuc/zipp.foundation/core/serix"
 
@@ -97,8 +97,8 @@ func (a *AssetRegistry) Name(color devnetvm.Color) string {
 		return asset.Name
 	}
 
-	if color == devnetvm.ColorIOTA {
-		return "IOTA"
+	if color == devnetvm.ColorZIPP {
+		return "ZIPP"
 	}
 	// not in local
 	// fetch from central, update local
@@ -115,7 +115,7 @@ func (a *AssetRegistry) Symbol(color devnetvm.Color) string {
 		return asset.Symbol
 	}
 
-	if color == devnetvm.ColorIOTA {
+	if color == devnetvm.ColorZIPP {
 		return "I"
 	}
 
@@ -134,7 +134,7 @@ func (a *AssetRegistry) Supply(color devnetvm.Color) string {
 		return strconv.FormatUint(asset.Supply, 10)
 	}
 
-	if color == devnetvm.ColorIOTA {
+	if color == devnetvm.ColorZIPP {
 		return ""
 	}
 
@@ -153,7 +153,7 @@ func (a *AssetRegistry) TransactionID(color devnetvm.Color) string {
 		return asset.TransactionID.Base58()
 	}
 
-	if color == devnetvm.ColorIOTA {
+	if color == devnetvm.ColorZIPP {
 		return ""
 	}
 

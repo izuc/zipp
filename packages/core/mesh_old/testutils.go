@@ -34,7 +34,7 @@ import (
 // BlockTestFramework implements a framework for conveniently issuing blocks in a mesh as part of unit tests in a
 // simplified way.
 type BlockTestFramework struct {
-	mesh                   *Mesh
+	mesh                     *Mesh
 	conflictIDs              map[string]utxo.TransactionID
 	blocksByAlias            map[string]*Block
 	walletsByAlias           map[string]wallet
@@ -51,7 +51,7 @@ type BlockTestFramework struct {
 // NewBlockTestFramework is the constructor of the BlockTestFramework.
 func NewBlockTestFramework(mesh *Mesh, options ...BlockTestFrameworkOption) (blockTestFramework *BlockTestFramework) {
 	blockTestFramework = &BlockTestFramework{
-		mesh:           mesh,
+		mesh:             mesh,
 		conflictIDs:      make(map[string]utxo.TransactionID),
 		blocksByAlias:    make(map[string]*Block),
 		walletsByAlias:   make(map[string]wallet),
@@ -303,7 +303,7 @@ func (m *BlockTestFramework) createGenesisOutputs() {
 	outputsWithMetadata := make([]*ledger.OutputWithMetadata, 0)
 
 	for alias, balance := range m.options.genesisOutputs {
-		outputWithMetadata := m.createOutput(alias, devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{devnetvm.ColorIOTA: balance}), manaPledgeID, manaPledgeTime)
+		outputWithMetadata := m.createOutput(alias, devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{devnetvm.ColorZIPP: balance}), manaPledgeID, manaPledgeTime)
 		outputsWithMetadata = append(outputsWithMetadata, outputWithMetadata)
 	}
 	for alias, coloredBalances := range m.options.coloredGenesisOutputs {

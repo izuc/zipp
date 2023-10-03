@@ -29,7 +29,7 @@ import (
 // CommitmentRoots contains roots of trees of an epoch.
 type CommitmentRoots struct {
 	EI                epoch.Index
-	meshRoot        epoch.MerkleRoot
+	meshRoot          epoch.MerkleRoot
 	stateMutationRoot epoch.MerkleRoot
 	stateRoot         epoch.MerkleRoot
 	manaRoot          epoch.MerkleRoot
@@ -39,7 +39,7 @@ type CommitmentRoots struct {
 // CommitmentTrees is a compressed form of all the information (blocks and confirmed value payloads) of an epoch.
 type CommitmentTrees struct {
 	EI                epoch.Index
-	meshTree        *smt.SparseMerkleTree
+	meshTree          *smt.SparseMerkleTree
 	stateMutationTree *smt.SparseMerkleTree
 	activityTree      *smt.SparseMerkleTree
 }
@@ -53,7 +53,7 @@ type EpochCommitmentFactory struct {
 	commitmentTrees *shrinkingmap.ShrinkingMap[epoch.Index, *CommitmentTrees]
 
 	storage *EpochCommitmentStorage
-	mesh  *mesh_old.Mesh
+	mesh    *mesh_old.Mesh
 
 	// stateRootTree stores the state tree at the LastCommittedEpoch.
 	stateRootTree *smt.SparseMerkleTree
@@ -77,7 +77,7 @@ func NewEpochCommitmentFactory(store kvstore.KVStore, mesh *mesh_old.Mesh, snaps
 	return &EpochCommitmentFactory{
 		commitmentTrees: shrinkingmap.New[epoch.Index, *CommitmentTrees](),
 		storage:         epochCommitmentStorage,
-		mesh:          mesh,
+		mesh:            mesh,
 		snapshotDepth:   snapshotDepth,
 		stateRootTree:   smt.NewSparseMerkleTree(stateRootTreeNodeStore, stateRootTreeValueStore, lo.PanicOnErr(blake2b.New256(nil))),
 		manaRootTree:    smt.NewSparseMerkleTree(manaRootTreeNodeStore, manaRootTreeValueStore, lo.PanicOnErr(blake2b.New256(nil))),
@@ -118,7 +118,7 @@ func (f *EpochCommitmentFactory) removeStateLeaf(outputID utxo.OutputID) error {
 
 // updateManaLeaf updates the mana balance in the mana sparse merkle tree.
 func (f *EpochCommitmentFactory) updateManaLeaf(outputWithMetadata *ledger.OutputWithMetadata, isCreated bool) (err error) {
-	outputBalance, exists := outputWithMetadata.Output().(devnetvm.Output).Balances().Get(devnetvm.ColorIOTA)
+	outputBalance, exists := outputWithMetadata.Output().(devnetvm.Output).Balances().Get(devnetvm.ColorZIPP)
 	if !exists {
 		return nil
 	}
@@ -339,7 +339,7 @@ func (f *EpochCommitmentFactory) newCommitmentTrees(ei epoch.Index) *CommitmentT
 
 	commitmentTrees := &CommitmentTrees{
 		EI:                ei,
-		meshTree:        smt.NewSparseMerkleTree(blockIDStore, blockValueStore, lo.PanicOnErr(blake2b.New256(nil))),
+		meshTree:          smt.NewSparseMerkleTree(blockIDStore, blockValueStore, lo.PanicOnErr(blake2b.New256(nil))),
 		stateMutationTree: smt.NewSparseMerkleTree(stateMutationIDStore, stateMutationValueStore, lo.PanicOnErr(blake2b.New256(nil))),
 		activityTree:      smt.NewSparseMerkleTree(activityIDStore, activityValueStore, lo.PanicOnErr(blake2b.New256(nil))),
 	}
@@ -370,7 +370,7 @@ func (f *EpochCommitmentFactory) newEpochRoots(ei epoch.Index) (commitmentRoots 
 	commitmentRoots = &epoch.CommitmentRoots{
 		StateRoot:         epoch.NewMerkleRoot(stateRoot),
 		ManaRoot:          epoch.NewMerkleRoot(manaRoot),
-		MeshRoot:        epoch.NewMerkleRoot(commitmentTrees.meshTree.Root()),
+		MeshRoot:          epoch.NewMerkleRoot(commitmentTrees.meshTree.Root()),
 		StateMutationRoot: epoch.NewMerkleRoot(commitmentTrees.stateMutationTree.Root()),
 	}
 

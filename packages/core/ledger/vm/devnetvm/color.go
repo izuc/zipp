@@ -15,8 +15,8 @@ import (
 
 // region Color ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ColorIOTA is the zero value of the Color and represents uncolored tokens.
-var ColorIOTA = Color{}
+// ColorZIPP is the zero value of the Color and represents uncolored tokens.
+var ColorZIPP = Color{}
 
 // ColorMint represents a placeholder Color that indicates that tokens should be "colored" in their Output.
 var ColorMint = Color{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255}
@@ -66,8 +66,8 @@ func (c Color) Base58() string {
 // String creates a human-readable string of the Color.
 func (c Color) String() string {
 	switch c {
-	case ColorIOTA:
-		return "IOTA"
+	case ColorZIPP:
+		return "ZIPP"
 	case ColorMint:
 		return "MINT"
 	default:

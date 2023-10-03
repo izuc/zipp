@@ -3,7 +3,7 @@ package wallet
 import (
 	"time"
 
-	"github.com/capossele/asset-registry/pkg/registryservice"
+	"github.com/izuc/asset-registry/pkg/registryservice"
 	"github.com/izuc/zipp.foundation/core/bitmask"
 
 	"github.com/izuc/zipp/client"

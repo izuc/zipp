@@ -13,7 +13,7 @@ import (
 type OutputType uint8
 
 const (
-	// SigLockedSingleOutputType represents an Output holding vanilla IOTA tokens that gets unlocked by a signature.
+	// SigLockedSingleOutputType represents an Output holding vanilla ZIPP tokens that gets unlocked by a signature.
 	SigLockedSingleOutputType OutputType = iota
 
 	// SigLockedColoredOutputType represents an Output that holds colored coins that gets unlocked by a signature.

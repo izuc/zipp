@@ -65,20 +65,20 @@ func TestValueTransactionPersistence(t *testing.T) {
 	for _, peer := range nonFaucetPeers {
 		addr := peer.Address(0)
 		tests.SendFaucetRequest(t, peer, addr)
-		addrBalance[addr.Base58()] = map[devnetvm.Color]uint64{devnetvm.ColorIOTA: tokensPerRequest}
+		addrBalance[addr.Base58()] = map[devnetvm.Color]uint64{devnetvm.ColorZIPP: tokensPerRequest}
 	}
 
 	// wait for blocks to be gossiped
 	for _, peer := range nonFaucetPeers {
 		require.Eventually(t, func() bool {
-			return tests.Balance(t, peer, peer.Address(0), devnetvm.ColorIOTA) == tokensPerRequest
+			return tests.Balance(t, peer, peer.Address(0), devnetvm.ColorZIPP) == tokensPerRequest
 		}, tests.Timeout, tests.Tick)
 	}
 
-	// send IOTA tokens from every peer
+	// send ZIPP tokens from every peer
 	expectedStates := make(map[string]tests.ExpectedState)
 	for _, peer := range nonFaucetPeers {
-		txID, err := tests.SendTransaction(t, peer, peer, devnetvm.ColorIOTA, 100, tests.TransactionConfig{ToAddressIndex: 1}, addrBalance)
+		txID, err := tests.SendTransaction(t, peer, peer, devnetvm.ColorZIPP, 100, tests.TransactionConfig{ToAddressIndex: 1}, addrBalance)
 		require.NoError(t, err)
 		expectedStates[txID] = tests.ExpectedState{ConfirmationState: confirmation.Accepted}
 	}

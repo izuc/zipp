@@ -664,7 +664,7 @@ func randomTransaction() *devnetvm.Transaction {
 		address: devnetvm.NewED25519Address(seed.KeyPair(0).PublicKey),
 	}
 	output := devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-		devnetvm.ColorIOTA: uint64(100),
+		devnetvm.ColorZIPP: uint64(100),
 	}), w.address)
 	outputs = append(outputs, output)
 	essence := devnetvm.NewTransactionEssence(0, time.Now(), ID, ID, devnetvm.NewInputs(input), outputs)

@@ -172,8 +172,8 @@ func (webConnector WebConnector) GetUnspentAliasOutput(addr *devnetvm.AliasAddre
 
 // colorFromString is an internal utility method that parses the given string into a Color.
 func colorFromString(colorStr string) (color devnetvm.Color) {
-	if colorStr == "IOTA" {
-		color = devnetvm.ColorIOTA
+	if colorStr == "ZIPP" {
+		color = devnetvm.ColorZIPP
 	} else {
 		var t utxo.TransactionID
 		_ = t.FromBase58(colorStr)

@@ -130,7 +130,7 @@ func gatherInputInfos(inputs devnetvm.Inputs) (totalAmount float64, inputInfos [
 			inputInfo.InputID = o.ID()
 
 			// first, sum balances of the input, calculate total amount as well for later
-			if amount, exists := o.(devnetvm.Output).Balances().Get(devnetvm.ColorIOTA); exists {
+			if amount, exists := o.(devnetvm.Output).Balances().Get(devnetvm.ColorZIPP); exists {
 				inputInfo.Amount = float64(amount)
 				totalAmount += float64(amount)
 			}
@@ -168,7 +168,7 @@ func runManaPlugin(_ *node.Plugin) {
 				processOutputs := func(outputsWithMetadata []*ledger.OutputWithMetadata, baseVector map[identity.ID]float64, areCreated bool) {
 					for _, outputWithMetadata := range outputsWithMetadata {
 						devnetOutput := outputWithMetadata.Output().(devnetvm.Output)
-						balance, exists := devnetOutput.Balances().Get(devnetvm.ColorIOTA)
+						balance, exists := devnetOutput.Balances().Get(devnetvm.ColorZIPP)
 						if !exists {
 							continue
 						}

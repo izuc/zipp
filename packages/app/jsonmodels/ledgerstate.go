@@ -175,7 +175,7 @@ func SigLockedSingleOutputFromLedgerstate(output devnetvm.Output) (*SigLockedSin
 	if output.Type() != devnetvm.SigLockedSingleOutputType {
 		return nil, errors.Errorf("wrong output type: %s", output.Type().String())
 	}
-	balance, _ := output.Balances().Get(devnetvm.ColorIOTA)
+	balance, _ := output.Balances().Get(devnetvm.ColorZIPP)
 	res := &SigLockedSingleOutput{
 		Address: output.Address().Base58(),
 		Balance: balance,

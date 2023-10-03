@@ -132,7 +132,7 @@ func sendConflictingTx(t *testing.T, wallet *wallet.Wallet, targetAddr address.A
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
-		balance := tests.Balance(t, node, targetAddr.Address(), devnetvm.ColorIOTA)
+		balance := tests.Balance(t, node, targetAddr.Address(), devnetvm.ColorZIPP)
 		return balance == actualGenesisTokenAmount
 	}, tests.Timeout, tests.Tick)
 

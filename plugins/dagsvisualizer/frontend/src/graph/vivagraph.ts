@@ -491,7 +491,7 @@ function updateParentRefUI(
     }
 }
 
-// copied over and refactored from https://github.com/glumb/IOTAmesh
+// copied over and refactored from https://github.com/glumb/ZIPPmesh
 function dfsIterator(
     graph,
     node,

@@ -275,7 +275,7 @@ func createsOutputsWithMetadatas(total int) {
 
 func createOutput(address devnetvm.Address, tokenAmount uint64, pledgeID identity.ID, creationTime time.Time) (output devnetvm.Output, outputMetadata *ledger.OutputMetadata) {
 	output = devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-		devnetvm.ColorIOTA: tokenAmount,
+		devnetvm.ColorZIPP: tokenAmount,
 	}), address)
 	output.SetID(utxo.NewOutputID(utxo.EmptyTransactionID, outputCounter))
 	outputCounter++

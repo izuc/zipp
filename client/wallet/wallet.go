@@ -362,7 +362,7 @@ func (wallet *Wallet) CreateAsset(asset Asset, waitForConfirmation ...bool) (ass
 	}
 
 	// where will we spend from?
-	consumedOutputs, err := wallet.collectOutputsForFunding(map[devnetvm.Color]uint64{devnetvm.ColorIOTA: asset.Supply}, false)
+	consumedOutputs, err := wallet.collectOutputsForFunding(map[devnetvm.Color]uint64{devnetvm.ColorZIPP: asset.Supply}, false)
 	if err != nil {
 		if errors.Is(err, ErrTooManyOutputs) {
 			err = errors.Errorf("consolidate funds and try again: %w", err)
@@ -386,7 +386,7 @@ func (wallet *Wallet) CreateAsset(asset Asset, waitForConfirmation ...bool) (ass
 	}
 
 	// this only works if there is only one MINT output in the transaction
-	assetColor = devnetvm.ColorIOTA
+	assetColor = devnetvm.ColorZIPP
 	for _, output := range tx.Essence().Outputs() {
 		output.Balances().ForEach(func(color devnetvm.Color, balance uint64) bool {
 			if color == devnetvm.ColorMint {
@@ -401,7 +401,7 @@ func (wallet *Wallet) CreateAsset(asset Asset, waitForConfirmation ...bool) (ass
 		return
 	}
 
-	if assetColor != devnetvm.ColorIOTA {
+	if assetColor != devnetvm.ColorZIPP {
 		asset.Color = assetColor
 		asset.TransactionID = tx.ID()
 		wallet.assetRegistry.RegisterAsset(assetColor, asset)
@@ -665,7 +665,7 @@ func (wallet *Wallet) DestroyNFT(options ...destroynftoptions.DestroyNFTOption) 
 	// can only be destroyed when minimal funds are present (unless it is delegated)
 	if !alias.IsDelegated() && !devnetvm.IsExactDustMinimum(alias.Balances()) {
 		withdrawAmount := alias.Balances().Map()
-		withdrawAmount[devnetvm.ColorIOTA] -= devnetvm.DustThresholdAliasOutputIOTA
+		withdrawAmount[devnetvm.ColorZIPP] -= devnetvm.DustThresholdAliasOutputZIPP
 		_, err = wallet.WithdrawFundsFromNFT(
 			withdrawfromnftoptions.Alias(destroyOptions.Alias.Base58()),
 			withdrawfromnftoptions.Amount(withdrawAmount),
@@ -767,9 +767,9 @@ func (wallet *Wallet) WithdrawFundsFromNFT(options ...withdrawfromnftoptions.Wit
 		if newAliasBalance[color] == 0 {
 			delete(newAliasBalance, color)
 		}
-		if color == devnetvm.ColorIOTA && newAliasBalance[color] < devnetvm.DustThresholdAliasOutputIOTA {
-			err = errors.Errorf("%d IOTA tokens would remain after withdrawal, which is less, then the minimum required %d",
-				newAliasBalance[color], devnetvm.DustThresholdAliasOutputIOTA)
+		if color == devnetvm.ColorZIPP && newAliasBalance[color] < devnetvm.DustThresholdAliasOutputZIPP {
+			err = errors.Errorf("%d ZIPP tokens would remain after withdrawal, which is less, then the minimum required %d",
+				newAliasBalance[color], devnetvm.DustThresholdAliasOutputZIPP)
 			return false
 		}
 		return true
@@ -1453,13 +1453,13 @@ func (wallet *Wallet) Balance(refresh ...bool) (confirmedBalance, pendingBalance
 				if casted.GetStateAddress().Equals(addy.Address()) {
 					// we are state controller
 					casted.Balances().ForEach(func(color devnetvm.Color, balance uint64) bool {
-						if color == devnetvm.ColorIOTA {
+						if color == devnetvm.ColorZIPP {
 							// the minimum amount can only be moved by the governor
-							surplusIOTA := balance - devnetvm.DustThresholdAliasOutputIOTA
-							if surplusIOTA == 0 {
+							surplusZIPP := balance - devnetvm.DustThresholdAliasOutputZIPP
+							if surplusZIPP == 0 {
 								return true
 							}
-							targetMap[color] += surplusIOTA
+							targetMap[color] += surplusZIPP
 						} else {
 							targetMap[color] += balance
 						}
@@ -1469,7 +1469,7 @@ func (wallet *Wallet) Balance(refresh ...bool) (confirmedBalance, pendingBalance
 				}
 				if casted.GetGoverningAddress().Equals(addy.Address()) {
 					// we are the governor, so we only own the minimum dust amount that cannot be withdrawn by the state controller
-					targetMap[devnetvm.ColorIOTA] += devnetvm.DustThresholdAliasOutputIOTA
+					targetMap[devnetvm.ColorZIPP] += devnetvm.DustThresholdAliasOutputZIPP
 					continue
 				}
 			}
@@ -2074,10 +2074,10 @@ func (wallet *Wallet) buildOutputs(
 		for color, amount := range coloredBalances {
 			outputsByColor[walletAddress][color] += amount
 			if color == devnetvm.ColorMint {
-				consumedFunds[devnetvm.ColorIOTA] -= amount
+				consumedFunds[devnetvm.ColorZIPP] -= amount
 
-				if consumedFunds[devnetvm.ColorIOTA] == 0 {
-					delete(consumedFunds, devnetvm.ColorIOTA)
+				if consumedFunds[devnetvm.ColorZIPP] == 0 {
+					delete(consumedFunds, devnetvm.ColorZIPP)
 				}
 			} else {
 				consumedFunds[color] -= amount

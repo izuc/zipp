@@ -8,7 +8,7 @@ import (
 	"github.com/izuc/zipp/packages/core/ledger/vm/devnetvm"
 )
 
-// Output is a wallet specific representation of an output in the IOTA network.
+// Output is a wallet specific representation of an output in the ZIPP network.
 type Output struct {
 	Address                  address.Address
 	Object                   devnetvm.Output

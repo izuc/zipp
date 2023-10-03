@@ -20,7 +20,7 @@ func Destination(addr address.Address, amount uint64, optionalColor ...devnetvm.
 	var outputColor devnetvm.Color
 	switch len(optionalColor) {
 	case 0:
-		outputColor = devnetvm.ColorIOTA
+		outputColor = devnetvm.ColorZIPP
 	case 1:
 		outputColor = optionalColor[0]
 	default:
@@ -173,9 +173,9 @@ func (s *SendFundsOptions) RequiredFunds() map[devnetvm.Color]uint64 {
 	requiredFunds := make(map[devnetvm.Color]uint64)
 	for _, coloredBalances := range s.Destinations {
 		for color, amount := range coloredBalances {
-			// if we want to color sth then we need fresh IOTA
+			// if we want to color sth then we need fresh ZIPP
 			if color == devnetvm.ColorMint {
-				color = devnetvm.ColorIOTA
+				color = devnetvm.ColorZIPP
 			}
 
 			requiredFunds[color] += amount

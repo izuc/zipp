@@ -356,7 +356,7 @@ func (s *SigLockedSingleOutput) Type() OutputType {
 // Balances returns the funds that are associated with the Output.
 func (s *SigLockedSingleOutput) Balances() *ColoredBalances {
 	balances := NewColoredBalances(map[Color]uint64{
-		ColorIOTA: s.M.Balance,
+		ColorZIPP: s.M.Balance,
 	})
 
 	return balances
@@ -574,9 +574,9 @@ func (s *SigLockedColoredOutput) Bytes() (bytes []byte, err error) {
 
 // region AliasOutput ///////////////////////////////////////////////////////////////////////////////////////
 
-// DustThresholdAliasOutputIOTA is minimum number of iotas enforced for the output to be correct
+// DustThresholdAliasOutputZIPP is minimum number of zipps enforced for the output to be correct
 // TODO protocol-wide dust threshold configuration.
-const DustThresholdAliasOutputIOTA = uint64(100)
+const DustThresholdAliasOutputZIPP = uint64(100)
 
 // MaxOutputPayloadSize size limit on the data payload in the output.
 const MaxOutputPayloadSize = 4 * 1024
@@ -1381,7 +1381,7 @@ func equalColoredBalances(b1, b2 *ColoredBalances) bool {
 
 // IsAboveDustThreshold internal utility to check if balances pass dust constraint.
 func IsAboveDustThreshold(m map[Color]uint64) bool {
-	if iotas, ok := m[ColorIOTA]; ok && iotas >= DustThresholdAliasOutputIOTA {
+	if zipps, ok := m[ColorZIPP]; ok && zipps >= DustThresholdAliasOutputZIPP {
 		return true
 	}
 	return false
@@ -1393,8 +1393,8 @@ func IsExactDustMinimum(b *ColoredBalances) bool {
 	if len(bals) != 1 {
 		return false
 	}
-	bal, ok := bals[ColorIOTA]
-	if !ok || bal != DustThresholdAliasOutputIOTA {
+	bal, ok := bals[ColorZIPP]
+	if !ok || bal != DustThresholdAliasOutputZIPP {
 		return false
 	}
 	return true

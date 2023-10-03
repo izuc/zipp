@@ -20,8 +20,8 @@ class App extends React.Component<AppProps, unknown> {
             <div className="root">
                 <header>
                     <Link className="brand" to="/">
-                        <img src="/assets/logo-header.svg" alt="IOTA 2.0 DevNet Analyzer" />
-                        <h1>IOTA 2.0 DevNet Analyzer</h1>
+                        <img src="/assets/logo-header.svg" alt="ZIPP 2.0 DevNet Analyzer" />
+                        <h1>ZIPP 2.0 DevNet Analyzer</h1>
                     </Link>
                     <div className="badge-container">
                         {!this.props.autopeeringStore.websocketConnected &&

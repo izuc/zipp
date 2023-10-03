@@ -5,14 +5,14 @@ go 1.20
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.4
 	github.com/beevik/ntp v0.3.0
-	github.com/capossele/asset-registry v0.0.0-20210521112927-c9d6e74574e8
 	github.com/celestiaorg/smt v0.2.1-0.20220414134126-dba215ccb884
 	github.com/cockroachdb/errors v1.11.1
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/go-resty/resty/v2 v2.6.0
+	github.com/go-resty/resty/v2 v2.9.1
 	github.com/gorilla/websocket v1.5.0
+	github.com/izuc/asset-registry v0.0.1
 	github.com/izuc/zipp.foundation v0.1.11
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/labstack/echo v3.3.10+incompatible

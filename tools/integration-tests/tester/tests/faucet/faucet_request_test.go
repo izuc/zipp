@@ -59,7 +59,7 @@ func TestFaucetRequest(t *testing.T) {
 	for _, peer := range nonFaucetPeers {
 		for idx := 0; idx < numRequests; idx++ {
 			require.Eventuallyf(t, func() bool {
-				balance := tests.Balance(t, peer, peer.Address(idx), devnetvm.ColorIOTA)
+				balance := tests.Balance(t, peer, peer.Address(idx), devnetvm.ColorZIPP)
 				return balance == uint64(faucet.Config().TokensPerRequest)
 			}, tests.Timeout, tests.Tick,
 				"peer %s did not register its requested funds on address %s", peer, peer.Address(idx).Base58())

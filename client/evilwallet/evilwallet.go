@@ -33,7 +33,7 @@ const (
 var (
 	defaultClientsURLs = []string{"http://localhost:8080", "http://localhost:8090"}
 	faucetBalance      = devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-		devnetvm.ColorIOTA: uint64(faucetTokensPerRequest),
+		devnetvm.ColorZIPP: uint64(faucetTokensPerRequest),
 	})
 )
 
@@ -600,7 +600,7 @@ func (e *EvilWallet) prepareRemainderOutput(buildOptions *Options, outputs []dev
 	// remainder balances is sent to one of the address in inputs
 	if outputBalance < inputBalance {
 		remainderOutput = devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-			devnetvm.ColorIOTA: inputBalance - outputBalance,
+			devnetvm.ColorZIPP: inputBalance - outputBalance,
 		}), remainderAddress)
 		added = true
 	}
@@ -648,7 +648,7 @@ func (e *EvilWallet) updateOutputBalances(buildOptions *Options) (err error) {
 		i := 0
 		for out := range buildOptions.aliasOutputs {
 			buildOptions.aliasOutputs[out] = devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-				devnetvm.ColorIOTA: balances[i],
+				devnetvm.ColorZIPP: balances[i],
 			})
 			i++
 		}

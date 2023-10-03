@@ -369,7 +369,7 @@ export class VisualizerStore {
 
 export default VisualizerStore;
 
-// copied over and refactored from https://github.com/glumb/IOTAmesh
+// copied over and refactored from https://github.com/glumb/ZIPPmesh
 function dfsIterator(graph, node, cb, up, cbLinks: any = false, seenNodes = []) {
     seenNodes.push(node);
     let pointer = 0;

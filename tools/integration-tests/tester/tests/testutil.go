@@ -297,7 +297,7 @@ func SendTransaction(t *testing.T, from *framework.Node, to *framework.Node, col
 
 	inputColor := color
 	if color == devnetvm.ColorMint {
-		inputColor = devnetvm.ColorIOTA
+		inputColor = devnetvm.ColorZIPP
 	}
 	balance := Balance(t, from, inputAddr, inputColor)
 	require.GreaterOrEqualf(t, balance, value, "address=%s, insufficient balance", inputAddr.Base58())

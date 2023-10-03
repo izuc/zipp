@@ -63,7 +63,7 @@ func TestConflictSpamAndMergeToMaster(t *testing.T) {
 	tests.SendDataBlocksWithDelay(t, n.Peers(), dataBlocksAmount, delayBetweenDataBlocks)
 
 	require.Eventually(t, func() bool {
-		return tests.Balance(t, peer1, fundingAddress, devnetvm.ColorIOTA) >= uint64(tokensPerRequest)
+		return tests.Balance(t, peer1, fundingAddress, devnetvm.ColorZIPP) >= uint64(tokensPerRequest)
 	}, tests.Timeout, tests.Tick)
 
 	addresses := make([]devnetvm.Address, splits)

@@ -45,7 +45,7 @@ func getOutputByJSON(jsonOutput *jsonmodels.Output) (output devnetvm.Output) {
 func getIotaColorAmount(balance *devnetvm.ColoredBalances) uint64 {
 	outBalance := uint64(0)
 	balance.ForEach(func(color devnetvm.Color, balance uint64) bool {
-		if color == devnetvm.ColorIOTA {
+		if color == devnetvm.ColorZIPP {
 			outBalance += balance
 		}
 		return true

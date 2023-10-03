@@ -62,11 +62,11 @@ func TestColoredBalancesFromBytes(t *testing.T) {
 
 func TestColoredBalances_String(t *testing.T) {
 	coloredBalances := NewColoredBalances(map[Color]uint64{
-		ColorIOTA: 100,
+		ColorZIPP: 100,
 		ColorMint: 120,
 	})
 
-	assert.Equal(t, "ColoredBalances {\n    IOTA: 100\n    MINT: 120\n}", coloredBalances.String())
+	assert.Equal(t, "ColoredBalances {\n    ZIPP: 100\n    MINT: 120\n}", coloredBalances.String())
 }
 
 func TestNonExistentColor(t *testing.T) {
@@ -81,7 +81,7 @@ func TestNonExistentColor(t *testing.T) {
 	require.True(t, ok)
 
 	require.NotPanics(t, func() {
-		amount, ok = cb.Get(ColorIOTA)
+		amount, ok = cb.Get(ColorZIPP)
 	})
 	require.False(t, ok)
 	require.EqualValues(t, 0, amount)

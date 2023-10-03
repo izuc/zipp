@@ -38,7 +38,7 @@ func printUsage() {
 		os.Stderr,
 		"\n"+
 			"ZIPP\n\n"+
-			"  A lightweight modular IOTA node.\n\n"+
+			"  A lightweight modular ZIPP node.\n\n"+
 			"Usage:\n\n"+
 			"  %s [OPTIONS]\n\n"+
 			"Options:\n",

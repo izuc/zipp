@@ -173,16 +173,16 @@ func (m *ManaBaseVector) BookEpoch(created []*ledger.OutputWithMetadata, spent [
 		// first, revoke mana from previous owners
 		for _, output := range spent {
 			idToRevoke := m.getIDBasedOnManaType(output)
-			outputIOTAs, exists := output.Output().(devnetvm.Output).Balances().Get(devnetvm.ColorIOTA)
+			outputZIPPs, exists := output.Output().(devnetvm.Output).Balances().Get(devnetvm.ColorZIPP)
 			if !exists {
 				continue
 			}
-			oldMana := m.getOldManaAndRevoke(idToRevoke, float64(outputIOTAs))
+			oldMana := m.getOldManaAndRevoke(idToRevoke, float64(outputZIPPs))
 
 			// save events for later triggering
 			revokeEvents = append(revokeEvents, &RevokedEvent{
 				NodeID:        idToRevoke,
-				Amount:        float64(outputIOTAs),
+				Amount:        float64(outputZIPPs),
 				Time:          output.CreationTime(),
 				ManaType:      m.Type(),
 				TransactionID: output.ID().TransactionID,
@@ -199,14 +199,14 @@ func (m *ManaBaseVector) BookEpoch(created []*ledger.OutputWithMetadata, spent [
 		for _, output := range created {
 			idToPledge := m.getIDBasedOnManaType(output)
 
-			outputIOTAs, exists := output.Output().(devnetvm.Output).Balances().Get(devnetvm.ColorIOTA)
+			outputZIPPs, exists := output.Output().(devnetvm.Output).Balances().Get(devnetvm.ColorZIPP)
 			if !exists {
 				continue
 			}
-			oldMana := m.getOldManaAndPledge(idToPledge, float64(outputIOTAs))
+			oldMana := m.getOldManaAndPledge(idToPledge, float64(outputZIPPs))
 			pledgeEvents = append(pledgeEvents, &PledgedEvent{
 				NodeID:        idToPledge,
-				Amount:        float64(outputIOTAs),
+				Amount:        float64(outputZIPPs),
 				Time:          output.CreationTime(),
 				ManaType:      m.Type(),
 				TransactionID: output.Output().ID().TransactionID,

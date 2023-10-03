@@ -30,7 +30,7 @@ const (
 
 // region Mesh ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Mesh is the central data structure of the IOTA protocol.
+// Mesh is the central data structure of the ZIPP protocol.
 type Mesh struct {
 	dagMutex *syncutils.DAGMutex[BlockID]
 
@@ -208,7 +208,7 @@ type Options struct {
 	ConflictDAGOptions             []conflictdag.Option
 	Identity                       *identity.LocalIdentity
 	IncreaseMarkersIndexCallback   markers.IncreaseIndexCallback
-	MeshWidth                    int
+	MeshWidth                      int
 	GenesisNode                    *ed25519.PublicKey
 	SchedulerParams                SchedulerParams
 	RateSetterParams               RateSetterParams

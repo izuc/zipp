@@ -22,7 +22,7 @@ import (
 type Exit struct{ Code int }
 
 func printBanner() {
-	fmt.Println("IOTA 2.0 DevNet CLI-Wallet 0.2")
+	fmt.Println("ZIPP 2.0 DevNet CLI-Wallet 0.2")
 }
 
 func loadWallet() *wallet.Wallet {

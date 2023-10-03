@@ -93,7 +93,7 @@ func main() {
 			destAddr := receiverSeeds[i].Address(0)
 
 			output := devnetvm.NewSigLockedColoredOutput(devnetvm.NewColoredBalances(map[devnetvm.Color]uint64{
-				devnetvm.ColorIOTA: uint64(1000000),
+				devnetvm.ColorZIPP: uint64(1000000),
 			}), destAddr.Address())
 			txEssence := devnetvm.NewTransactionEssence(0, time.Now(), identity.ID{}, identity.ID{}, devnetvm.NewInputs(devnetvm.NewUTXOInput(out)), devnetvm.NewOutputs(output))
 			kp := *mySeed.KeyPair(0)

@@ -109,7 +109,7 @@ var (
 //
 //	var faucetStartAddress uint64 = faucetplugin.MaxFaucetOutputsCount + 1
 //	// pledge mana to allowed peers
-//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorIOTA, tokensPerRequest, tests.TransactionConfig{
+//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorZIPP, tokensPerRequest, tests.TransactionConfig{
 //		FromAddressIndex:      faucetStartAddress,
 //		ToAddressIndex:        0,
 //		AccessManaPledgeID:    accessPeer.Identity.ID(),
@@ -118,7 +118,7 @@ var (
 //	require.NoError(t, err)
 //
 //	// pledge consensus mana to forbidden peer
-//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorIOTA, tokensPerRequest, tests.TransactionConfig{
+//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorZIPP, tokensPerRequest, tests.TransactionConfig{
 //		FromAddressIndex:      faucetStartAddress,
 //		ToAddressIndex:        0,
 //		AccessManaPledgeID:    accessPeer.Identity.ID(),
@@ -127,7 +127,7 @@ var (
 //	require.Contains(t, err.Error(), webapiledgerstate.ErrNotAllowedToPledgeManaToNode.Error())
 //
 //	// pledge access mana to forbidden peer
-//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorIOTA, tokensPerRequest, tests.TransactionConfig{
+//	_, err = tests.SendTransaction(t, faucet, accessPeer, devnetvm.ColorZIPP, tokensPerRequest, tests.TransactionConfig{
 //		FromAddressIndex:      faucetStartAddress,
 //		ToAddressIndex:        0,
 //		AccessManaPledgeID:    consensusPeer.Identity.ID(),
